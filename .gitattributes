@@ -14,4 +14,8 @@
 /.gitignore         export-ignore
 /phpstan.neon.dist  export-ignore
 /phpunit.xml.dist   export-ignore
+/package.json       export-ignore
 /pint.json          export-ignore
+/pnpm-lock.yaml     export-ignore
+/tsconfig.json      export-ignore
+/vite.config.ts     export-ignore
