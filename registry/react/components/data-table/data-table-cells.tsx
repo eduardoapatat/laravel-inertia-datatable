@@ -21,8 +21,6 @@ import type {
     ColumnSelectOption,
     DataTableColumnMeta,
 } from '@/lib/data-table-types';
-import { getColumnLabelVar } from '@/lib/data-table-utils';
-import { cn } from '@/lib/utils';
 
 type DataTableCellProps<TData extends RowData, TValue> = CellContext<
     DataTableFeatures,
@@ -110,11 +108,8 @@ export function DataTableTextCell<TData extends RowData, TValue>(
 }
 
 /**
- * Number, currency or percentage with Intl and the table locale, right-aligned
- * in a box as wide as the header label (measured by the table header): the
- * figures end right under the header and do not touch the next column.
- * `meta.numberClassName` changes the box (`min-w-28` when the figures are
- * longer than the label).
+ * Number, currency or percentage with Intl and the table locale; the column is
+ * aligned to the end with its header (`meta.align` changes it).
  */
 export function DataTableNumberCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
@@ -122,18 +117,7 @@ export function DataTableNumberCell<TData extends RowData, TValue>(
     const { meta, locale } = cellSetup(props);
 
     return (
-        <span
-            data-slot="data-table-number"
-            className={cn(
-                'inline-block min-w-(--number-width) text-right tabular-nums',
-                meta?.numberClassName,
-            )}
-            style={
-                {
-                    '--number-width': `var(${getColumnLabelVar(props.column.id)}, 5rem)`,
-                } as React.CSSProperties
-            }
-        >
+        <span data-slot="data-table-number" className="tabular-nums">
             {formatCellValue(
                 meta?.display?.type === 'number'
                     ? meta

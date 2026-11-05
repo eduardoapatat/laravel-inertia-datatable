@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { getColumnClassName } from './data-table-utils';
+import { getColumnAlign, getColumnClassName } from './data-table-utils';
 
 describe('getColumnClassName', () => {
     it('gives the width class and the classes of the column', () => {
         expect(getColumnClassName(undefined, 'cell')).toEqual([
             'w-(--cell-size)',
+            'text-start',
         ]);
         expect(
             getColumnClassName(
@@ -16,10 +17,10 @@ describe('getColumnClassName', () => {
                 },
                 'header',
             ),
-        ).toEqual(['w-(--cell-size)', 'w-40 md:w-80', 'text-xs']);
+        ).toEqual(['w-(--cell-size)', 'text-start', 'w-40 md:w-80', 'text-xs']);
         expect(
             getColumnClassName({ cellClassName: 'font-mono' }, 'cell'),
-        ).toEqual(['w-(--cell-size)', 'font-mono']);
+        ).toEqual(['w-(--cell-size)', 'text-start', 'font-mono']);
     });
 
     it('calls cellClassName with the cell when it is a function', () => {
@@ -34,11 +35,34 @@ describe('getColumnClassName', () => {
 
         expect(getColumnClassName(meta, 'cell', cell(50))).toEqual([
             'w-(--cell-size)',
+            'text-start',
             'text-red-600',
         ]);
         expect(getColumnClassName(meta, 'cell', cell(500))).toEqual([
             'w-(--cell-size)',
+            'text-start',
         ]);
-        expect(getColumnClassName(meta, 'header')).toEqual(['w-(--cell-size)']);
+        expect(getColumnClassName(meta, 'header')).toEqual([
+            'w-(--cell-size)',
+            'text-start',
+        ]);
+    });
+});
+
+describe('getColumnAlign', () => {
+    it('aligns numbers to the end and the rest to the start', () => {
+        expect(getColumnAlign({ variant: 'number' })).toBe('end');
+        expect(
+            getColumnAlign({ display: { type: 'number', format: {} } }),
+        ).toBe('end');
+        expect(getColumnAlign({ variant: 'text' })).toBe('start');
+        expect(getColumnAlign(undefined)).toBe('start');
+        expect(getColumnAlign({ variant: 'number', align: 'center' })).toBe(
+            'center',
+        );
+        expect(getColumnClassName({ variant: 'number' }, 'cell')).toEqual([
+            'w-(--cell-size)',
+            'pe-4 text-end',
+        ]);
     });
 });

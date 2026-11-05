@@ -21,12 +21,11 @@ import { getMessage } from '@/lib/data-table-messages';
 
 import {
     getAriaSort,
+    getColumnAlign,
     getColumnClassName,
-    getColumnLabelVar,
     getColumnPinningStyle,
     getColumnSizingStyle,
     getVisibleSelectedRows,
-    isNumberColumn,
 } from '@/lib/data-table-utils';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { useDirection } from '@/components/ui/direction';
@@ -188,13 +187,6 @@ function DataTableHeadCell<TData extends RowData>({
     header,
     pinned,
 }: DataTableHeadCellProps<TData>) {
-    const ref = React.useRef<HTMLTableCellElement>(null);
-    useHeaderLabelWidth(
-        ref,
-        header.column.id,
-        isNumberColumn(header.column.columnDef.meta),
-    );
-
     return (
         <Subscribe
             source={header.column.table.atoms.sorting}
@@ -202,10 +194,11 @@ function DataTableHeadCell<TData extends RowData>({
         >
             {(ariaSort) => (
                 <TableHead
-                    ref={ref}
                     aria-sort={ariaSort}
                     colSpan={header.colSpan}
+                    data-align={getColumnAlign(header.column.columnDef.meta)}
                     className={cn(
+                        'group/head',
                         getCellClassName(pinned),
                         ...getColumnClassName(
                             header.column.columnDef.meta,
@@ -221,61 +214,6 @@ function DataTableHeadCell<TData extends RowData>({
             )}
         </Subscribe>
     );
-}
-
-/**
- * Writes on the table the width of the header label of a number column (from
- * the start of the cell content to the end of its last icon), so its cells
- * end their figures right under it, whatever the length of the label.
- */
-function useHeaderLabelWidth(
-    ref: React.RefObject<HTMLTableCellElement | null>,
-    columnId: string,
-    enabled: boolean,
-) {
-    React.useLayoutEffect(() => {
-        const cell = ref.current;
-        const content = cell?.firstElementChild;
-        const table = cell?.closest('table');
-
-        if (!enabled || !cell || !content || !table) {
-            return;
-        }
-
-        const name = getColumnLabelVar(columnId);
-
-        function measure() {
-            if (!cell || !content || !table) return;
-
-            const range = document.createRange();
-            range.selectNodeContents(content);
-            const label = range.getBoundingClientRect();
-            const box = cell.getBoundingClientRect();
-            const style = getComputedStyle(cell);
-            const width =
-                style.direction === 'rtl'
-                    ? box.right -
-                      Number.parseFloat(style.paddingRight) -
-                      label.left
-                    : label.right -
-                      box.left -
-                      Number.parseFloat(style.paddingLeft);
-
-            table.style.setProperty(
-                name,
-                `${Math.max(0, Math.round(width))}px`,
-            );
-        }
-
-        measure();
-        const observer = new ResizeObserver(measure);
-        observer.observe(content);
-
-        return () => {
-            observer.disconnect();
-            table.style.removeProperty(name);
-        };
-    }, [ref, columnId, enabled]);
 }
 
 function getCellClassName(pinned: ColumnPinningPosition) {

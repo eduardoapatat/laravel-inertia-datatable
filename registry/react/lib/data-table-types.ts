@@ -85,6 +85,8 @@ export type DatePreset = Extract<
     string
 >;
 
+export type DataTableAlign = 'start' | 'center' | 'end';
+
 export type DataTableCellClassName = (
     cell: Cell<DataTableFeatures, RowData>,
 ) => string | false | null | undefined;
@@ -113,10 +115,10 @@ export type DataTableColumnMeta = {
      */
     cellClassName?: string | DataTableCellClassName;
     /**
-     * Classes of the right-aligned box of number cells (as wide as the header
-     * label by default), for example `min-w-28` for figures longer than it.
+     * Alignment of the header and the cells, together so they always line up:
+     * `end` for number columns and `start` for the rest by default.
      */
-    numberClassName?: string;
+    align?: DataTableAlign;
 } & ColumnVariantMeta;
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];

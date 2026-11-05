@@ -14,6 +14,7 @@ import type {
     ColumnFilterItem,
     ColumnSelectOption,
     ColumnVariantMeta,
+    DataTableAlign,
     DataTableColumnMeta,
     FilterOperator,
     FilterOperatorOption,
@@ -185,9 +186,12 @@ export function getColumnClassName(
                   : undefined
               : meta?.cellClassName;
 
-    return ['w-(--cell-size)', meta?.className, own].filter(
-        (item): item is string => typeof item === 'string' && item !== '',
-    );
+    return [
+        'w-(--cell-size)',
+        ALIGN_CLASSES[getColumnAlign(meta)],
+        meta?.className,
+        own,
+    ].filter((item): item is string => typeof item === 'string' && item !== '');
 }
 
 export function getColumnSizingStyle<TData extends RowData>(
@@ -307,15 +311,6 @@ export function getSelectFilterValue(filter: ColumnFilterItem) {
 }
 
 /**
- * CSS variable with the width of the header label of a number column, from its
- * start to the end of its last icon: number cells use it so figures end right
- * under the header (see `useHeaderLabelWidth` in data-table.tsx).
- */
-export function getColumnLabelVar(columnId: string) {
-    return getColumnVar(columnId, 'label');
-}
-
-/**
  * Whether the default cell of the column is a number cell.
  */
 export function isNumberColumn(meta: DataTableColumnMeta | undefined) {
@@ -324,7 +319,24 @@ export function isNumberColumn(meta: DataTableColumnMeta | undefined) {
         : meta?.variant === 'number';
 }
 
-function getColumnVar(columnId: string, property: 'size' | 'offset' | 'label') {
+/**
+ * Alignment of the header and the cells of a column: `meta.align`, else `end`
+ * for numbers (figures line up) and `start` for the rest.
+ */
+export function getColumnAlign(
+    meta: DataTableColumnMeta | undefined,
+): DataTableAlign {
+    return meta?.align ?? (isNumberColumn(meta) ? 'end' : 'start');
+}
+
+// `end` adds room before the next column, which usually starts at its start.
+const ALIGN_CLASSES: Record<DataTableAlign, string> = {
+    start: 'text-start',
+    center: 'text-center',
+    end: 'pe-4 text-end',
+};
+
+function getColumnVar(columnId: string, property: 'size' | 'offset') {
     const name = columnId.replace(
         /[^a-zA-Z0-9-]/g,
         (char) => `_${char.codePointAt(0)?.toString(16)}_`,
