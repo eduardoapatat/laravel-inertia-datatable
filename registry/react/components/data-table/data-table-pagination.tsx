@@ -113,12 +113,16 @@ function DataTablePaginationContent<TData extends RowData>({
                 role="status"
                 className="flex-1 text-sm whitespace-nowrap text-muted-foreground"
             >
-                {selectedRowCount} {selectedRowCount === 1 ? 'row' : 'rows'}{' '}
-                selected
-                {selectedRowCount > visibleSelectedRowCount
-                    ? ` (${selectedRowCount - visibleSelectedRowCount} not shown)`
-                    : ''}
-                .
+                {selectedRowCount > 0 && (
+                    <>
+                        {selectedRowCount}{' '}
+                        {selectedRowCount === 1 ? 'row' : 'rows'} selected
+                        {selectedRowCount > visibleSelectedRowCount
+                            ? ` (${selectedRowCount - visibleSelectedRowCount} not shown)`
+                            : ''}
+                        .
+                    </>
+                )}
             </div>
             <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
                 <div className="flex items-center gap-2">
