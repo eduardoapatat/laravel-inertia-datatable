@@ -6,7 +6,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Changed
 
-- The header and the cells of a column are aligned together with `meta.align` (`'start' | 'center' | 'end'`): number columns are aligned to the end by default, with their header, and get more room before the next column (`pe-4`). It is plain CSS, so nothing moves after the page loads. Columns that were right-aligned with `meta.className: 'text-right'` no longer need it.
+- The header and the cells of a column are aligned together with `meta.align` (`'start' | 'center' | 'end'`): number columns are aligned to the end by default, with their header, and get more room before the next column (`pe-8`). It is plain CSS, so nothing moves after the page loads. Columns that were right-aligned with `meta.className: 'text-right'` no longer need it.
 
 ## [0.6.0] - 2026-11-05
 

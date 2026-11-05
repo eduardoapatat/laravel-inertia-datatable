@@ -333,7 +333,7 @@ export function getColumnAlign(
 const ALIGN_CLASSES: Record<DataTableAlign, string> = {
     start: 'text-start',
     center: 'text-center',
-    end: 'pe-4 text-end',
+    end: 'pe-8 text-end',
 };
 
 function getColumnVar(columnId: string, property: 'size' | 'offset') {

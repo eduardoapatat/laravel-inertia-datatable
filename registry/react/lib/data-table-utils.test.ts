@@ -62,7 +62,7 @@ describe('getColumnAlign', () => {
         );
         expect(getColumnClassName({ variant: 'number' }, 'cell')).toEqual([
             'w-(--cell-size)',
-            'pe-4 text-end',
+            'pe-8 text-end',
         ]);
     });
 });

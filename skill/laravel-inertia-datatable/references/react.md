@@ -173,7 +173,7 @@ columnHelper.accessor('price', {
 
 - Prefer `meta.*ClassName` to a custom `cell` when only spacing, size, alignment or colors change; write a `cell` to render something else. Tailwind classes are for layout and colors: when shadcn has a component for the thing (Badge, Checkbox, Button), use the component.
 
-- Alignment goes in `meta.align` (`start`, `center`, `end`), never as `text-right` in `className`: it aligns the header and the cells together so they line up exactly (the header button compensates its padding). Number columns are `end` by default, with `pe-4` of room before the next column.
+- Alignment goes in `meta.align` (`start`, `center`, `end`), never as `text-right` in `className`: it aligns the header and the cells together so they line up exactly (the header button compensates its padding). Number columns are `end` by default, with `pe-8` of room before the next column.
 - `meta.className` goes to the header and the cells, `headerClassName` / `cellClassName` to one of them. A `w-*` class replaces the `size` width (they are merged with `cn`); a `md:w-*` alone keeps `size` below that breakpoint.
 - The table grows to the sum of its columns and scrolls horizontally when it does not fit; when it fits, the extra space is shared.
 - Pinned columns compute their offset from `size`: give them `size`, not width classes.
