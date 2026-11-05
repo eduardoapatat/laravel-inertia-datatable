@@ -6,3 +6,6 @@ parameters:
     paths:
         - src
         - config
+    # El config/ del paquete es donde env() está permitido (por defecto Larastan usa el de la app).
+    configDirectories:
+        - config

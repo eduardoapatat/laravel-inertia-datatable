@@ -44,11 +44,13 @@ return [
     | Registro shadcn del frontend
     |--------------------------------------------------------------------------
     |
-    | Base de los items del registro que usa `make:datatable --install-ui`.
-    | Para desarrollar el paquete se puede apuntar a un servidor local.
+    | Base de los items del registro que usan `make:datatable --install-ui` e
+    | `inertia-datatable:ui`. Puede ser una URL o una carpeta local con los JSON
+    | compilados (`r/`). Con INERTIA_DATATABLE_REGISTRY_URL se fija, por ejemplo,
+    | a una versión etiquetada sin publicar este archivo.
     |
     */
 
-    'registry_url' => 'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r',
+    'registry_url' => env('INERTIA_DATATABLE_REGISTRY_URL', 'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r'),
 
 ];

@@ -76,3 +76,15 @@ it('updates without asking with the force option', function () {
 
     Process::assertRanTimes(fn ($process) => in_array('--overwrite', $process->command, true), 1);
 });
+
+it('reads the registry url from the environment', function () {
+    putenv('INERTIA_DATATABLE_REGISTRY_URL=/ci/checkout/r');
+
+    try {
+        $config = require __DIR__.'/../../../config/inertia-datatable.php';
+    } finally {
+        putenv('INERTIA_DATATABLE_REGISTRY_URL');
+    }
+
+    expect($config['registry_url'])->toBe('/ci/checkout/r');
+});
