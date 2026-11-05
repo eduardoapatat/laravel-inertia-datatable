@@ -171,6 +171,19 @@ columnHelper.accessor('price', { meta: { className: 'text-right' } }),
 - The table grows to the sum of its columns and scrolls horizontally when it does not fit; when it fits, the extra space is shared.
 - Pinned columns compute their offset from `size`: give them `size`, not width classes.
 
+Row height and row classes are props of `<DataTable>`; the classes go on the `<tr>`, so cell padding is changed with `[&>th]` / `[&>td]`:
+
+```tsx
+// Outside the component, so the rows keep their memo
+function rowClassName(row: Row<DataTableFeatures, Product>) {
+    return cn('[&>td]:py-1', (row.original.stock ?? 0) < 50 && 'bg-amber-50 dark:bg-amber-950/30');
+}
+
+<DataTable table={table} headerClassName="[&>th]:h-8" rowClassName={rowClassName}>
+```
+
+- `rowClassName` is a string or a function of the row; `meta.cellClassName: 'py-4'` makes rows taller from a single column.
+
 ## Layout: reorder the pieces
 
 The toolbar and the pagination are made of exported pieces. To change the layout, compose them in the per-table component instead of editing `components/data-table/*`:

@@ -7,10 +7,12 @@ All notable changes to this package are documented here. The format follows [Kee
 ### Added
 
 - Tailwind classes per column in the React `meta`: `className` (header and cells), `headerClassName` and `cellClassName`. A width class (`w-40 md:w-80`) replaces the `size` width, so widths can be responsive.
+- `<DataTable>` takes `headerClassName` and `rowClassName` (a string or a function of the row), for the row height (`[&>td]:py-1`) or to color rows by their data.
 
 ### Changed
 
 - The column width is the `w-(--cell-size)` class instead of an inline style, and the table no longer has a `minWidth`: with `table-fixed` it grows to the sum of its columns.
+- The header button is `inline-flex`, so it follows the alignment of its column (`meta.className: 'text-right'`).
 
 ## [0.5.0] - 2026-11-05
 
