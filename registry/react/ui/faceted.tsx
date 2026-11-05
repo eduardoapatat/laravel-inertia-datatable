@@ -596,8 +596,10 @@ function FacetedItemIndicator({
 }
 
 /**
- * Checkbox at the start of an item, checked while the item is selected. Its
- * border is not `border-input`: in some dark themes it equals the hover color.
+ * Checkbox at the start of an item, checked while the item is selected. The
+ * border comes from the text color of the item, which every theme makes
+ * readable on the item background (also on hover), not from `--input`: in
+ * some themes it equals `--accent`, the hover color.
  */
 function FacetedItemCheckbox({
     className,
@@ -608,7 +610,7 @@ function FacetedItemCheckbox({
             aria-hidden="true"
             data-slot="faceted-item-checkbox"
             className={cn(
-                'flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-muted-foreground/50 group-data-checked/command-item:border-primary group-data-checked/command-item:bg-primary group-data-checked/command-item:text-primary-foreground',
+                'flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-current/50 group-data-checked/command-item:border-primary group-data-checked/command-item:bg-primary group-data-checked/command-item:text-primary-foreground',
                 className,
             )}
             {...props}
