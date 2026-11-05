@@ -6,6 +6,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Changed
 
+- The trigger of the range filter shows its bounds with the format of the column (`->money('CLP')` → `$10.000 - $900.000`); the unit is only added when the format has no currency or percentage.
 - Cell content that does not fit ends in "…" (`text-ellipsis`) instead of being cut against the next column; `meta.cellClassName: 'text-clip'` undoes it in a column.
 - The header and the cells of a column are aligned together with `meta.align` (`'start' | 'center' | 'end'`): number columns are aligned to the end by default, with their header, and get more room before the next column (`pe-8`). It is plain CSS, so nothing moves after the page loads. Columns that were right-aligned with `meta.className: 'text-right'` no longer need it.
 
