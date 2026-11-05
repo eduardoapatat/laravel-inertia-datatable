@@ -1,4 +1,10 @@
-{{ imports }}
+import { createColumnHelper } from '@tanstack/react-table';
+import { DataTable } from '@/components/data-table/data-table';
+import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
+import { useServerDataTable } from '@/hooks/use-server-data-table';
+import type { DataTableFeatures } from '@/lib/data-table-features';
+import type { ServerDataTable } from '@/lib/data-table-server';
+import { cn } from '@/lib/utils';
 
 /**
  * Rows only include the visible columns, so most fields are optional.
@@ -10,9 +16,18 @@ export type {{ rowType }} = {
 
 const columnHelper = createColumnHelper<DataTableFeatures, {{ rowType }}>();
 
-const columns = columnHelper.columns([
-{{ columns }}
-]);
+/**
+ * The table class decides which columns are shown, in which order and how they
+ * filter. Declare a column here only to customize it (same id), for example:
+ *
+ *     columnHelper.accessor('{{ example }}', {
+ *         cell: ({ cell }) => <strong>{cell.getValue()}</strong>,
+ *     }),
+ *
+ * Columns that only exist here (actions, selection) go at the end, or at the
+ * start with `meta: { position: 'start' }`.
+ */
+const columns = columnHelper.columns([]);
 
 type {{ component }}Props = {
     {{ prop }}: ServerDataTable<{{ rowType }}>;

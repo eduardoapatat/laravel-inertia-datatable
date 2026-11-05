@@ -74,10 +74,9 @@ it('creates a reusable React component with the react option', function () {
         ->toContain('    name?: string;')
         ->toContain('    category?: string | null;')
         ->toContain('    price?: number;')
-        ->toContain("columnHelper.accessor('status', {")
-        ->toContain('getOptionLabel(column.columnDef.meta, cell.getValue()),')
-        ->toContain("cell: ({ cell }) => (cell.getValue() ? 'Yes' : 'No'),")
-        ->toContain("import { formatDate } from '@/lib/data-table-format';")
+        ->toContain('const columns = columnHelper.columns([]);')
+        ->toContain(" *     columnHelper.accessor('name', {")
+        ->not->toContain('{{')
         ->toContain('export function ProductsTable({')
         ->toContain("prop = 'products',")
         ->and(File::exists(resource_path('js/pages/products/index.tsx')))->toBeFalse();

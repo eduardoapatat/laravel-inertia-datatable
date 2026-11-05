@@ -201,7 +201,8 @@ PHP;
     }
 
     /**
-     * Componente de la tabla (tipos, columnas, hook y DataTable), reutilizable en cualquier página.
+     * Componente de la tabla (tipo de la fila, hook y DataTable), reutilizable en cualquier página.
+     * Las columnas y su orden los decide la clase de la tabla.
      *
      * @param  class-string<Model>  $model
      */
@@ -209,14 +210,12 @@ PHP;
     {
         $names = $this->resourceNames($model);
         $columns = $this->guessColumns($model);
-        $kinds = array_map(fn (GuessedColumn $column): string => $column->kind, $columns);
 
         $this->writeFile(
             $this->laravel->resourcePath("js/components/data-tables/{$names['file']}.tsx"),
             str_replace(
-                ['{{ imports }}', '{{ rowType }}', '{{ rowFields }}', '{{ prop }}', '{{ columns }}', '{{ component }}', '{{ title }}'],
+                ['{{ rowType }}', '{{ rowFields }}', '{{ prop }}', '{{ example }}', '{{ component }}', '{{ title }}'],
                 [
-                    $this->componentImports(in_array('option', $kinds, true), in_array('date', $kinds, true)),
                     $names['row'],
                     collect($columns)->map(fn (GuessedColumn $column): string => sprintf(
                         '    %s?: %s%s;',
@@ -229,7 +228,7 @@ PHP;
                         $column->nullable ? ' | null' : '',
                     ))->implode("\n"),
                     $names['prop'],
-                    collect($columns)->map(fn (GuessedColumn $column): string => $this->reactColumn($column))->implode("\n"),
+                    ($columns[0] ?? null)?->id ?? 'name',
                     $names['component'],
                     $names['title'],
                 ],
@@ -270,48 +269,6 @@ PHP;
         $this->files->ensureDirectoryExists(dirname($path));
         $this->files->put($path, $contents);
         $this->components->info("{$type} [{$path}] created successfully.");
-    }
-
-    private function componentImports(bool $usesOptions, bool $usesDates): string
-    {
-        $imports = [
-            "import { createColumnHelper } from '@tanstack/react-table';",
-            "import { DataTable } from '@/components/data-table/data-table';",
-            "import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';",
-            "import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';",
-            $usesOptions
-                ? "import {\n    getOptionLabel,\n    useServerDataTable,\n} from '@/hooks/use-server-data-table';"
-                : "import { useServerDataTable } from '@/hooks/use-server-data-table';",
-            "import type { DataTableFeatures } from '@/lib/data-table-features';",
-        ];
-
-        if ($usesDates) {
-            $imports[] = "import { formatDate } from '@/lib/data-table-format';";
-        }
-
-        $imports[] = "import type { ServerDataTable } from '@/lib/data-table-server';";
-        $imports[] = "import { cn } from '@/lib/utils';";
-
-        return implode("\n", $imports);
-    }
-
-    private function reactColumn(GuessedColumn $column): string
-    {
-        $cell = match ($column->kind) {
-            'boolean' => "        cell: ({ cell }) => (cell.getValue() ? 'Yes' : 'No'),\n",
-            'date' => "        cell: ({ cell }) => formatDate(cell.getValue() ?? undefined),\n",
-            'option' => "        cell: ({ cell, column }) =>\n            getOptionLabel(column.columnDef.meta, cell.getValue()),\n",
-            default => '',
-        };
-
-        return <<<TSX
-    columnHelper.accessor('{$column->id}', {
-        id: '{$column->id}',
-        header: ({ column }) => (
-            <DataTableColumnHeader column={column} label="{$column->label}" />
-        ),
-{$cell}    }),
-TSX;
     }
 
     /**
