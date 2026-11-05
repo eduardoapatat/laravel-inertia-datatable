@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EduardoApatat\InertiaDataTable;
 
+use EduardoApatat\InertiaDataTable\Console\MakeDataTableCommand;
 use Illuminate\Support\ServiceProvider;
 
 class InertiaDataTableServiceProvider extends ServiceProvider
@@ -19,6 +20,13 @@ class InertiaDataTableServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/inertia-datatable.php' => config_path('inertia-datatable.php'),
             ], 'inertia-datatable-config');
+
+            $this->publishes([
+                __DIR__.'/../stubs/datatable.stub' => base_path('stubs/datatable.stub'),
+                __DIR__.'/../stubs/datatable-page-react.stub' => base_path('stubs/datatable-page-react.stub'),
+            ], 'inertia-datatable-stubs');
+
+            $this->commands([MakeDataTableCommand::class]);
         }
     }
 }

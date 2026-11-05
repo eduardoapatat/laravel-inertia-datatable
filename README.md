@@ -37,6 +37,16 @@ composer require eduardoapatat/laravel-inertia-datatable:@dev
 php artisan vendor:publish --tag=inertia-datatable-config   # opcional
 ```
 
+## Crear una tabla
+
+```bash
+php artisan make:datatable ProductsTable            # modelo deducido: App\Models\Product
+php artisan make:datatable ProductsTable --react    # además, resources/js/pages/products/index.tsx
+php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
+```
+
+Propone las columnas leyendo los casts del modelo y el esquema de la tabla: texto (buscable y ordenable), números, booleanos, fechas, enums (`multiSelect(Enum::class)`) y relaciones `belongsTo` (`category_id` → `from('category.name')`). Omite la clave primaria, los atributos `$hidden` y columnas sensibles (`password`, `remember_token`…). Los stubs se pueden personalizar con `php artisan vendor:publish --tag=inertia-datatable-stubs`.
+
 ## Instalación del frontend (React)
 
 En un proyecto con el starter kit de React de Laravel:

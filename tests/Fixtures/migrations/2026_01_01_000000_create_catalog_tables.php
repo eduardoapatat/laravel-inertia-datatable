@@ -28,5 +28,15 @@ return new class extends Migration
             $table->date('released_on');
             $table->timestamps();
         });
+
+        Schema::create('accounts', function (Blueprint $table) {
+            $table->id();
+            $table->string('email');
+            $table->string('password');
+            $table->rememberToken();
+            $table->text('notes')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->timestamps();
+        });
     }
 };

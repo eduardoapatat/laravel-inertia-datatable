@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Models;
 
+use EduardoApatat\InertiaDataTable\Tests\Fixtures\Enums\ProductStatus;
 use EduardoApatat\InertiaDataTable\Tests\Fixtures\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,7 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'status' => ProductStatus::class,
             'featured' => 'boolean',
             'released_on' => 'date:Y-m-d',
         ];

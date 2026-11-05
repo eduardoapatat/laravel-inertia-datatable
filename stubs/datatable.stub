@@ -1,0 +1,30 @@
+<?php
+
+namespace {{ namespace }};
+
+{{ imports }}
+
+class {{ class }} extends DataTable
+{
+    /**
+     * Get the base query of the table.
+     *
+     * @return Builder<{{ model }}>
+     */
+    public function query(): Builder
+    {
+        return {{ model }}::query();
+    }
+
+    /**
+     * Get the columns of the table.
+     *
+     * @return list<Column>
+     */
+    public function columns(): array
+    {
+        return [
+{{ columns }}
+        ];
+    }
+{{ defaultSort }}}
