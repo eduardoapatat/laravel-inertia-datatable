@@ -56,7 +56,7 @@ export function formatCellValue(
         case 'date':
             return typeof value === 'string' || typeof value === 'number'
                 ? formatDate(value)
-                : String(value);
+                : toText(value);
         case 'boolean':
             // Algunas bases (SQLite, MySQL) devuelven 1/0 en lugar de true/false.
             return value === true || value === 1 || value === '1'
@@ -66,14 +66,29 @@ export function formatCellValue(
         case 'multi-select':
             return getOptionLabel(meta, toPrimitive(value));
         case 'number':
-            return meta.unit ? `${String(value)} ${meta.unit}` : String(value);
+            return meta.unit ? `${toText(value)} ${meta.unit}` : toText(value);
     }
 
     if (typeof value === 'boolean') {
         return value ? 'Yes' : 'No';
     }
 
-    return typeof value === 'object' ? JSON.stringify(value) : String(value);
+    return toText(value);
+}
+
+function toText(value: unknown): string {
+    switch (typeof value) {
+        case 'string':
+            return value;
+        case 'number':
+        case 'bigint':
+        case 'boolean':
+            return String(value);
+        case 'object':
+            return JSON.stringify(value);
+        default:
+            return '';
+    }
 }
 
 /**
