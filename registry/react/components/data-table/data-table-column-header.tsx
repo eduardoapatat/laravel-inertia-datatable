@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { getMessage } from '@/lib/data-table-messages';
 
 import {
     DropdownMenu,
@@ -108,7 +109,7 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align="start"
-                className="w-28 data-[state=closed]:fill-mode-forwards"
+                className="min-w-28 data-[state=closed]:fill-mode-forwards"
             >
                 {column.getCanSort() && (
                     <>
@@ -118,7 +119,7 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
                             onClick={() => onSortDirectionChange('asc')}
                         >
                             <ChevronUp />
-                            Asc
+                            {getMessage(column.table, 'sort_ascending')}
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuCheckboxItem
                             className="[&_svg]:text-muted-foreground"
@@ -126,7 +127,7 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
                             onClick={() => onSortDirectionChange('desc')}
                         >
                             <ChevronDown />
-                            Desc
+                            {getMessage(column.table, 'sort_descending')}
                         </DropdownMenuCheckboxItem>
                     </>
                 )}
@@ -137,7 +138,7 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
                         onClick={() => column.toggleVisibility(false)}
                     >
                         <EyeOff />
-                        Hide
+                        {getMessage(column.table, 'hide')}
                     </DropdownMenuCheckboxItem>
                 )}
             </DropdownMenuContent>

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { getMessage } from '@/lib/data-table-messages';
 import type { ColumnFilterItem } from '@/lib/data-table-types';
 
 import {
@@ -40,6 +41,7 @@ export function DataTableRangeFilter<TData extends RowData>({
     ...props
 }: DataTableRangeFilterProps<TData>) {
     const meta = column.columnDef.meta;
+    const label = meta?.label ?? column.id;
     const bounds = meta?.variant === 'number' ? meta : undefined;
 
     const [startValue, endValue] = getRangeFilterValues(filter.value).map(
@@ -129,11 +131,13 @@ export function DataTableRangeFilter<TData extends RowData>({
             <Input
                 id={`${inputId}-min`}
                 type="number"
-                aria-label={`${meta?.label} minimum value`}
+                aria-label={getMessage(column.table, 'minimum', { label })}
                 aria-invalid={(showInvalid && drafts[0] !== null) || undefined}
                 data-slot="data-table-range-filter-min"
                 inputMode="numeric"
-                placeholder={bounds?.min?.toString() ?? 'Min'}
+                placeholder={
+                    bounds?.min?.toString() ?? getMessage(column.table, 'min')
+                }
                 className="w-full min-w-24"
                 value={startInput}
                 onChange={(event) => onDraftChange(0, event.target.value)}
@@ -143,16 +147,18 @@ export function DataTableRangeFilter<TData extends RowData>({
                 data-slot="data-table-range-filter-separator"
                 className="shrink-0 text-sm text-muted-foreground"
             >
-                to
+                {getMessage(column.table, 'to')}
             </span>
             <Input
                 id={`${inputId}-max`}
                 type="number"
-                aria-label={`${meta?.label} maximum value`}
+                aria-label={getMessage(column.table, 'maximum', { label })}
                 aria-invalid={(showInvalid && drafts[1] !== null) || undefined}
                 data-slot="data-table-range-filter-max"
                 inputMode="numeric"
-                placeholder={bounds?.max?.toString() ?? 'Max'}
+                placeholder={
+                    bounds?.max?.toString() ?? getMessage(column.table, 'max')
+                }
                 className="w-full min-w-24"
                 value={endInput}
                 onChange={(event) => onDraftChange(1, event.target.value)}

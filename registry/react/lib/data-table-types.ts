@@ -8,6 +8,7 @@ import type {
 } from '@tanstack/react-table';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import type { DataTableMessages } from '@/lib/data-table-messages';
 import type { ServerColumnDisplay } from '@/lib/data-table-server';
 import type {
     FILTER_OPERATORS,
@@ -66,6 +67,10 @@ export interface DataTableTableMeta {
     searchable?: boolean;
     /** Locale to format numbers and dates; the browser's when missing. */
     locale?: string;
+    /** Format of the date cells without `->dateFormat()`; `long` by default. */
+    dateFormat?: DatePreset;
+    /** Texts of the UI (see `getMessage`); the English ones when missing. */
+    messages?: Partial<DataTableMessages>;
 }
 
 /**

@@ -6,6 +6,8 @@ import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { formatNumber } from '@/lib/data-table-format';
+import { getMessage } from '@/lib/data-table-messages';
 
 import {
     getRangeFilterBounds,
@@ -124,9 +126,13 @@ function DataTableSliderFilterContent<TData extends RowData>({
         );
     }
 
-    const formatValue = React.useCallback((value: number) => {
-        return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
-    }, []);
+    const table = column.table;
+    const locale = table.options.meta?.locale;
+    const formatValue = React.useCallback(
+        (value: number) =>
+            formatNumber(value, { maximumFractionDigits: 2 }, locale),
+        [locale],
+    );
 
     const setRangeFilter = React.useCallback(
         ([start = min, end = max]: [
@@ -226,7 +232,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                 </Button>
             </PopoverTrigger>
             <PopoverContent
-                aria-label={`${title} filter`}
+                aria-label={getMessage(table, 'filter', { label: title })}
                 dir={dir}
                 align="start"
                 className="flex w-auto flex-col gap-4"
@@ -240,7 +246,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                         onBlur={onInputsBlur}
                     >
                         <Label htmlFor={`${id}-from`} className="sr-only">
-                            From
+                            {getMessage(table, 'from')}
                         </Label>
                         <InputGroup className="w-24">
                             <InputGroupInput
@@ -270,7 +276,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                             )}
                         </InputGroup>
                         <Label htmlFor={`${id}-to`} className="sr-only">
-                            to
+                            {getMessage(table, 'to')}
                         </Label>
                         <InputGroup className="w-24">
                             <InputGroupInput
@@ -301,7 +307,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                         </InputGroup>
                     </div>
                     <Label htmlFor={`${id}-slider`} className="sr-only">
-                        {title} slider
+                        {getMessage(table, 'slider', { label: title })}
                     </Label>
                     <Slider
                         id={`${id}-slider`}
@@ -313,11 +319,13 @@ function DataTableSliderFilterContent<TData extends RowData>({
                     />
                 </div>
                 <Button
-                    aria-label={`Clear ${title} filter`}
+                    aria-label={getMessage(table, 'clear_filter', {
+                        label: title,
+                    })}
                     variant="outline"
                     onClick={onReset}
                 >
-                    Clear
+                    {getMessage(table, 'clear')}
                 </Button>
             </PopoverContent>
         </Popover>

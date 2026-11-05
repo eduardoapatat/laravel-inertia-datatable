@@ -1,5 +1,10 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
+import {
+    DEFAULT_MESSAGES,
+    getMessage,
+    type TableWithMeta,
+} from '@/lib/data-table-messages';
 import type {
     ColumnDisplay,
     ColumnSelectOption,
@@ -10,11 +15,12 @@ import type {
 export function formatDate(
     date: Date | string | number | undefined,
     opts: Intl.DateTimeFormatOptions = {},
+    locale?: string,
 ) {
     if (!date) return '';
 
     try {
-        return new Intl.DateTimeFormat(undefined, {
+        return new Intl.DateTimeFormat(locale, {
             month: opts.month ?? 'long',
             day: opts.day ?? 'numeric',
             year: opts.year ?? 'numeric',
@@ -198,21 +204,57 @@ export function isEmail(value: string): boolean {
 }
 
 /**
+ * Defaults of the table to format a cell: `getFormatContext(table)`.
+ */
+export interface FormatContext {
+    locale?: string;
+    /** Format of the dates without `display`; `long` by default. */
+    dateFormat?: DatePreset;
+    /** Texts of true and false without `display.labels`; Yes / No by default. */
+    booleanLabels?: { true: string; false: string };
+}
+
+/**
+ * Locale, date format and Yes / No texts of the table (`table.options.meta`).
+ */
+export function getFormatContext(
+    table: TableWithMeta | undefined,
+): FormatContext {
+    const meta = table?.options.meta;
+
+    return {
+        locale: meta?.locale,
+        dateFormat: meta?.dateFormat,
+        booleanLabels: {
+            true: getMessage(table, 'yes'),
+            false: getMessage(table, 'no'),
+        },
+    };
+}
+
+/**
  * Text of a cell as the default cell shows it: the column `display` (format
  * declared in PHP or in the page `meta`) or, without it, the filter variant.
+ * The third argument is the locale or the defaults of the table.
  */
 export function formatCellValue(
     meta: DataTableColumnMeta | undefined,
     value: unknown,
-    locale?: string,
+    context: string | FormatContext = {},
 ): string {
     if (value === null || value === undefined || value === '') {
         return '';
     }
 
+    const {
+        locale,
+        dateFormat = 'long',
+        booleanLabels,
+    } = typeof context === 'string' ? { locale: context } : context;
+
     if (Array.isArray(value)) {
         return value
-            .map((item) => formatCellValue(meta, item, locale))
+            .map((item) => formatCellValue(meta, item, context))
             .join(', ');
     }
 
@@ -230,16 +272,16 @@ export function formatCellValue(
         case 'text':
             return truncate(toText(value), display.limit);
         case 'boolean':
-            return formatBoolean(value, display.labels);
+            return formatBoolean(value, display.labels ?? booleanLabels);
         case 'option':
             return getOptionLabel(meta, toPrimitive(value));
     }
 
     switch (meta?.variant) {
         case 'date':
-            return formatDateValue(value, 'long', locale);
+            return formatDateValue(value, dateFormat, locale);
         case 'boolean':
-            return formatBoolean(value);
+            return formatBoolean(value, booleanLabels);
         case 'select':
         case 'multi-select':
             return getOptionLabel(meta, toPrimitive(value));
@@ -248,7 +290,7 @@ export function formatCellValue(
     }
 
     if (typeof value === 'boolean') {
-        return formatBoolean(value);
+        return formatBoolean(value, booleanLabels);
     }
 
     return toText(value);
@@ -259,7 +301,10 @@ export function formatCellValue(
  */
 export function formatBoolean(
     value: unknown,
-    labels: { true: string; false: string } = { true: 'Yes', false: 'No' },
+    labels: { true: string; false: string } = {
+        true: DEFAULT_MESSAGES.yes,
+        false: DEFAULT_MESSAGES.no,
+    },
 ): string {
     return value === true || value === 1 || value === '1' || value === 'true'
         ? labels.true

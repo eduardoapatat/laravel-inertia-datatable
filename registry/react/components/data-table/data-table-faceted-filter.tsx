@@ -7,6 +7,8 @@ import type * as React from 'react';
 import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { formatNumber } from '@/lib/data-table-format';
+import { getMessage } from '@/lib/data-table-messages';
 import type { ColumnSelectOption } from '@/lib/data-table-types';
 
 import { Button } from '@/components/ui/button';
@@ -74,6 +76,7 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
     multiple = false,
     columnFilterValue,
 }: DataTableFacetedFilterContentProps<TData, TValue>) {
+    const table = column?.table;
     const dir = useDirection();
     // Boolean filters store a single value ('true' / 'false').
     const isScalar = column?.columnDef.meta?.variant === 'boolean';
@@ -133,7 +136,9 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                                     <FacetedBadgeList>
                                         {selected.length > 2 ? (
                                             <FacetedBadge>
-                                                {selected.length} selected
+                                                {getMessage(table, 'selected', {
+                                                    count: selected.length,
+                                                })}
                                             </FacetedBadge>
                                         ) : (
                                             selected.map((item) => (
@@ -152,13 +157,17 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                 </Button>
             </FacetedTrigger>
             <FacetedContent
-                aria-label={`${title} filter`}
+                aria-label={getMessage(table, 'filter', {
+                    label: title ?? '',
+                })}
                 dir={dir}
                 className="w-50"
             >
                 <FacetedInput placeholder={title} />
                 <FacetedList className="max-h-full">
-                    <FacetedEmpty>No results found.</FacetedEmpty>
+                    <FacetedEmpty>
+                        {getMessage(table, 'no_options')}
+                    </FacetedEmpty>
                     <FacetedGroup className="max-h-75 scroll-py-1 overflow-x-hidden overflow-y-auto">
                         {options.map((option) => (
                             <FacetedItem
@@ -170,12 +179,20 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                                     {option.label}
                                 </span>
                                 <FacetedItemIndicator>
-                                    {option.count}
+                                    {option.count === undefined
+                                        ? undefined
+                                        : formatNumber(
+                                              option.count,
+                                              {},
+                                              table?.options.meta?.locale,
+                                          )}
                                 </FacetedItemIndicator>
                             </FacetedItem>
                         ))}
                     </FacetedGroup>
-                    <FacetedClear>Clear filters</FacetedClear>
+                    <FacetedClear>
+                        {getMessage(table, 'clear_filters')}
+                    </FacetedClear>
                 </FacetedList>
             </FacetedContent>
         </Faceted>

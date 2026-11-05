@@ -2,6 +2,7 @@
 
 import type * as React from 'react';
 
+import { DEFAULT_MESSAGES } from '@/lib/data-table-messages';
 import { cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,6 +23,8 @@ interface DataTableSkeletonProps extends React.ComponentProps<'div'> {
     withViewOptions?: boolean;
     withPagination?: boolean;
     shrinkZero?: boolean;
+    /** Text for screen readers; it has no table to read the texts from. */
+    label?: string;
 }
 
 export function DataTableSkeleton({
@@ -32,6 +35,7 @@ export function DataTableSkeleton({
     withViewOptions = true,
     withPagination = true,
     shrinkZero = false,
+    label = DEFAULT_MESSAGES.loading,
     className,
     ...props
 }: DataTableSkeletonProps) {
@@ -50,7 +54,7 @@ export function DataTableSkeleton({
             )}
             {...props}
         >
-            <span className="sr-only">Loading table…</span>
+            <span className="sr-only">{label}</span>
             <div
                 aria-hidden="true"
                 className="flex w-full items-center justify-between gap-2 overflow-auto p-1"

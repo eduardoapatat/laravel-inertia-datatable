@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { getMessage } from '@/lib/data-table-messages';
 
 import { Button } from '@/components/ui/button';
 import { useDirection } from '@/components/ui/direction';
@@ -65,25 +66,29 @@ export function DataTableViewOptions<TData extends RowData>({
                 >
                     <FacetedTrigger asChild>
                         <Button
-                            aria-label="View columns"
+                            aria-label={getMessage(table, 'view_columns')}
                             variant="outline"
                             className="ms-auto hidden lg:flex"
                             disabled={disabled}
                         >
                             <Settings2 className="text-muted-foreground" />
-                            View
+                            {getMessage(table, 'view')}
                         </Button>
                     </FacetedTrigger>
                     <FacetedContent
-                        aria-label="Columns"
+                        aria-label={getMessage(table, 'columns')}
                         dir={dir}
                         align="center"
                         className={cn('w-44', className)}
                         {...props}
                     >
-                        <FacetedInput placeholder="Search columns..." />
+                        <FacetedInput
+                            placeholder={getMessage(table, 'search_columns')}
+                        />
                         <FacetedList>
-                            <FacetedEmpty>No columns found.</FacetedEmpty>
+                            <FacetedEmpty>
+                                {getMessage(table, 'no_columns')}
+                            </FacetedEmpty>
                             <FacetedGroup>
                                 {columns.map((column) => (
                                     <FacetedItem

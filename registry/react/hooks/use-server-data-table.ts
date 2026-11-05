@@ -32,6 +32,10 @@ import {
     type ServerTableState,
     stateToQuery,
 } from '@/lib/data-table-server';
+import {
+    type DataTableMessages,
+    mergeMessages,
+} from '@/lib/data-table-messages';
 import type {
     ColumnDisplay,
     ColumnSelectOption,
@@ -69,6 +73,14 @@ export interface UseServerDataTableOptions<TData extends RowData> {
     columns: DataTableColumns<TData>;
     /** Delay after typing in a filter or the search before requesting the server. */
     debounceMs?: number;
+    /**
+     * Locale to format numbers and dates, over the one of the server
+     * (`inertia-datatable.locale` or the app locale); `'browser'` for the
+     * browser's.
+     */
+    locale?: string;
+    /** Texts of the UI to change, over the ones of the server lang files. */
+    messages?: Partial<DataTableMessages>;
     getRowId?: TableOptions<DataTableFeatures, TData>['getRowId'];
 }
 
@@ -82,6 +94,8 @@ export function useServerDataTable<TData extends RowData>({
     columns,
     debounceMs = 300,
     getRowId = getDefaultRowId,
+    locale,
+    messages,
 }: UseServerDataTableOptions<TData>) {
     const { config, data, facets, meta, state: serverState } = serverTable;
 
@@ -229,6 +243,11 @@ export function useServerDataTable<TData extends RowData>({
         [columns, config, facets],
     );
 
+    const tableMessages = React.useMemo(
+        () => mergeMessages(config.messages, messages),
+        [config.messages, messages],
+    );
+
     const table = useTable({
         features: dataTableFeatures,
         columns: tableColumns,
@@ -237,7 +256,9 @@ export function useServerDataTable<TData extends RowData>({
         meta: {
             pageSizeOptions: config.per_page_options,
             searchable: config.searchable,
-            locale: config.locale ?? undefined,
+            locale: resolveLocale(locale ?? config.locale),
+            dateFormat: config.date_format,
+            messages: tableMessages,
         },
         rowCount: meta.total,
         // Without rows the server reports 1 page, not 0.
@@ -254,6 +275,13 @@ export function useServerDataTable<TData extends RowData>({
     });
 
     return { table, isLoading };
+}
+
+/** `'browser'` or nothing: the browser locale (Intl without a locale). */
+function resolveLocale(locale: string | null | undefined): string | undefined {
+    return locale && locale !== 'browser'
+        ? locale.replace('_', '-')
+        : undefined;
 }
 
 function toLocalState(state: ServerTableState): LocalTableState {

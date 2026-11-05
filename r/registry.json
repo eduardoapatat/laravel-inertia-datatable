@@ -50,6 +50,11 @@
                     "target": "~/resources/js/lib/data-table-format.ts"
                 },
                 {
+                    "path": "registry/react/lib/data-table-messages.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-messages.ts"
+                },
+                {
                     "path": "registry/react/lib/data-table-types.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-types.ts"
@@ -161,6 +166,11 @@
                     "path": "registry/react/lib/data-table-format.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-format.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-messages.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-messages.ts"
                 },
                 {
                     "path": "registry/react/lib/data-table-types.ts",

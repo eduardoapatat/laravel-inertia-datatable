@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { formatNumber } from '@/lib/data-table-format';
+import { getMessage } from '@/lib/data-table-messages';
 
 import { getVisibleSelectedRows } from '@/lib/data-table-utils';
 import { Button } from '@/components/ui/button';
@@ -99,6 +101,9 @@ function DataTablePaginationContent<TData extends RowData>({
     const pageCount = table.getPageCount();
     const canPreviousPage = table.getCanPreviousPage();
     const canNextPage = table.getCanNextPage();
+    const locale = table.options.meta?.locale;
+    const count = (value: number) => formatNumber(value, {}, locale);
+    const hiddenCount = selectedRowCount - visibleSelectedRowCount;
 
     return (
         <div
@@ -113,16 +118,23 @@ function DataTablePaginationContent<TData extends RowData>({
                 role="status"
                 className="flex-1 text-sm whitespace-nowrap text-muted-foreground"
             >
-                {selectedRowCount > 0 && (
-                    <>
-                        {selectedRowCount}{' '}
-                        {selectedRowCount === 1 ? 'row' : 'rows'} selected
-                        {selectedRowCount > visibleSelectedRowCount
-                            ? ` (${selectedRowCount - visibleSelectedRowCount} not shown)`
-                            : ''}
-                        .
-                    </>
-                )}
+                {selectedRowCount > 0 &&
+                    [
+                        getMessage(
+                            table,
+                            selectedRowCount === 1
+                                ? 'row_selected'
+                                : 'rows_selected',
+                            { count: count(selectedRowCount) },
+                        ),
+                        hiddenCount > 0
+                            ? getMessage(table, 'not_shown', {
+                                  count: count(hiddenCount),
+                              })
+                            : null,
+                    ]
+                        .filter(Boolean)
+                        .join(' ')}
             </div>
             <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
                 <div className="flex items-center gap-2">
@@ -130,7 +142,7 @@ function DataTablePaginationContent<TData extends RowData>({
                         id={pageSizeLabelId}
                         className="text-sm font-medium whitespace-nowrap"
                     >
-                        Rows per page
+                        {getMessage(table, 'rows_per_page')}
                     </p>
                     <Select
                         value={`${pageSize}`}
@@ -162,11 +174,14 @@ function DataTablePaginationContent<TData extends RowData>({
                     role="status"
                     className="flex items-center justify-center text-sm font-medium"
                 >
-                    Page {pageIndex + 1} of {pageCount}
+                    {getMessage(table, 'page_of', {
+                        page: count(pageIndex + 1),
+                        pages: count(pageCount),
+                    })}
                 </div>
                 <div className="flex items-center gap-2">
                     <Button
-                        aria-label="Go to first page"
+                        aria-label={getMessage(table, 'first_page')}
                         variant="outline"
                         size="icon"
                         className="hidden lg:flex"
@@ -176,7 +191,7 @@ function DataTablePaginationContent<TData extends RowData>({
                         <ChevronsLeft className="rtl:rotate-180" />
                     </Button>
                     <Button
-                        aria-label="Go to previous page"
+                        aria-label={getMessage(table, 'previous_page')}
                         variant="outline"
                         size="icon"
                         onClick={() => table.previousPage()}
@@ -185,7 +200,7 @@ function DataTablePaginationContent<TData extends RowData>({
                         <ChevronLeft className="rtl:rotate-180" />
                     </Button>
                     <Button
-                        aria-label="Go to next page"
+                        aria-label={getMessage(table, 'next_page')}
                         variant="outline"
                         size="icon"
                         onClick={() => table.nextPage()}
@@ -194,7 +209,7 @@ function DataTablePaginationContent<TData extends RowData>({
                         <ChevronRight className="rtl:rotate-180" />
                     </Button>
                     <Button
-                        aria-label="Go to last page"
+                        aria-label={getMessage(table, 'last_page')}
                         variant="outline"
                         size="icon"
                         className="hidden lg:flex"

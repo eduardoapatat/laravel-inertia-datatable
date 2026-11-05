@@ -4,6 +4,7 @@ import type { DataTableFeatures } from '@/lib/data-table-features';
 import {
     formatCellValue,
     formatDateValue,
+    getFormatContext,
     getOption,
     isDateOnly,
     isEmail,
@@ -25,9 +26,12 @@ function cellSetup<TData extends RowData, TValue>({
     column,
     table,
 }: DataTableCellProps<TData, TValue>) {
+    const context = getFormatContext(table);
+
     return {
         meta: column.columnDef.meta as DataTableColumnMeta | undefined,
-        locale: table.options.meta?.locale,
+        locale: context.locale,
+        context,
     };
 }
 
@@ -125,10 +129,12 @@ export function DataTableNumberCell<TData extends RowData, TValue>(
 export function DataTableDateCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
 ) {
-    const { meta, locale } = cellSetup(props);
+    const { meta, locale, context } = cellSetup(props);
     const value = props.cell.getValue();
     const format =
-        meta?.display?.type === 'date' ? meta.display.format : 'long';
+        meta?.display?.type === 'date'
+            ? meta.display.format
+            : (context.dateFormat ?? 'long');
     const text = formatDateValue(value, format, locale);
 
     if (text === '') {
@@ -154,19 +160,19 @@ export function DataTableDateCell<TData extends RowData, TValue>(
 }
 
 /**
- * Yes/No, or the labels of `->booleanLabels()`.
+ * The labels of `->booleanLabels()` or the Yes / No texts of the table.
  */
 export function DataTableBooleanCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
 ) {
-    const { meta, locale } = cellSetup(props);
+    const { meta, context } = cellSetup(props);
 
     return formatCellValue(
         meta?.display?.type === 'boolean'
             ? meta
             : { ...meta, display: { type: 'boolean' } },
         props.cell.getValue(),
-        locale,
+        context,
     );
 }
 

@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { getMessage } from '@/lib/data-table-messages';
 
 import {
     getAriaSort,
@@ -208,7 +209,7 @@ function DataTableBody<TData extends RowData>({
                                 }
                                 className="h-24 text-center"
                             >
-                                No results.
+                                {getMessage(table, 'no_results')}
                             </TableCell>
                         </TableRow>
                     </TableBody>

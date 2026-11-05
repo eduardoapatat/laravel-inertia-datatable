@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { getMessage } from '@/lib/data-table-messages';
 
 import {
     getColumnSelectOptions,
@@ -95,13 +96,15 @@ interface DataTableSearchProps<
 export function DataTableSearch<TData extends RowData>({
     table,
     searchable,
-    placeholder = 'Search...',
+    placeholder: placeholderProp,
     className,
     ...props
 }: DataTableSearchProps<TData>) {
     if (!(searchable ?? table.options.meta?.searchable)) {
         return null;
     }
+
+    const placeholder = placeholderProp ?? getMessage(table, 'search');
 
     return (
         <Subscribe source={table.atoms.globalFilter}>
@@ -185,7 +188,7 @@ interface DataTableResetButtonProps<
  */
 export function DataTableResetButton<TData extends RowData>({
     table,
-    children = 'Reset',
+    children,
     ...props
 }: DataTableResetButtonProps<TData>) {
     function onReset() {
@@ -204,13 +207,13 @@ export function DataTableResetButton<TData extends RowData>({
             {(isFiltered) =>
                 isFiltered && (
                     <Button
-                        aria-label="Reset filters"
+                        aria-label={getMessage(table, 'reset_filters')}
                         variant="outline"
                         onClick={onReset}
                         {...props}
                     >
                         <X />
-                        {children}
+                        {children ?? getMessage(table, 'reset')}
                     </Button>
                 )
             }
@@ -218,10 +221,26 @@ export function DataTableResetButton<TData extends RowData>({
     );
 }
 
-const BOOLEAN_OPTIONS = [
-    { label: 'Yes', value: 'true' },
-    { label: 'No', value: 'false' },
-];
+/**
+ * Yes / No of the table texts, or the labels of `->booleanLabels()`.
+ */
+function booleanOptions<TData extends RowData>(
+    column: Column<DataTableFeatures, TData>,
+) {
+    const display = column.columnDef.meta?.display;
+    const labels =
+        display?.type === 'boolean' && display.labels
+            ? display.labels
+            : {
+                  true: getMessage(column.table, 'yes'),
+                  false: getMessage(column.table, 'no'),
+              };
+
+    return [
+        { label: labels.true, value: 'true' },
+        { label: labels.false, value: 'false' },
+    ];
+}
 
 interface DataTableToolbarFilterProps<TData extends RowData> {
     column: Column<DataTableFeatures, TData>;
@@ -281,7 +300,7 @@ function DataTableToolbarFilter<TData extends RowData>({
                 <DataTableFacetedFilter
                     column={column}
                     title={title}
-                    options={BOOLEAN_OPTIONS}
+                    options={booleanOptions(column)}
                 />
             );
 

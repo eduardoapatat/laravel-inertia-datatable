@@ -10,6 +10,11 @@ import * as React from 'react';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 
 import { formatDate } from '@/lib/data-table-format';
+import {
+    getMessage,
+    getWeekStartsOn,
+    type TableWithMeta,
+} from '@/lib/data-table-messages';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useDirection } from '@/components/ui/direction';
@@ -58,6 +63,9 @@ function DataTableDateFilterContent<TData extends RowData>({
     columnFilterValue: unknown;
 }) {
     const dir = useDirection();
+    const table = column.table;
+    const locale = table.options.meta?.locale;
+    const calendarLocale = useCalendarLocale(table);
     const selectedDates = React.useMemo<DateSelection>(() => {
         if (!columnFilterValue) {
             return multiple ? { from: undefined, to: undefined } : [];
@@ -105,8 +113,8 @@ function DataTableDateFilterContent<TData extends RowData>({
         ? Boolean(selectedDates.from || selectedDates.to)
         : selectedDates.length > 0;
     const dateText = getIsDateRange(selectedDates)
-        ? formatDateRange(selectedDates)
-        : formatDate(selectedDates[0]);
+        ? formatDateRange(selectedDates, locale)
+        : formatDate(selectedDates[0], { month: 'short' }, locale);
 
     const label = (
         <span className="flex min-w-0 items-center gap-2">
@@ -148,13 +156,14 @@ function DataTableDateFilterContent<TData extends RowData>({
                 </Button>
             </PopoverTrigger>
             <PopoverContent
-                aria-label={`${title} filter`}
+                aria-label={getMessage(table, 'filter', { label: title })}
                 dir={dir}
                 className="w-auto p-0"
                 align="start"
             >
                 {multiple ? (
                     <Calendar
+                        {...calendarLocale}
                         autoFocus
                         captionLayout="dropdown"
                         mode="range"
@@ -167,6 +176,7 @@ function DataTableDateFilterContent<TData extends RowData>({
                     />
                 ) : (
                     <Calendar
+                        {...calendarLocale}
                         captionLayout="dropdown"
                         mode="single"
                         selected={
@@ -180,12 +190,14 @@ function DataTableDateFilterContent<TData extends RowData>({
                 {hasValue && (
                     <div className="border-t p-3">
                         <Button
-                            aria-label={`Clear ${title} filter`}
+                            aria-label={getMessage(table, 'clear_filter', {
+                                label: title,
+                            })}
                             variant="outline"
                             className="w-full"
                             onClick={onReset}
                         >
-                            Clear
+                            {getMessage(table, 'clear')}
                         </Button>
                     </div>
                 )}
@@ -218,9 +230,53 @@ function getIsDateRange(value: DateSelection): value is DateRange {
     return !Array.isArray(value);
 }
 
-function formatDateRange(range: DateRange) {
+function formatDateRange(range: DateRange, locale?: string) {
+    const format = (date: Date | undefined) =>
+        formatDate(date, { month: 'short' }, locale);
+
     if (range.from && range.to) {
-        return `${formatDate(range.from)} - ${formatDate(range.to)}`;
+        return `${format(range.from)} - ${format(range.to)}`;
     }
-    return formatDate(range.from ?? range.to);
+    return format(range.from ?? range.to);
+}
+
+/**
+ * Month and day names, first day of the week and navigation texts of the
+ * calendar in the table locale, with Intl (no date-fns locales needed).
+ */
+function useCalendarLocale(table: TableWithMeta) {
+    const locale = table.options.meta?.locale;
+    const messages = table.options.meta?.messages;
+
+    return React.useMemo(() => {
+        const intl = (options: Intl.DateTimeFormatOptions) => {
+            let formatter: Intl.DateTimeFormat;
+
+            try {
+                formatter = new Intl.DateTimeFormat(locale, options);
+            } catch {
+                formatter = new Intl.DateTimeFormat(undefined, options);
+            }
+
+            return (date: Date) => formatter.format(date);
+        };
+        const tableTexts = { options: { meta: { messages } } };
+
+        return {
+            weekStartsOn: getWeekStartsOn(locale),
+            formatters: {
+                formatCaption: intl({ month: 'long', year: 'numeric' }),
+                formatMonthDropdown: intl({ month: 'short' }),
+                formatYearDropdown: intl({ year: 'numeric' }),
+                formatWeekdayName: intl({ weekday: 'short' }),
+            },
+            labels: {
+                labelGrid: intl({ month: 'long', year: 'numeric' }),
+                labelWeekday: intl({ weekday: 'long' }),
+                labelDayButton: intl({ dateStyle: 'full' }),
+                labelPrevious: () => getMessage(tableTexts, 'previous_month'),
+                labelNext: () => getMessage(tableTexts, 'next_month'),
+            },
+        };
+    }, [locale, messages]);
 }

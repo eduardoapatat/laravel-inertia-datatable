@@ -1,6 +1,24 @@
 import { defineConfig } from 'vite-plus';
 
+const fromRoot = (path: string) =>
+    decodeURIComponent(new URL(path, import.meta.url).pathname);
+
 export default defineConfig({
+    resolve: {
+        // The `@/lib/...` imports of the registry, as shadcn installs them.
+        alias: [
+            {
+                find: /^@\/lib\/data-table-server$/,
+                replacement: fromRoot(
+                    './registry/shared/lib/data-table-server.ts',
+                ),
+            },
+            {
+                find: /^@\/lib\/(.*)$/,
+                replacement: `${fromRoot('./registry/react/lib/')}$1`,
+            },
+        ],
+    },
     test: {
         include: ['registry/**/*.test.ts'],
     },
