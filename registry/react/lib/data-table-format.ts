@@ -1,5 +1,12 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
+import type {
+    ColumnDisplay,
+    ColumnSelectOption,
+    DataTableColumnMeta,
+    DatePreset,
+} from '@/lib/data-table-types';
+
 export function formatDate(
     date: Date | string | number | undefined,
     opts: Intl.DateTimeFormatOptions = {},
@@ -16,4 +23,323 @@ export function formatDate(
     } catch {
         return '';
     }
+}
+
+const DATE_PRESETS: Record<
+    Exclude<DatePreset, 'relative'>,
+    Intl.DateTimeFormatOptions
+> = {
+    short: { dateStyle: 'short' },
+    medium: { dateStyle: 'medium' },
+    long: { dateStyle: 'long' },
+    datetime: { dateStyle: 'medium', timeStyle: 'short' },
+};
+
+const RELATIVE_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+    ['year', 31_536_000],
+    ['month', 2_592_000],
+    ['week', 604_800],
+    ['day', 86_400],
+    ['hour', 3_600],
+    ['minute', 60],
+    ['second', 1],
+];
+
+/**
+ * Number with Intl options (`{ style: 'currency', currency: 'CLP' }`…). Texts
+ * that are not numbers are returned as they are.
+ */
+export function formatNumber(
+    value: unknown,
+    format: Intl.NumberFormatOptions = {},
+    locale?: string,
+): string {
+    const number = toNumber(value);
+
+    if (number === null) {
+        return toText(value);
+    }
+
+    try {
+        return new Intl.NumberFormat(locale, format).format(number);
+    } catch {
+        return String(number);
+    }
+}
+
+/**
+ * Date with a preset or Intl options. Dates without time (`2026-01-15`, or
+ * midnight UTC as Laravel serializes `date` casts) are formatted in UTC so they
+ * do not move to the previous day west of Greenwich.
+ */
+export function formatDateValue(
+    value: unknown,
+    format: ColumnDisplayDateFormat = 'long',
+    locale?: string,
+    now: Date = new Date(),
+): string {
+    const parsed = parseDate(value);
+
+    if (parsed === null) {
+        return toText(value);
+    }
+
+    if (format === 'relative') {
+        return formatRelativeDate(parsed, now, locale);
+    }
+
+    const options = typeof format === 'string' ? DATE_PRESETS[format] : format;
+    const hasTime =
+        options.timeStyle !== undefined ||
+        options.hour !== undefined ||
+        options.minute !== undefined ||
+        options.second !== undefined;
+    const timeZone =
+        options.timeZone ?? (parsed.dateOnly && !hasTime ? 'UTC' : undefined);
+
+    try {
+        return new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(
+            parsed.date,
+        );
+    } catch {
+        return toText(value);
+    }
+}
+
+type ColumnDisplayDateFormat = Extract<
+    ColumnDisplay,
+    { type: 'date' }
+>['format'];
+
+function formatRelativeDate(
+    { date, dateOnly }: ParsedDate,
+    now: Date,
+    locale?: string,
+): string {
+    const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    // A date without time is compared by days: "yesterday", not "in 21 hours".
+    const seconds = dateOnly
+        ? (date.getTime() -
+              Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())) /
+          1000
+        : (date.getTime() - now.getTime()) / 1000;
+    const units = dateOnly
+        ? RELATIVE_UNITS.filter(([, size]) => size >= 86_400)
+        : RELATIVE_UNITS;
+    const [unit, size] = units.find(([, size]) => Math.abs(seconds) >= size) ??
+        units[units.length - 1] ?? ['second', 1];
+
+    return formatter.format(Math.round(seconds / size), unit);
+}
+
+/**
+ * A date without time: `2026-01-15` or midnight UTC (Laravel `date` casts).
+ */
+export function isDateOnly(value: unknown): boolean {
+    return parseDate(value)?.dateOnly ?? false;
+}
+
+interface ParsedDate {
+    date: Date;
+    dateOnly: boolean;
+}
+
+function parseDate(value: unknown): ParsedDate | null {
+    if (value instanceof Date) {
+        return Number.isNaN(value.getTime())
+            ? null
+            : { date: value, dateOnly: false };
+    }
+
+    if (typeof value === 'number') {
+        return { date: new Date(value), dateOnly: false };
+    }
+
+    if (typeof value !== 'string' || value.trim() === '') {
+        return null;
+    }
+
+    const dateOnly =
+        /^\d{4}-\d{2}-\d{2}$/.test(value) ||
+        /T00:00:00(\.0+)?(Z|[+-]00:?00)$/.test(value);
+    const date = new Date(
+        /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value,
+    );
+
+    return Number.isNaN(date.getTime()) ? null : { date, dateOnly };
+}
+
+/**
+ * Cuts a text to `limit` characters (not code units), adding an ellipsis.
+ */
+export function truncate(text: string, limit?: number): string {
+    const characters = Array.from(text);
+
+    return limit === undefined || characters.length <= limit
+        ? text
+        : `${characters.slice(0, limit).join('').trimEnd()}…`;
+}
+
+/**
+ * Only http and https URLs become links (never `javascript:`).
+ */
+export function isSafeUrl(url: string): boolean {
+    try {
+        const { protocol } = new URL(url);
+
+        return protocol === 'http:' || protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
+export function isEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+$/.test(value);
+}
+
+/**
+ * Text of a cell as the default cell shows it: the column `display` (format
+ * declared in PHP or in the page `meta`) or, without it, the filter variant.
+ */
+export function formatCellValue(
+    meta: DataTableColumnMeta | undefined,
+    value: unknown,
+    locale?: string,
+): string {
+    if (value === null || value === undefined || value === '') {
+        return '';
+    }
+
+    if (Array.isArray(value)) {
+        return value
+            .map((item) => formatCellValue(meta, item, locale))
+            .join(', ');
+    }
+
+    const display = meta?.display;
+
+    switch (display?.type) {
+        case 'number':
+            return withUnit(
+                formatNumber(value, display.format, locale),
+                meta,
+                display.format,
+            );
+        case 'date':
+            return formatDateValue(value, display.format, locale);
+        case 'text':
+            return truncate(toText(value), display.limit);
+        case 'boolean':
+            return formatBoolean(value, display.labels);
+        case 'option':
+            return getOptionLabel(meta, toPrimitive(value));
+    }
+
+    switch (meta?.variant) {
+        case 'date':
+            return formatDateValue(value, 'long', locale);
+        case 'boolean':
+            return formatBoolean(value);
+        case 'select':
+        case 'multi-select':
+            return getOptionLabel(meta, toPrimitive(value));
+        case 'number':
+            return withUnit(toText(value), meta);
+    }
+
+    if (typeof value === 'boolean') {
+        return formatBoolean(value);
+    }
+
+    return toText(value);
+}
+
+/**
+ * Some databases (SQLite, MySQL) return 1/0 instead of true/false.
+ */
+export function formatBoolean(
+    value: unknown,
+    labels: { true: string; false: string } = { true: 'Yes', false: 'No' },
+): string {
+    return value === true || value === 1 || value === '1' || value === 'true'
+        ? labels.true
+        : labels.false;
+}
+
+/**
+ * Label of an option (select / multi-select) as declared by the server, to
+ * show `Administrator` instead of `admin` in a cell.
+ */
+export function getOptionLabel(
+    meta: DataTableColumnMeta | undefined,
+    value: string | number | boolean | null | undefined,
+): string {
+    const text = value === null || value === undefined ? '' : String(value);
+
+    return getOption(meta, value)?.label ?? text;
+}
+
+/**
+ * Option (select / multi-select) of a value, with its label, count and the
+ * icon declared in the page `meta`.
+ */
+export function getOption(
+    meta: DataTableColumnMeta | undefined,
+    value: string | number | boolean | null | undefined,
+): ColumnSelectOption | undefined {
+    const text = value === null || value === undefined ? '' : String(value);
+    const options = meta && 'options' in meta ? meta.options : undefined;
+
+    return options?.find((option) => option.value === text);
+}
+
+export function toText(value: unknown): string {
+    switch (typeof value) {
+        case 'string':
+            return value;
+        case 'number':
+        case 'bigint':
+        case 'boolean':
+            return String(value);
+        case 'object':
+            return value === null ? '' : JSON.stringify(value);
+        default:
+            return '';
+    }
+}
+
+export function toPrimitive(value: unknown): string | number | boolean | null {
+    return typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+        ? value
+        : null;
+}
+
+function toNumber(value: unknown): number | null {
+    if (typeof value === 'number') {
+        return Number.isFinite(value) ? value : null;
+    }
+
+    if (typeof value === 'string' && value.trim() !== '') {
+        const number = Number(value);
+
+        return Number.isFinite(number) ? number : null;
+    }
+
+    return null;
+}
+
+/**
+ * The unit declared in PHP (`->number('kg')`) goes after plain numbers, not
+ * after currencies, percentages or Intl units.
+ */
+function withUnit(
+    text: string,
+    meta: DataTableColumnMeta | undefined,
+    format?: Intl.NumberFormatOptions,
+): string {
+    const unit = meta && 'unit' in meta ? meta.unit : undefined;
+
+    return unit && format?.style === undefined ? `${text} ${unit}` : text;
 }

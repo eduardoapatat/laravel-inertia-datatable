@@ -33,6 +33,7 @@ import {
     stateToQuery,
 } from '@/lib/data-table-server';
 import type {
+    ColumnDisplay,
     ColumnSelectOption,
     DataTableColumnMeta,
 } from '@/lib/data-table-types';
@@ -236,6 +237,7 @@ export function useServerDataTable<TData extends RowData>({
         meta: {
             pageSizeOptions: config.per_page_options,
             searchable: config.searchable,
+            locale: config.locale ?? undefined,
         },
         rowCount: meta.total,
         // Without rows the server reports 1 page, not 0.
@@ -376,6 +378,7 @@ function withColumnMeta<TData extends RowData>(
             ...serverMeta(server, facet, userMeta),
             ...userMeta,
             ...mergedOptions(facet, userMeta),
+            ...mergedDisplay(server.display, userMeta?.display),
         } as DataTableColumnMeta,
         enableSorting: column.enableSorting ?? server.sortable,
         enableColumnFilter:
@@ -427,6 +430,35 @@ function serverMeta(
         default:
             return base;
     }
+}
+
+/**
+ * The page `display` wins; with the same type as the server one, only the keys
+ * it declares (TanStack merges `meta` shallowly, so it is done here).
+ */
+function mergedDisplay(
+    server: ColumnDisplay | null | undefined,
+    page: ColumnDisplay | undefined,
+): { display?: ColumnDisplay } {
+    if (page === undefined) {
+        return server ? { display: server } : {};
+    }
+
+    if (server?.type !== page.type) {
+        return { display: page };
+    }
+
+    if (server.type === 'number' && page.type === 'number') {
+        return {
+            display: {
+                ...server,
+                ...page,
+                format: { ...server.format, ...page.format },
+            },
+        };
+    }
+
+    return { display: { ...server, ...page } as ColumnDisplay };
 }
 
 /**

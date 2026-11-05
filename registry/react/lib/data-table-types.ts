@@ -8,6 +8,7 @@ import type {
 } from '@tanstack/react-table';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import type { ServerColumnDisplay } from '@/lib/data-table-server';
 import type {
     FILTER_OPERATORS,
     FILTER_VARIANTS,
@@ -63,7 +64,20 @@ export type ColumnVariantMeta =
 export interface DataTableTableMeta {
     pageSizeOptions?: number[];
     searchable?: boolean;
+    /** Locale to format numbers and dates; the browser's when missing. */
+    locale?: string;
 }
+
+/**
+ * How the cells of a column are displayed: declared in PHP (`->money('CLP')`)
+ * or in the page `meta`, which wins.
+ */
+export type ColumnDisplay = ServerColumnDisplay;
+
+export type DatePreset = Extract<
+    Extract<ColumnDisplay, { type: 'date' }>['format'],
+    string
+>;
 
 export type DataTableColumnMeta = {
     label?: string;
@@ -74,6 +88,7 @@ export type DataTableColumnMeta = {
      * selection or actions): at the end unless `'start'` is given.
      */
     position?: 'start' | 'end';
+    display?: ColumnDisplay;
 } & ColumnVariantMeta;
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];

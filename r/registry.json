@@ -70,6 +70,11 @@
                     "target": "~/resources/js/components/ui/faceted.tsx"
                 },
                 {
+                    "path": "registry/react/components/data-table/data-table-cells.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-cells.tsx"
+                },
+                {
                     "path": "registry/react/components/data-table/data-table-column-header.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-column-header.tsx"
@@ -176,6 +181,11 @@
                     "path": "registry/react/ui/faceted.tsx",
                     "type": "registry:ui",
                     "target": "~/resources/js/components/ui/faceted.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-cells.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-cells.tsx"
                 },
                 {
                     "path": "registry/react/components/data-table/data-table-column-header.tsx",

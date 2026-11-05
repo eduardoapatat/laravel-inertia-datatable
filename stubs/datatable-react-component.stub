@@ -17,17 +17,18 @@ export type {{ rowType }} = {
 const columnHelper = createColumnHelper<DataTableFeatures, {{ rowType }}>();
 
 /**
- * The table class decides which columns are shown, in which order and how they
- * filter. Declare a column here only to customize it (same id), for example:
+ * The table class decides which columns are shown, in which order, how they
+ * filter and how they are formatted (`->money('CLP')`, `->dateFormat('long')`…).
+ * Declare a column here only to customize it (same id), for example:
  *
  *     columnHelper.accessor('{{ example }}', {
  *         cell: ({ cell }) => <strong>{cell.getValue()}</strong>,
  *     }),
  *
- * To keep the default formatting inside a custom cell (option labels instead
- * of raw values, dates, Yes/No), use `formatCellValue(column.columnDef.meta,
- * cell.getValue())` or `getOptionLabel(...)` from
- * `@/components/data-table/data-table-default-column`.
+ * Inside a custom cell, the cells of `@/components/data-table/data-table-cells`
+ * keep the declared format: `<DataTableNumberCell {...context} />`,
+ * `DataTableDateCell`, `DataTableOptionCell`… The format can also be set here
+ * with `meta: { display: { type: 'number', format: { style: 'percent' } } }`.
  *
  * Columns that only exist here (actions, selection) go at the end, or at the
  * start with `meta: { position: 'start' }`.
