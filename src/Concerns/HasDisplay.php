@@ -118,11 +118,32 @@ trait HasDisplay
     }
 
     /**
-     * Shows the option labels as badges (with the icons declared in React, if any).
+     * Shows the option labels with the project's shadcn Badge (and the icons
+     * declared in React, if any): `badge('secondary', ['archived' => 'destructive'])`
+     * gives the column variant and the variant of some values. Any variant of the
+     * project's badge.tsx works; `false` shows plain labels.
+     *
+     * @param  array<string, string>  $variants  Variant per option value.
      */
-    public function badge(bool $badge = true): static
+    public function badge(string|false $variant = 'outline', array $variants = []): static
     {
-        $this->display = ['type' => 'option', 'badge' => $badge];
+        if ($variant === false) {
+            $this->display = ['type' => 'option', 'badge' => false];
+
+            return $this;
+        }
+
+        foreach ([$variant, ...array_values($variants)] as $name) {
+            if (trim($name) === '') {
+                throw new InvalidArgumentException('A badge variant must be a non-empty string, such as outline or secondary.');
+            }
+        }
+
+        $this->display = ['type' => 'option', 'badge' => true, 'variant' => $variant];
+
+        if ($variants !== []) {
+            $this->display['variants'] = array_combine(array_map(strval(...), array_keys($variants)), array_values($variants));
+        }
 
         return $this;
     }

@@ -256,7 +256,7 @@ Static table metadata to build the UI: columns (label, whether it is sortable, f
 | `{ "type": "date", "format": "long" }` | `dateFormat()` | `short`, `medium`, `long`, `datetime`, `relative` or Intl.DateTimeFormat options; dates without time are formatted in UTC |
 | `{ "type": "text", "limit": 60, "link": "url" }` | `limit()`, `url()`, `email()` | Cut text; link only for http/https URLs |
 | `{ "type": "boolean", "labels": { "true": "Sí", "false": "No" } }` | `booleanLabels()` | Labels of true/false (also `1`/`0`) |
-| `{ "type": "option", "badge": true }` | `badge()` | Option labels as badges |
+| `{ "type": "option", "badge": true, "variant": "outline", "variants": { "archived": "destructive" } }` | `badge()`, `badge('secondary', ['archived' => 'destructive'])` | Option labels with the project's shadcn `Badge`: the variant of the value, else the column one (`outline` by default); any variant of the project's `badge.tsx` |
 
 The client adapter translates each column into the columns' `meta` (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) and into `enableSorting` / `enableColumnFilter` / `enableHiding`, so the definition lives in a single place: the server.
 

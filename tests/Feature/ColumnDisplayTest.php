@@ -53,7 +53,16 @@ it('labels booleans and shows options as badges', function () {
     expect(displayOf(Column::make('featured')->boolean()->booleanLabels('Sí', 'No')))
         ->toBe(['type' => 'boolean', 'labels' => ['true' => 'Sí', 'false' => 'No']])
         ->and(displayOf(Column::make('status')->multiSelect(['active' => 'Active'])->badge()))
-        ->toBe(['type' => 'option', 'badge' => true]);
+        ->toBe(['type' => 'option', 'badge' => true, 'variant' => 'outline']);
+});
+
+it('picks the badge variant of the column and of some values', function () {
+    expect(displayOf(Column::make('status')->badge('secondary')))
+        ->toBe(['type' => 'option', 'badge' => true, 'variant' => 'secondary'])
+        ->and(displayOf(Column::make('status')->badge('secondary', ['archived' => 'destructive', 1 => 'success'])))
+        ->toBe(['type' => 'option', 'badge' => true, 'variant' => 'secondary', 'variants' => ['archived' => 'destructive', '1' => 'success']])
+        ->and(displayOf(Column::make('status')->badge(false)))
+        ->toBe(['type' => 'option', 'badge' => false]);
 });
 
 it('keeps the last display type and leaves the filter alone', function () {
@@ -70,6 +79,8 @@ it('rejects invalid formats', function (Closure $build, string $message) {
     'decimals' => [fn () => Column::make('price')->decimals(-1), 'The number of decimals cannot be negative.'],
     'date preset' => [fn () => Column::make('created_at')->dateFormat('full'), 'The date format [full] is not one of: short, medium, long, datetime, relative.'],
     'limit' => [fn () => Column::make('notes')->limit(0), 'The text limit must be at least 1 character.'],
+    'badge variant' => [fn () => Column::make('status')->badge(' '), 'A badge variant must be a non-empty string'],
+    'badge value variant' => [fn () => Column::make('status')->badge('outline', ['archived' => '']), 'A badge variant must be a non-empty string'],
 ]);
 
 it('uses the configured currency and date format as defaults', function () {

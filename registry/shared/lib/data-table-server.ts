@@ -62,7 +62,15 @@ export type ServerColumnDisplay =
       }
     | { type: 'text'; limit?: number; link?: 'url' | 'email' }
     | { type: 'boolean'; labels?: { true: string; false: string } }
-    | { type: 'option'; badge?: boolean };
+    | {
+          type: 'option';
+          /** Labels with the project's shadcn Badge. */
+          badge?: boolean;
+          /** Badge variant of the column (`outline` by default). */
+          variant?: string;
+          /** Badge variant per option value. */
+          variants?: Record<string, string>;
+      };
 
 export interface ServerColumnConfig {
     id: string;
