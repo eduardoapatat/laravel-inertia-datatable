@@ -47,12 +47,28 @@ interface DataTableProps<
      * `<DataTablePagination table={table} />` wherever you want (e.g. on top).
      */
     pagination?: boolean;
+    /**
+     * Classes of the header row; for its cells, `[&>th]:h-8` (shorter header).
+     */
+    headerClassName?: string;
+    /**
+     * Classes of each body row, or a function of the row (for example, to
+     * color it by its data); for its cells, `[&>td]:py-1` (compact rows).
+     * Declare the function outside the component so rows keep their memo.
+     */
+    rowClassName?: DataTableRowClassName<TData>;
 }
+
+type DataTableRowClassName<TData extends RowData> =
+    | string
+    | ((row: Row<DataTableFeatures, TData>) => string | undefined);
 
 export function DataTable<TData extends RowData>({
     table,
     actionBar,
     pagination = true,
+    headerClassName,
+    rowClassName,
     children,
     className,
     'aria-label': ariaLabel,
@@ -78,8 +94,11 @@ export function DataTable<TData extends RowData>({
                     aria-label={ariaLabel}
                     aria-labelledby={ariaLabelledBy}
                 >
-                    <DataTableHeader table={table} />
-                    <DataTableBody table={table} />
+                    <DataTableHeader
+                        table={table}
+                        className={headerClassName}
+                    />
+                    <DataTableBody table={table} rowClassName={rowClassName} />
                 </DataTableLayout>
             </div>
             {pagination || actionBar ? (
@@ -127,17 +146,22 @@ function DataTableLayout<TData extends RowData>({
 
 interface DataTableHeaderProps<TData extends RowData> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
+    className?: string;
 }
 
 function DataTableHeader<TData extends RowData>({
     table,
+    className,
 }: DataTableHeaderProps<TData>) {
     return (
         <table.Subscribe selector={selectHeaderState}>
             {() => (
                 <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
-                        <TableRow key={headerGroup.id} className="group/row">
+                        <TableRow
+                            key={headerGroup.id}
+                            className={cn('group/row', className)}
+                        >
                             {headerGroup.headers.map((header) => (
                                 <DataTableHeadCell
                                     key={header.id}
@@ -197,10 +221,12 @@ function getCellClassName(pinned: ColumnPinningPosition) {
 
 interface DataTableBodyProps<TData extends RowData> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
+    rowClassName?: DataTableRowClassName<TData>;
 }
 
 function DataTableBody<TData extends RowData>({
     table,
+    rowClassName,
 }: DataTableBodyProps<TData>) {
     const rows = table.getRowModel().rows;
 
@@ -228,7 +254,7 @@ function DataTableBody<TData extends RowData>({
     return (
         <TableBody>
             {rows.map((row) => (
-                <DataTableRow key={row.id} row={row} />
+                <DataTableRow key={row.id} row={row} className={rowClassName} />
             ))}
         </TableBody>
     );
@@ -256,12 +282,14 @@ function DataTableActionBar<TData extends RowData>({
 
 interface DataTableRowProps<TData extends RowData> {
     row: Row<DataTableFeatures, TData>;
+    className?: DataTableRowClassName<TData>;
 }
 
 const DataTableRow = React.memo(DataTableRowImpl) as typeof DataTableRowImpl;
 
 function DataTableRowImpl<TData extends RowData>({
     row,
+    className,
 }: DataTableRowProps<TData>) {
     return (
         <Subscribe
@@ -276,7 +304,12 @@ function DataTableRowImpl<TData extends RowData>({
             {({ isSelected }) => (
                 <TableRow
                     data-state={isSelected ? 'selected' : undefined}
-                    className="group/row"
+                    className={cn(
+                        'group/row',
+                        typeof className === 'function'
+                            ? className(row)
+                            : className,
+                    )}
                 >
                     {row.getVisibleCells().map((cell) => (
                         <DataTableCell
