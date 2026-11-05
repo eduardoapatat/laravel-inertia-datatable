@@ -104,6 +104,8 @@ export interface ServerTableConfig {
     locale?: string | null;
     /** Preset of the date columns without their own format. */
     date_format?: 'short' | 'medium' | 'long' | 'datetime' | 'relative';
+    /** UI texts in the app language (lang/vendor/inertia-datatable). */
+    messages?: Record<string, string>;
     per_page: number;
     per_page_options: number[];
     default_sorting: ServerSort[];

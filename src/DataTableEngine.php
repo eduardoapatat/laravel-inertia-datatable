@@ -113,6 +113,7 @@ final class DataTableEngine
                 'searchable' => $definition->isSearchable(),
                 'locale' => $this->locale($definition),
                 'date_format' => $this->dateFormat(),
+                'messages' => $this->messages(),
                 'per_page' => $definition->perPage,
                 'per_page_options' => $definition->perPageOptions,
                 'default_sorting' => array_map(fn (SortItem $item): array => $item->toArray(), $definition->defaultSort),
@@ -137,6 +138,28 @@ final class DataTableEngine
         $locale = $definition->locale ?? config('inertia-datatable.locale') ?? app()->getLocale();
 
         return $locale === 'browser' ? null : str_replace('_', '-', (string) $locale);
+    }
+
+    /**
+     * UI texts in the app language (lang/vendor/inertia-datatable when published),
+     * falling back to English when the language has no file.
+     *
+     * @return array<string, string>
+     */
+    private function messages(): array
+    {
+        $messages = trans('inertia-datatable::ui');
+
+        if (! is_array($messages)) {
+            $messages = trans('inertia-datatable::ui', [], 'en');
+        }
+
+        if (! is_array($messages)) {
+            return [];
+        }
+
+        /** @var array<string, string> $messages */
+        return $messages;
     }
 
     /**

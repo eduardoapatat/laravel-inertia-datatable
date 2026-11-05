@@ -17,10 +17,16 @@ class InertiaDataTableServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'inertia-datatable');
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/inertia-datatable.php' => config_path('inertia-datatable.php'),
             ], 'inertia-datatable-config');
+
+            $this->publishes([
+                __DIR__.'/../lang' => $this->app->langPath('vendor/inertia-datatable'),
+            ], 'inertia-datatable-lang');
 
             $this->publishes([
                 __DIR__.'/../stubs/datatable.stub' => base_path('stubs/datatable.stub'),

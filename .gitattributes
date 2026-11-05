@@ -1,6 +1,6 @@
 * text=auto eol=lf
 
-# Excluidos del paquete Composer (dist): solo se distribuye src/ y config/
+# Left out of the Composer package (dist): it ships src/, config/, lang/ and stubs/
 /.github            export-ignore
 /docs               export-ignore
 /r                  export-ignore
