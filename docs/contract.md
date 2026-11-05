@@ -46,6 +46,7 @@ Ejemplo completo:
 
 - Lista separada por comas; el prefijo `-` indica descendente: `sort=-created_at,name`.
 - Se respeta el orden (prioridad de izquierda a derecha).
+- Nota: tablecn escribe `sort=created_at.desc`; aquí se mantiene `-created_at` (convención de spatie y JSON:API). La traducción la hace `registry/shared`, sin tocar los componentes.
 - Se descartan columnas que no son `sortable`, duplicados y lo que supere `maxSorts` (por defecto 3).
 - Sin orden válido → se aplica `defaultSort` de la tabla, si existe.
 - Siempre se añade la clave primaria como desempate final (si no está ya), para que la paginación sea estable.
@@ -53,18 +54,56 @@ Ejemplo completo:
 
 ### 1.4 `filter[<col>]`
 
-Solo columnas declaradas como filtrables. Tipos en esta fase:
+Solo columnas declaradas como filtrables. El modelo de filtros es el de [tablecn](https://github.com/sadmann7/tablecn) (variantes + operadores), para reutilizar sus componentes (faceted filter, range/slider, date filter, filter menu, sort menu) sin cambiar su lógica.
 
-| Tipo | Uso en TanStack | Sintaxis | SQL |
-|---|---|---|---|
-| `facet` | faceted filter (selección múltiple) | `filter[status]=active,pending` o `filter[status][]=active&filter[status][]=pending` | `WHERE status IN (…)` |
-| `text` | input de texto por columna | `filter[email]=gmail` | `WHERE email LIKE %gmail%` (sin distinguir mayúsculas) |
+#### Sintaxis
 
-- El servidor acepta las dos formas de `facet`. El cliente usa la forma con comas y pasa a la forma de array solo si algún valor contiene una coma.
-- Los valores vacíos se ignoran (`filter[status]=` = sin filtro).
-- En un `facet`, si la columna declara sus opciones, se descartan los valores que no estén en esa lista.
+```
+filter[<col>]=[<operador>.]<valor>
+```
+
+- **Sin operador** se aplica el operador implícito de la variante: `filter[status]=active,pending` = `filter[status]=in.active,pending`.
+- **Listas** separadas por comas. Un valor que contenga coma, comillas o espacios en los extremos va entre comillas dobles, y las comillas internas se duplican: `filter[name]=in."Pérez, Ana",Luis`.
+- **Varios filtros sobre la misma columna** con la forma de array; se combinan con AND: `filter[price][]=gte.10&filter[price][]=lte.100`.
+- Si el prefijo no es un operador válido para la variante, todo el texto se toma como valor con el operador implícito (`filter[email]=foo.bar` busca «foo.bar»). Para evitar ambigüedades, el cliente escribe el operador explícito cuando el valor empieza por un nombre de operador.
+- Los nombres de operador no distinguen mayúsculas y se aceptan en las dos formas de tablecn: nombre de URL (`neq`, `not.in`) o clave (`ne`, `notInArray`).
+
+#### Variantes y operadores
+
+| Variante | Columna en tablecn (`meta`) | Operador implícito | Operadores (nombre en URL) | Valor |
+|---|---|---|---|---|
+| `text` | `variant: "text"` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | texto |
+| `number` | `variant: "number"` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | número (`.` decimal) |
+| `range` | `variant: "number", filter: "range"` | `between` | igual que `number` | `min,max`; un extremo puede ir vacío (`10,` / `,100`) |
+| `date` | `variant: "date"` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` (`rel` en fase futura) | `YYYY-MM-DD` |
+| `date-range` | `variant: "date", filter: "range"` | `between` | igual que `date` | `desde,hasta` (`YYYY-MM-DD`) |
+| `boolean` | `variant: "boolean"` | `eq` | `eq`, `neq` | `true` / `false` |
+| `select` | `variant: "select"` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | valor o lista |
+| `multi-select` | `variant: "multi-select"` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | lista |
+
+#### Traducción a SQL
+
+| Operador | SQL |
+|---|---|
+| `ilike` / `not.ilike` | `whereLike` / `whereNotLike` con `%valor%`, sin distinguir mayúsculas y escapando `%` y `_` |
+| `eq` / `neq` | `=` / `<>`; en `date` compara el día completo (`whereDate`); en `text` no distingue mayúsculas |
+| `lt` `lte` `gt` `gte` | comparación; en `date` por día (`lte` 2026-01-31 incluye todo ese día) |
+| `between` | ambos extremos inclusivos; con un extremo vacío equivale a `gte` / `lte` |
+| `in` / `not.in` | `whereIn` / `whereNotIn` (`not.in` incluye además los `NULL`) |
+| `is.empty` / `not.is.empty` | `IS NULL` (o `''` en `text`) / lo contrario |
+
+#### Normalización
+
+- Un filtro sin valor (salvo `is.empty` / `not.is.empty`) se ignora: `filter[status]=` = sin filtro.
+- Un valor que no corresponde a la variante (`filter[price]=abc`, fecha inválida, booleano distinto de `true`/`false`) descarta ese filtro.
+- `between` con `min > max` intercambia los extremos.
+- En `select` / `multi-select` con opciones declaradas, se descartan los valores que no estén en la lista.
 - Las columnas de relaciones `belongsTo` / `hasOne` se filtran igual (ver §5).
-- Reservado para fases futuras: rangos (`filter[created_at]=2026-01-01..2026-01-31`), booleanos y relaciones a muchos (`hasMany`, `belongsToMany`).
+
+#### Etapas
+
+- **Fase 1:** todas las variantes y operadores de la tabla, varios filtros por columna, combinación AND.
+- **Fase futura:** `join=or` (combinar filtros con OR, usado por el filter menu avanzado de tablecn; el nombre del parámetro queda reservado), operador `rel` (fechas relativas a hoy) y relaciones a muchos (`hasMany`, `belongsToMany`).
 
 ### 1.5 `search`
 
@@ -124,8 +163,9 @@ Usar un closure permite que funcionen las recargas parciales de Inertia (`router
     "pagination": { "pageIndex": 1, "pageSize": 20 },
     "sorting": [ { "id": "created_at", "desc": true }, { "id": "name", "desc": false } ],
     "columnFilters": [
-      { "id": "status", "value": ["active", "pending"] },
-      { "id": "email", "value": "gmail" }
+      { "id": "status", "filterId": "status-0", "variant": "multi-select", "operator": "inArray", "value": ["active", "pending"] },
+      { "id": "email", "filterId": "email-0", "variant": "text", "operator": "iLike", "value": "gmail" },
+      { "id": "price", "filterId": "price-0", "variant": "range", "operator": "isBetween", "value": ["10", "100"] }
     ],
     "globalFilter": "ana",
     "columnVisibility": { "name": true, "email": true, "status": true, "role": false, "created_at": false }
@@ -138,13 +178,15 @@ Usar un closure permite que funcionen las recargas parciales de Inertia (`router
     ],
     "role": [
       { "value": "admin", "label": "admin", "count": 4 }
-    ]
+    ],
+    "price": { "min": 0, "max": 2490 }
   },
   "config": {
     "columns": [
-      { "id": "name", "label": "Nombre", "sortable": true, "filter": null, "hideable": false, "visible": true },
-      { "id": "email", "label": "Email", "sortable": true, "filter": "text", "hideable": true, "visible": true },
-      { "id": "status", "label": "Estado", "sortable": false, "filter": "facet", "hideable": true, "visible": true }
+      { "id": "name", "label": "Nombre", "sortable": true, "variant": null, "placeholder": null, "hideable": false, "visible": true },
+      { "id": "email", "label": "Email", "sortable": true, "variant": "text", "placeholder": "Buscar email…", "hideable": true, "visible": true },
+      { "id": "status", "label": "Estado", "sortable": false, "variant": "multi-select", "placeholder": null, "hideable": true, "visible": true },
+      { "id": "price", "label": "Precio", "sortable": true, "variant": "range", "placeholder": null, "unit": "$", "hideable": true, "visible": true }
     ],
     "searchable": true,
     "per_page_options": [10, 20, 30, 50],
@@ -167,22 +209,31 @@ Igual que el `LengthAwarePaginator` de Laravel (en snake_case). `from` y `to` so
 
 ### 2.4 `state`
 
-Estado **normalizado y aplicado**, con las formas de TanStack Table (`PaginationState`, `SortingState`, `ColumnFiltersState`, `globalFilter`, `VisibilityState`) para pasarlo tal cual a `useReactTable` / `useVueTable`. `pageIndex` es base 0 (`page - 1`).
+Estado **normalizado y aplicado**, con las formas de TanStack Table v9 (`PaginationState`, `SortingState`, `ColumnFiltersState`, `globalFilter`, `VisibilityState`) para pasarlo tal cual a la tabla. `pageIndex` es base 0 (`page - 1`).
+
+Cada elemento de `columnFilters` tiene la forma `ColumnFilterItem` de tablecn: `id`, `filterId` (`<id>-<índice>`), `variant`, `operator` (clave del operador: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) y `value` (`string` o `string[]`, siempre como texto, igual que en la URL).
 
 ### 2.5 `facets`
 
-Opciones y conteos de cada columna con filtro `facet`:
+Datos que el cliente no puede calcular por sí mismo en modo servidor (sustituyen a `getFacetedUniqueValues` / `getFacetedMinMaxValues` de TanStack):
+
+**`select` / `multi-select`** → lista de opciones con la forma `ColumnSelectOption` de tablecn (`value`, `label`, `count`; el icono lo pone el cliente):
 
 - **Conteo cruzado:** el conteo de cada faceta se calcula con todos los demás filtros y la búsqueda aplicados, **excepto el de la propia faceta**. Así, al marcar «active» se siguen viendo los conteos de «pending» e «inactive». Es un `GROUP BY` por faceta.
 - **Origen de las opciones:**
-  - Declaradas (`->facet('status', options: ['active' => 'Activo', …])`): aparecen todas, en el orden declarado y con `count: 0` si no hay filas.
+  - Declaradas (`->multiSelect(['active' => 'Activo', …])`): aparecen todas, en el orden declarado y con `count: 0` si no hay filas.
   - No declaradas: valores distintos presentes en la base de datos, ordenados por valor, con `label = value`.
 - Los valores seleccionados aparecen siempre, aunque su conteo sea 0.
 - En esta fase se excluyen los valores `NULL`.
+- Los conteos se pueden desactivar por columna (`->withCounts(false)`); entonces `count` no se envía.
+
+**`range`** → `{ "min": …, "max": … }` de la columna sobre la consulta base (sin filtros), para los límites del slider / range filter. Se pueden fijar a mano con `->range(min: 0, max: 5000)` y evitar la consulta.
 
 ### 2.6 `config`
 
-Metadatos estáticos de la tabla para construir la UI: columnas (etiqueta, si se puede ordenar, tipo de filtro, si se puede ocultar, visibilidad por defecto), si hay búsqueda global, opciones de `per_page`, orden por defecto y nombres efectivos de los parámetros de la URL.
+Metadatos estáticos de la tabla para construir la UI: columnas (etiqueta, si se puede ordenar, variante de filtro, placeholder, unidad, si se puede ocultar, visibilidad por defecto), si hay búsqueda global, opciones de `per_page`, orden por defecto y nombres efectivos de los parámetros de la URL.
+
+El adaptador del cliente traduce cada columna a la `meta` de tablecn (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) y a `enableSorting` / `enableColumnFilter` / `enableHiding`, de modo que la definición vive en un solo lugar: el servidor.
 
 ---
 
@@ -190,7 +241,7 @@ Metadatos estáticos de la tabla para construir la UI: columnas (etiqueta, si se
 
 Funciones puras de TypeScript compartidas entre React y Vue:
 
-- `stateToQuery(state, config) → Record<string, string | string[]>`: serializa, omitiendo los valores por defecto (página 1, `per_page` por defecto, sin orden, sin filtros, visibilidad por defecto) para que las URLs queden limpias.
+- `stateToQuery(state, config) → Record<string, string | string[]>`: serializa, omitiendo los valores por defecto (página 1, `per_page` por defecto, sin orden, sin filtros, visibilidad por defecto) para que las URLs queden limpias. Los filtros con su operador implícito se escriben sin prefijo (`filter[status]=active,pending`).
 - `queryToState(query, config) → Partial<TableState>`: lo inverso. Solo se usa como respaldo, porque el estado oficial es `state` de la respuesta.
 
 Reglas que el cliente debe cumplir:
@@ -206,7 +257,8 @@ Reglas que el cliente debe cumplir:
 - Los identificadores de columna del contrato son nombres públicos que el servidor asocia a columnas reales, siempre calificadas (`users.status`), o a rutas de relaciones declaradas (`category.name`).
 - Ningún valor de la request se usa como identificador SQL; los valores van siempre como bindings.
 - `per_page` limitado a una lista cerrada; `sort` limitado por `maxSorts`; `search` limitado en longitud.
-- Coste por petición: 1 `COUNT` + 1 `SELECT` paginado + 1 `GROUP BY` por faceta. Conviene indexar las columnas `facet` y `sortable`, y las claves foráneas usadas por columnas de relaciones.
+- Coste por petición: 1 `COUNT` + 1 `SELECT` paginado + 1 `GROUP BY` por columna `select` / `multi-select` con conteos + 1 `MIN/MAX` por columna `range` sin límites fijos. Conviene indexar las columnas filtrables y ordenables, y las claves foráneas usadas por columnas de relaciones.
+- Número máximo de filtros por petición (por defecto 20) para acotar el tamaño de la consulta.
 
 ---
 
@@ -229,10 +281,11 @@ class ProductsTable extends DataTable
     {
         return [
             Column::make('name', 'Nombre')->sortable()->searchable()->hideable(false),
-            Column::make('price', 'Precio')->sortable(),
-            Column::make('status', 'Estado')->facet(['active' => 'Activo', 'draft' => 'Borrador']),
-            Column::make('category', 'Categoría')->from('category.name')->facet()->sortable()->searchable(),
-            Column::make('created_at', 'Creado')->sortable()->hidden(),
+            Column::make('price', 'Precio')->sortable()->range(unit: '$'),
+            Column::make('status', 'Estado')->multiSelect(['active' => 'Activo', 'draft' => 'Borrador']),
+            Column::make('category', 'Categoría')->from('category.name')->multiSelect()->sortable()->searchable(),
+            Column::make('featured', 'Destacado')->boolean(),
+            Column::make('created_at', 'Creado')->sortable()->dateRange()->hidden(),
         ];
     }
 
@@ -252,7 +305,7 @@ return Inertia::render('products/index', ['products' => fn () => ProductsTable::
 DataTable::for(User::query())
     ->columns([
         Column::make('name', 'Nombre')->sortable()->searchable(),
-        Column::make('role', 'Rol')->facet(),
+        Column::make('role', 'Rol')->select(),
     ])
     ->defaultSort('name');
 ```
@@ -273,7 +326,7 @@ UserProductsTable::for($user->products());
 |---|---|
 | `data` | Se hace eager loading de la relación automáticamente; la fila lleva `"category": "Electrónica"` (aplanado bajo el id público) |
 | `sort` | Subconsulta correlacionada: `ORDER BY (SELECT name FROM categories WHERE categories.id = products.category_id)` |
-| `filter` `facet` / `text` | `whereHas('category', …)` con `IN` o `LIKE` sobre la columna relacionada |
+| `filter` | `whereHas('category', …)` con el operador correspondiente sobre la columna relacionada (`is.empty` también incluye los registros sin relación) |
 | `search` | `orWhereHas('category', …)` dentro del grupo de cada palabra |
 | `facets` | `GROUP BY` sobre el valor de la subconsulta; las opciones son los valores de la columna relacionada (por ejemplo, nombres de categoría) |
 
@@ -294,7 +347,7 @@ Límites de esta fase:
 | Parseo y lista blanca de `sort` / `filter` | ✅ Maduro | ~150 líneas, cubiertas por tests |
 | `per_page` con lista cerrada y página fuera de rango | ❌ Hay que hacerlo encima | ✅ |
 | Búsqueda global en varias columnas | ⚠️ Con un `AllowedFilter::callback` propio | ✅ |
-| Facetas con conteo cruzado | ❌ Hay que reconstruir el builder con una Request modificada por faceta | ✅ Diseñado para eso |
+| Opciones con conteo cruzado y min/max | ❌ Hay que reconstruir el builder con una Request modificada por faceta | ✅ Diseñado para eso |
 | Estado normalizado en formato TanStack | ❌ | ✅ |
 | Valores no permitidos | Lanza `InvalidFilterQuery` / `InvalidSortQuery` (400), configurable a medias | Normaliza e informa en `state` |
 | Conceptos ajenos al caso (includes, fields, appends) | Sí | No |
