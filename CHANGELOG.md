@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-05
+
 ### Added
 
 - Tailwind classes per column in the React `meta`: `className` (header and cells), `headerClassName` and `cellClassName`, which can also be a function of the cell for classes by value (`(cell) => Number(cell.getValue()) < 100 && 'text-red-600'`). A width class (`w-40 md:w-80`) replaces the `size` width, so widths can be responsive.
@@ -100,7 +102,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.3.0...v0.4.0
