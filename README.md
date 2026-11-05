@@ -37,6 +37,28 @@ composer require eduardoapatat/laravel-inertia-datatable:@dev
 php artisan vendor:publish --tag=inertia-datatable-config   # opcional
 ```
 
+## Instalación del frontend (React)
+
+En un proyecto con el starter kit de React de Laravel:
+
+```bash
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json
+```
+
+Instala `@tanstack/react-table` v9, el hook `useServerDataTable`, los componentes en `resources/js/components/data-table/` y las primitivas de shadcn que falten. Cuando pregunte si sobrescribir componentes de `ui/` que ya existen, se puede responder que no: el DataTable solo usa variantes que ya tiene el starter kit.
+
+Si `resources/js/components/ui/dialog.tsx` es una versión antigua (sin la prop `showCloseButton`), la primitiva `command` no compila; actualízala con `pnpm dlx shadcn@latest add dialog --overwrite`.
+
+Uso en una página:
+
+```tsx
+const { table, isLoading } = useServerDataTable({ table: users, prop: 'users', columns });
+
+<DataTable table={table}>
+    <DataTableToolbar table={table} searchable={users.config.searchable} />
+</DataTable>
+```
+
 ## Desarrollo
 
 ```bash
@@ -45,8 +67,13 @@ composer test           # Pest
 composer format         # Pint
 composer analyse        # Larastan
 composer check          # todo lo anterior (Pint en modo --test)
+pnpm install
+pnpm run test           # tests del código compartido (Vitest)
+pnpm run check          # formato y lint (vite-plus)
+pnpm run types:check
+pnpm run registry:build # compila registry.json en r/
 ```
 
 ## Créditos
 
-Los componentes de frontend se basan en [tablecn](https://github.com/sadmann7/tablecn) de sadmann7 (MIT), adaptados para Inertia.
+Parte del código de frontend incluye software de terceros con licencia MIT; ver [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
