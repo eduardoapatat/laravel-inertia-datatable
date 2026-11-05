@@ -4,6 +4,16 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Column validation in debug mode (`inertia-datatable.validate_columns`): a sortable, searchable or filterable column that does not exist in its table, or a displayed column without a value in the model (typo, `$hidden`, accessor missing from `$appends`), fails on the first load with a clear message instead of a SQL error when someone sorts or filters.
+- Docs on keeping the default formatting in custom cells (`getOptionLabel`, `formatCellValue`) and on readable URLs (`filter[status]=a,b`) with Inertia's `urlResolver()`.
+
+### Fixed
+
+- `make:datatable` types the React row as the values arrive in the JSON: `decimal` casts as `string`, and uncast `DECIMAL` and boolean columns as `number | string` and `boolean | number`.
+- The date filter cuts long ranges on small screens instead of overflowing the toolbar.
+
 ## [0.1.0] - 2026-11-05
 
 First published version: Laravel backend and React UI.

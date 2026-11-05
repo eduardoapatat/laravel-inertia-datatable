@@ -266,6 +266,7 @@ Rules the client must follow:
 - `per_page` limited to a closed list; `sort` limited by `maxSorts`; `search` limited in length.
 - Cost per request: 1 `COUNT` + 1 paginated `SELECT` + 1 `GROUP BY` per `select` / `multi-select` column with counts + 1 `MIN/MAX` per `range` column without fixed bounds. Index the filterable and sortable columns, and the foreign keys used by relation columns.
 - Maximum number of filters per request (by default 20) to bound the query size.
+- In debug mode (`inertia-datatable.validate_columns`), the columns used in SQL are checked against the schema and the displayed ones against the serialized model, so a missing column fails on the first load with a `LogicException` instead of a SQL error on the first sort or filter.
 
 ---
 

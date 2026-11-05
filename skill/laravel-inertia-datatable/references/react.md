@@ -138,6 +138,22 @@ columnHelper.accessor('status', {
 }),
 ```
 
+## Readable URLs
+
+Inertia builds the page URL with `$request->fullUrl()`, which encodes brackets and commas (`?filter%5Bstatus%5D=active%2Cdraft`). It works the same, but to keep the URL as the hook writes it (`?filter[status]=active,draft`), return the raw request URI from the app's `HandleInertiaRequests` middleware:
+
+```php
+use Closure;
+use Illuminate\Http\Request;
+
+public function urlResolver(): ?Closure
+{
+    return fn (Request $request): string => $request->getRequestUri();
+}
+```
+
+It applies to every Inertia page of the app, which is why the package does not register it by itself.
+
 ## Several tables on one page
 
 Call the hook once per table with its own prop and give each backend table a `name()`; the hook builds URLs with the prefixed parameter names returned by the server and keeps unrelated query parameters.

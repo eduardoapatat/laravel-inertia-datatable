@@ -58,6 +58,15 @@ React has two levels: the generic components (`components/data-table/`, hook and
 
 The layout (search, filters, Reset, column menu and pagination) is also changed in each table's component, without touching the shared components: `DataTableToolbar` is made of exported pieces (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton`, `DataTableViewOptions`) that can be placed in any order, and with `<DataTable pagination={false}>` the `DataTablePagination` goes wherever you want (for example, on top). `--install-ui` runs `shadcn add` with the lockfile's package manager and answers "no" to overwriting existing `ui/` files; the registry URL is set in `inertia-datatable.registry_url` or with the `INERTIA_DATATABLE_REGISTRY_URL` variable (a URL or a local folder with the compiled JSON, for example to pin the UI to a version). The UI is installed even when the table is not created (unknown model or existing class). When the model does not exist, the command lists the available models.
 
+### Column validation
+
+With `APP_DEBUG=true`, every request checks that the declared columns exist, so a typo or a missing migration fails on the first load with a clear message instead of a SQL error when someone sorts or filters:
+
+- Columns that sort, search or filter (and the default sort) must be columns of their table (or of the related table, with `from('relation.column')`).
+- Displayed columns must have a value in the model: a column, an alias of the query (`withCount`, `addSelect`) or an attribute in `$appends`. Tables with `transform()` are not checked.
+
+It is controlled with `inertia-datatable.validate_columns` (`null` = follow the debug mode, `true`/`false` to force it). In production it is off and costs nothing.
+
 ### Installing or updating the UI
 
 ```bash
@@ -82,6 +91,15 @@ From the registry of the same version as the package, it installs `@tanstack/rea
 
 ```bash
 pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.1.0/r/data-table-react.json
+```
+
+Inertia writes the URL with brackets and commas encoded (`filter%5Bstatus%5D=a%2Cb`). For readable URLs, add this to the app's `HandleInertiaRequests` middleware (it affects every Inertia page, so the package does not do it by itself):
+
+```php
+public function urlResolver(): ?Closure
+{
+    return fn (Request $request): string => $request->getRequestUri();
+}
 ```
 
 For usage in pages, see `make:datatable --react` above and the skill's React reference (`skill/laravel-inertia-datatable/references/react.md`).
