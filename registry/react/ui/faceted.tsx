@@ -595,6 +595,47 @@ function FacetedItemIndicator({
     );
 }
 
+/**
+ * Checkbox at the start of an item, checked while the item is selected.
+ */
+function FacetedItemCheckbox({
+    className,
+    ...props
+}: React.ComponentProps<'span'>) {
+    return (
+        <span
+            aria-hidden="true"
+            data-slot="faceted-item-checkbox"
+            className={cn(
+                'flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input group-data-checked/command-item:border-primary group-data-checked/command-item:bg-primary group-data-checked/command-item:text-primary-foreground',
+                className,
+            )}
+            {...props}
+        >
+            <Check className="invisible size-3.5 text-current group-data-checked/command-item:visible" />
+        </span>
+    );
+}
+
+/**
+ * Count of rows of an item, at the end.
+ */
+function FacetedItemCount({
+    className,
+    ...props
+}: React.ComponentProps<'span'>) {
+    return (
+        <span
+            data-slot="faceted-item-count"
+            className={cn(
+                'ml-auto font-mono text-xs text-muted-foreground tabular-nums',
+                className,
+            )}
+            {...props}
+        />
+    );
+}
+
 function FacetedClear({
     className,
     children = 'Clear',
@@ -652,6 +693,8 @@ export {
     FacetedGroup,
     FacetedInput,
     FacetedItem,
+    FacetedItemCheckbox,
+    FacetedItemCount,
     FacetedItemIndicator,
     FacetedList,
     FacetedLoading,

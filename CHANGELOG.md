@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- Filter buttons have a dashed border, the filter options show a checkbox at the start and the count at the end (like the shadcn tasks example), and the sort check of the column menu is at the end. `components/ui/faceted.tsx` adds `FacetedItemCheckbox` and `FacetedItemCount`.
+
 ## [0.4.0] - 2026-11-05
 
 ### Changed

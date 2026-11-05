@@ -23,7 +23,8 @@ import {
     FacetedGroup,
     FacetedInput,
     FacetedItem,
-    FacetedItemIndicator,
+    FacetedItemCheckbox,
+    FacetedItemCount,
     FacetedList,
     FacetedTrigger,
     FacetedValue,
@@ -112,7 +113,7 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
             multiple={multiple}
         >
             <FacetedTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" className="border-dashed">
                     {hasSelection ? (
                         <span
                             aria-hidden="true"
@@ -174,19 +175,22 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                                 key={option.value}
                                 value={option.value}
                             >
-                                {option.icon && <option.icon />}
+                                <FacetedItemCheckbox />
+                                {option.icon && (
+                                    <option.icon className="text-muted-foreground" />
+                                )}
                                 <span className="flex-1 truncate">
                                     {option.label}
                                 </span>
-                                <FacetedItemIndicator>
-                                    {option.count === undefined
-                                        ? undefined
-                                        : formatNumber(
-                                              option.count,
-                                              {},
-                                              table?.options.meta?.locale,
-                                          )}
-                                </FacetedItemIndicator>
+                                {option.count !== undefined && (
+                                    <FacetedItemCount>
+                                        {formatNumber(
+                                            option.count,
+                                            {},
+                                            table?.options.meta?.locale,
+                                        )}
+                                    </FacetedItemCount>
+                                )}
                             </FacetedItem>
                         ))}
                     </FacetedGroup>

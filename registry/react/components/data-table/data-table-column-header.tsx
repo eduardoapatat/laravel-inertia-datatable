@@ -17,11 +17,17 @@ import { getMessage } from '@/lib/data-table-messages';
 
 import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
+    DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown, ChevronUp, ChevronsUpDown, EyeOff } from 'lucide-react';
+import {
+    Check,
+    ChevronDown,
+    ChevronUp,
+    ChevronsUpDown,
+    EyeOff,
+} from 'lucide-react';
 
 interface DataTableColumnHeaderProps<
     TData extends RowData,
@@ -45,7 +51,6 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
         <Subscribe
             source={column.table.store}
             selector={(state) => ({
-                isVisible: state.columnVisibility[column.id] !== false,
                 sortDirection: getSortDirection(state.sorting, column.id),
             })}
         >
@@ -54,7 +59,6 @@ export function DataTableColumnHeader<TData extends RowData, TValue>({
                     column={column}
                     label={label}
                     className={className}
-                    isVisible={headerState.isVisible}
                     sortDirection={headerState.sortDirection}
                     {...props}
                 />
@@ -67,7 +71,6 @@ interface DataTableColumnHeaderMenuProps<
     TData extends RowData,
     TValue,
 > extends DataTableColumnHeaderProps<TData, TValue> {
-    isVisible: boolean;
     sortDirection: SortDirection | 'none';
 }
 
@@ -75,7 +78,6 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
     column,
     label,
     className,
-    isVisible,
     sortDirection,
     ...props
 }: DataTableColumnHeaderMenuProps<TData, TValue>) {
@@ -113,33 +115,30 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
             >
                 {column.getCanSort() && (
                     <>
-                        <DropdownMenuCheckboxItem
-                            className="[&_svg]:text-muted-foreground"
+                        <SortItem
                             checked={sortDirection === 'asc'}
-                            onClick={() => onSortDirectionChange('asc')}
+                            onSelect={() => onSortDirectionChange('asc')}
                         >
                             <ChevronUp />
                             {getMessage(column.table, 'sort_ascending')}
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem
-                            className="[&_svg]:text-muted-foreground"
+                        </SortItem>
+                        <SortItem
                             checked={sortDirection === 'desc'}
-                            onClick={() => onSortDirectionChange('desc')}
+                            onSelect={() => onSortDirectionChange('desc')}
                         >
                             <ChevronDown />
                             {getMessage(column.table, 'sort_descending')}
-                        </DropdownMenuCheckboxItem>
+                        </SortItem>
                     </>
                 )}
                 {column.getCanHide() && (
-                    <DropdownMenuCheckboxItem
+                    <DropdownMenuItem
                         className="[&_svg]:text-muted-foreground"
-                        checked={!isVisible}
-                        onClick={() => column.toggleVisibility(false)}
+                        onSelect={() => column.toggleVisibility(false)}
                     >
                         <EyeOff />
                         {getMessage(column.table, 'hide')}
-                    </DropdownMenuCheckboxItem>
+                    </DropdownMenuItem>
                 )}
             </DropdownMenuContent>
         </DropdownMenu>
@@ -153,4 +152,32 @@ function getSortDirection(
     const sort = sorting.find((sort) => sort.id === columnId);
     if (!sort) return 'none';
     return sort.desc ? 'desc' : 'asc';
+}
+
+/**
+ * Sort option with its check at the end, whatever the side the project's
+ * `DropdownMenuCheckboxItem` puts it on.
+ */
+function SortItem({
+    checked,
+    children,
+    className,
+    ...props
+}: React.ComponentProps<typeof DropdownMenuItem> & { checked: boolean }) {
+    return (
+        <DropdownMenuItem
+            role="menuitemcheckbox"
+            aria-checked={checked}
+            className={cn('[&_svg]:text-muted-foreground', className)}
+            {...props}
+        >
+            {children}
+            <Check
+                className={cn(
+                    'ms-auto text-foreground!',
+                    !checked && 'invisible',
+                )}
+            />
+        </DropdownMenuItem>
+    );
 }
