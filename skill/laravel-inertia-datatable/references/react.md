@@ -164,7 +164,7 @@ columnHelper.accessor('name', { size: 300 }),                                   
 columnHelper.accessor('notes', { meta: { className: 'w-40 md:w-80 lg:w-96' } }), // responsive width
 columnHelper.accessor('title', { size: 300, meta: { className: 'max-md:w-48' } }), // size from md up, class below
 columnHelper.accessor('sku', { meta: { cellClassName: 'font-mono text-xs' } }),
-columnHelper.accessor('price', { meta: { numberClassName: 'min-w-28' } }),         // figures longer than the header
+columnHelper.accessor('featured', { meta: { align: 'center' } }),                 // header and cells together
 // Classes by value: the default cell (and its PHP format) stays as it is
 columnHelper.accessor('price', {
     meta: { cellClassName: (cell) => Number(cell.getValue()) < 100 && 'font-medium text-red-600' },
@@ -173,7 +173,7 @@ columnHelper.accessor('price', {
 
 - Prefer `meta.*ClassName` to a custom `cell` when only spacing, size, alignment or colors change; write a `cell` to render something else. Tailwind classes are for layout and colors: when shadcn has a component for the thing (Badge, Checkbox, Button), use the component.
 
-- Number cells are already right-aligned in a box as wide as the header label, so figures end right under it; do not add `text-right`, which pushes them against the next column. `meta.numberClassName` changes that box (`min-w-28` when figures are longer than the label).
+- Alignment goes in `meta.align` (`start`, `center`, `end`), never as `text-right` in `className`: it aligns the header and the cells together so they line up exactly (the header button compensates its padding). Number columns are `end` by default, with `pe-4` of room before the next column.
 - `meta.className` goes to the header and the cells, `headerClassName` / `cellClassName` to one of them. A `w-*` class replaces the `size` width (they are merged with `cn`); a `md:w-*` alone keeps `size` below that breakpoint.
 - The table grows to the sum of its columns and scrolls horizontally when it does not fit; when it fits, the extra space is shared.
 - Pinned columns compute their offset from `size`: give them `size`, not width classes.
