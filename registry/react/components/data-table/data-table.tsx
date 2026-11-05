@@ -342,6 +342,9 @@ function DataTableCellImpl<TData extends RowData>({
         <TableCell
             className={cn(
                 getCellClassName(pinned),
+                // Content that does not fit ends in "…" instead of touching
+                // the next column; `text-clip` in `meta.cellClassName` undoes it.
+                'text-ellipsis',
                 ...getColumnClassName(
                     cell.column.columnDef.meta,
                     'cell',
