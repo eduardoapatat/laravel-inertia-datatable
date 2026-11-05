@@ -101,7 +101,7 @@ final class ColumnGuesser
             $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, ['boolean()'], 'boolean-or-number', $nullable),
             in_array($castType, ['date', 'datetime', 'immutable_date', 'immutable_datetime', 'timestamp'], true) || $this->isDateType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'dateRange()'], 'date', $nullable),
             // The decimal cast serializes as a string to keep the precision.
-            $castType === 'decimal' => new GuessedColumn($name, $label, ['sortable()', 'range()'], 'decimal', $nullable),
+            $castType === 'decimal' => new GuessedColumn($name, $label, ['sortable()', 'range()', ...$this->decimalsCall((string) $cast)], 'decimal', $nullable),
             in_array($castType, ['float', 'double', 'real'], true) || $this->isFloatType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'range()'], 'number', $nullable),
             // Without a cast, MySQL and PostgreSQL return DECIMAL/NUMERIC as a string; SQLite as a number.
             $this->isDecimalType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'range()'], 'number-or-string', $nullable),
@@ -151,6 +151,18 @@ final class ColumnGuesser
             $nullable,
             isRelation: true,
         );
+    }
+
+    /**
+     * `decimal:2` → `decimals(2)`, so the cell shows the same decimals as the cast.
+     *
+     * @return list<string>
+     */
+    private function decimalsCall(string $cast): array
+    {
+        $decimals = Str::after($cast, ':');
+
+        return ctype_digit($decimals) ? ["decimals({$decimals})"] : [];
     }
 
     private function isBooleanType(string $typeName, string $type): bool

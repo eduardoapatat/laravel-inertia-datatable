@@ -84,6 +84,14 @@ it('creates a reusable React component with the react option', function () {
         ->and(File::exists(resource_path('js/pages/products/index.tsx')))->toBeFalse();
 });
 
+it('keeps the decimals of a decimal cast in the display', function () {
+    artisan('make:datatable', ['name' => 'ReadingsTable', '--model' => Reading::class])->assertSuccessful();
+
+    expect(File::get(app_path('DataTables/ReadingsTable.php')))
+        ->toContain("Column::make('amount', 'Amount')->sortable()->range()->decimals(2),")
+        ->toContain("Column::make('total', 'Total')->sortable()->range(),");
+});
+
 it('types the React row as the values arrive in the JSON', function () {
     artisan('make:datatable', ['name' => 'ReadingsTable', '--model' => Reading::class, '--react' => true])->assertSuccessful();
 
