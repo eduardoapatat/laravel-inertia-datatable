@@ -128,10 +128,14 @@ function DataTableSliderFilterContent<TData extends RowData>({
 
     const table = column.table;
     const locale = table.options.meta?.locale;
+    // The bounds in the trigger use the format of the cells (`->money('CLP')`
+    // → `$10 - $2.489`); a currency or percentage already says the unit.
+    const display = meta?.display?.type === 'number' ? meta.display : undefined;
+    const valueFormat = display?.format ?? { maximumFractionDigits: 2 };
+    const showUnit = Boolean(unit) && valueFormat.style === undefined;
     const formatValue = React.useCallback(
-        (value: number) =>
-            formatNumber(value, { maximumFractionDigits: 2 }, locale),
-        [locale],
+        (value: number) => formatNumber(value, valueFormat, locale),
+        [valueFormat, locale],
     );
 
     const setRangeFilter = React.useCallback(
@@ -226,7 +230,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                             />
                             {formatValue(columnFilterValue[0])} -{' '}
                             {formatValue(columnFilterValue[1])}
-                            {unit ? ` ${unit}` : ''}
+                            {showUnit ? ` ${unit}` : ''}
                         </>
                     ) : null}
                 </Button>
