@@ -10,12 +10,14 @@ namespace InertiaDataTable\Console;
 final readonly class GuessedColumn
 {
     /**
-     * @param  list<string>  $calls  Calls chained after `Column::make()`, for example `sortable()`.
+     * @param  'text'|'number'|'date'|'boolean'|'option'  $type  Factory of `Column` (`Column::number()`).
+     * @param  list<string>  $calls  Calls chained after the factory, for example `sortable()`.
      * @param  'string'|'number'|'decimal'|'number-or-string'|'boolean'|'boolean-or-number'|'date'|'option'  $kind  Type of the value in the JSON, for the React component.
      */
     public function __construct(
         public string $id,
         public string $label,
+        public string $type,
         public array $calls,
         public string $kind,
         public bool $nullable,
@@ -25,7 +27,7 @@ final readonly class GuessedColumn
 
     public function toPhp(): string
     {
-        $code = sprintf("Column::make('%s', '%s')", $this->id, addslashes($this->label));
+        $code = sprintf("Column::%s('%s', '%s')", $this->type, $this->id, addslashes($this->label));
 
         foreach ($this->calls as $call) {
             $code .= "->{$call}";

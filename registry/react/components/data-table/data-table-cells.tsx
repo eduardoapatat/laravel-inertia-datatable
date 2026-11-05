@@ -139,9 +139,9 @@ export function DataTableDateCell<TData extends RowData, TValue>(
     const { meta, locale, context } = cellSetup(props);
     const value = props.cell.getValue();
     const format =
-        meta?.display?.type === 'date'
-            ? meta.display.format
-            : (context.dateFormat ?? 'long');
+        (meta?.display?.type === 'date' ? meta.display.format : undefined) ??
+        context.dateFormat ??
+        'long';
     const text = formatDateValue(value, format, locale);
 
     if (text === '') {

@@ -268,7 +268,7 @@ export function formatCellValue(
                 display.format,
             );
         case 'date':
-            return formatDateValue(value, display.format, locale);
+            return formatDateValue(value, display.format ?? dateFormat, locale);
         case 'text':
             return truncate(toText(value), display.limit);
         case 'boolean':
@@ -376,15 +376,24 @@ function toNumber(value: unknown): number | null {
 }
 
 /**
- * The unit declared in PHP (`->number('kg')`) goes after plain numbers, not
- * after currencies, percentages or Intl units.
+ * Unit of the column: `->unit('kg')` in PHP or `meta.unit` in the page.
+ */
+function getUnit(meta: DataTableColumnMeta | undefined): string | undefined {
+    const display = meta?.display?.type === 'number' ? meta.display : undefined;
+
+    return display?.unit ?? (meta && 'unit' in meta ? meta.unit : undefined);
+}
+
+/**
+ * The unit goes after plain numbers, not after currencies, percentages or
+ * Intl units.
  */
 function withUnit(
     text: string,
     meta: DataTableColumnMeta | undefined,
     format?: Intl.NumberFormatOptions,
 ): string {
-    const unit = meta && 'unit' in meta ? meta.unit : undefined;
+    const unit = getUnit(meta);
 
     return unit && format?.style === undefined ? `${text} ${unit}` : text;
 }

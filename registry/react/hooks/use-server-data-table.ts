@@ -296,7 +296,7 @@ function toLocalState(state: ServerTableState): LocalTableState {
 
 function toQueryState(state: LocalTableState, config: ServerTableConfig) {
     const variants = new Map(
-        config.columns.map((column) => [column.id, column.variant]),
+        config.columns.map((column) => [column.id, column.filter?.variant]),
     );
     const filters: ServerFilter[] = [];
 
@@ -409,8 +409,7 @@ function withColumnMeta<TData extends RowData>(
             ...mergedDisplay(server.display, userMeta?.display),
         } as DataTableColumnMeta,
         enableSorting: column.enableSorting ?? server.sortable,
-        enableColumnFilter:
-            column.enableColumnFilter ?? server.variant !== null,
+        enableColumnFilter: column.enableColumnFilter ?? server.filter !== null,
         enableHiding: column.enableHiding ?? server.hideable,
     };
 }
@@ -422,41 +421,42 @@ function serverMeta(
 ): DataTableColumnMeta {
     const base = {
         label: server.label,
-        placeholder: server.placeholder ?? undefined,
+        placeholder: server.filter?.placeholder,
     };
-    const unit = server.unit ?? undefined;
+    const filter = server.filter?.variant;
+    const display = server.display;
 
-    switch (server.variant) {
-        case 'text':
-        case 'boolean':
-            return { ...base, variant: server.variant };
-        case 'number':
-            return { ...base, variant: 'number', unit };
-        case 'range': {
+    // The type of the column gives the variant of the meta; its filter, the
+    // details (the toolbar only shows the columns that can filter).
+    switch (display.type) {
+        case 'number': {
+            if (filter !== 'range') {
+                return { ...base, variant: 'number', unit: display.unit };
+            }
+
             const range = isRangeFacet(facet) ? facet : undefined;
 
             return {
                 ...base,
                 variant: 'number',
                 filter: 'range',
-                unit,
+                unit: display.unit,
                 min: range?.min ?? undefined,
                 max: range?.max ?? undefined,
             };
         }
         case 'date':
-            return { ...base, variant: 'date' };
-        case 'date-range':
-            return { ...base, variant: 'date', filter: 'range' };
-        case 'select':
-        case 'multi-select':
+            return filter === 'date-range'
+                ? { ...base, variant: 'date', filter: 'range' }
+                : { ...base, variant: 'date' };
+        case 'option':
             return {
                 ...base,
-                variant: server.variant,
+                variant: filter === 'select' ? 'select' : 'multi-select',
                 options: toOptions(facet, userMeta),
             };
         default:
-            return base;
+            return { ...base, variant: display.type };
     }
 }
 
@@ -465,15 +465,11 @@ function serverMeta(
  * it declares (TanStack merges `meta` shallowly, so it is done here).
  */
 function mergedDisplay(
-    server: ColumnDisplay | null | undefined,
+    server: ColumnDisplay,
     page: ColumnDisplay | undefined,
-): { display?: ColumnDisplay } {
-    if (page === undefined) {
-        return server ? { display: server } : {};
-    }
-
-    if (server?.type !== page.type) {
-        return { display: page };
+): { display: ColumnDisplay } {
+    if (page === undefined || server.type !== page.type) {
+        return { display: page ?? server };
     }
 
     if (server.type === 'number' && page.type === 'number') {

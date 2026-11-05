@@ -16,7 +16,7 @@ use function Pest\Laravel\artisan;
 function uiMessages(): array
 {
     return DataTable::for(Product::query())
-        ->columns([Column::make('name', 'Name')])
+        ->columns([Column::text('name', 'Name')])
         ->withRequest(Request::create('/'))
         ->toArray()['config']['messages'];
 }

@@ -6,6 +6,7 @@ namespace InertiaDataTable\Parsing;
 
 use DateTimeImmutable;
 use InertiaDataTable\Column;
+use InertiaDataTable\Columns\OptionColumn;
 use InertiaDataTable\Enums\FilterOperator;
 use InertiaDataTable\Enums\FilterVariant;
 use InertiaDataTable\FilterItem;
@@ -159,7 +160,7 @@ final class FilterParser
             return null;
         }
 
-        $options = $column->options();
+        $options = $column instanceof OptionColumn ? $column->optionLabels() : null;
 
         return $options === null || array_key_exists($value, $options) ? $value : null;
     }

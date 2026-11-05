@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use InertiaDataTable\Column;
+use InertiaDataTable\Columns\NumberColumn;
+use InertiaDataTable\Columns\OptionColumn;
 use InertiaDataTable\Enums\FilterVariant;
 use InertiaDataTable\TableDefinition;
 use InertiaDataTable\TableState;
@@ -31,11 +33,15 @@ final class FacetResolver
         $facets = [];
 
         foreach ($definition->columns as $id => $column) {
-            $variant = $column->filterVariant();
+            if ($column instanceof OptionColumn) {
+                $options = $column->filterVariant() === null
+                    ? $this->declaredOptions($column)
+                    : $this->options($definition, $state, $column);
 
-            if ($variant?->hasOptions()) {
-                $facets[$id] = $this->options($definition, $state, $column);
-            } elseif ($variant === FilterVariant::Range) {
+                if ($options !== null) {
+                    $facets[$id] = $options;
+                }
+            } elseif ($column instanceof NumberColumn && $column->filterVariant() === FilterVariant::Range) {
                 $facets[$id] = $this->range($definition, $column);
             }
         }
@@ -44,13 +50,35 @@ final class FacetResolver
     }
 
     /**
+     * Labels of a column without a filter, so its cells show them; no query.
+     *
+     * @return list<array{value: string, label: string}>|null
+     */
+    private function declaredOptions(OptionColumn $column): ?array
+    {
+        $declared = $column->optionLabels();
+
+        if ($declared === null) {
+            return null;
+        }
+
+        $options = [];
+
+        foreach ($declared as $value => $label) {
+            $options[] = ['value' => (string) $value, 'label' => $label];
+        }
+
+        return $options;
+    }
+
+    /**
      * Cross count: with every filter and the search applied, except the column's own filters.
      *
      * @return list<array{value: string, label: string, count?: int}>
      */
-    private function options(TableDefinition $definition, TableState $state, Column $column): array
+    private function options(TableDefinition $definition, TableState $state, OptionColumn $column): array
     {
-        $declared = $column->options();
+        $declared = $column->optionLabels();
         $counts = [];
 
         if ($column->hasCounts() || $declared === null) {
@@ -116,7 +144,7 @@ final class FacetResolver
      *
      * @return array{min: int|float|null, max: int|float|null}
      */
-    private function range(TableDefinition $definition, Column $column): array
+    private function range(TableDefinition $definition, NumberColumn $column): array
     {
         if ($column->min() !== null && $column->max() !== null) {
             return ['min' => $column->min(), 'max' => $column->max()];

@@ -43,7 +43,7 @@ it('cuts the search to the configured length', function () {
 });
 
 it('ignores the search when no column is searchable', function () {
-    $definition = DataTable::for(Product::query())->columns([Column::make('name')])->toDefinition();
+    $definition = DataTable::for(Product::query())->columns([Column::text('name')])->toDefinition();
 
     $state = (new StateParser)->parse(['search' => 'lámpara'], $definition);
 

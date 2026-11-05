@@ -163,7 +163,7 @@ final class DataTableEngine
     }
 
     /**
-     * Date format of the date columns without `->dateFormat()`.
+     * Date format of the date columns without `->format()`.
      */
     private function dateFormat(): string
     {

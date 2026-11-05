@@ -94,7 +94,7 @@ class MakeDataTableCommand extends GeneratorCommand
         ])->unique()->sort()->map(fn (string $class): string => "use {$class};")->implode("\n");
 
         $columnLines = $columns === []
-            ? "            // Column::make('name')->sortable()->searchable()->text(),"
+            ? "            // Column::text('name')->sortable()->searchable()->filter(),"
             : collect($columns)->map(fn (GuessedColumn $column): string => '            '.$column->toPhp().',')->implode("\n");
 
         return str_replace(

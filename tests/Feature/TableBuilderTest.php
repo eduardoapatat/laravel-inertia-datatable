@@ -13,7 +13,7 @@ use function Pest\Laravel\getJson;
 
 it('resolves a table declared with the quick form', function () {
     Route::get('/quick', fn () => DataTable::for(Product::query())
-        ->columns([Column::make('name')->sortable()])
+        ->columns([Column::text('name')->sortable()])
         ->perPage(5)
         ->perPageOptions([5, 15]));
     Product::factory()->create(['name' => 'Atril']);
@@ -29,7 +29,7 @@ it('resolves a table declared with the quick form', function () {
 
 it('reads its parameters with the table name as prefix', function () {
     Route::get('/quick', fn () => DataTable::for(Product::query())
-        ->columns([Column::make('name')])
+        ->columns([Column::text('name')])
         ->name('products')
         ->perPage(5)
         ->perPageOptions([5]));
@@ -45,7 +45,7 @@ it('reads its parameters with the table name as prefix', function () {
 
 it('removes hidden column keys from transformed rows and keeps the other keys', function () {
     Route::get('/quick', fn () => DataTable::for(Product::query())
-        ->columns([Column::make('name'), Column::make('sku')->hidden()])
+        ->columns([Column::text('name'), Column::text('sku')->hidden()])
         ->transform(fn (Product $product): array => [
             'name' => $product->name,
             'sku' => $product->sku,
@@ -60,7 +60,7 @@ it('removes hidden column keys from transformed rows and keeps the other keys', 
 
 it('rejects a column that reads a to-many relation', function () {
     $table = DataTable::for(Category::query())
-        ->columns([Column::make('product')->from('products.name')])
+        ->columns([Column::text('product')->from('products.name')])
         ->withRequest(Request::create('/'));
 
     expect(fn () => $table->toArray())->toThrow(LogicException::class, 'is not a to-one relation');

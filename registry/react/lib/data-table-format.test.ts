@@ -161,3 +161,14 @@ describe('truncate and isSafeUrl', () => {
         expect(isSafeUrl('not a url')).toBe(false);
     });
 });
+
+describe('formatCellValue with a date column without a format', () => {
+    it('uses the date format of the table', () => {
+        expect(
+            formatCellValue({ display: { type: 'date' } }, '2026-01-15', {
+                locale: 'es-CL',
+                dateFormat: 'short',
+            }),
+        ).toBe('15-01-26');
+    });
+});

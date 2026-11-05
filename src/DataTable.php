@@ -19,7 +19,7 @@ use ReflectionMethod;
  *     class ProductsTable extends DataTable
  *     {
  *         public function query(): Builder { return Product::query(); }
- *         public function columns(): array { return [Column::make('name')->sortable()]; }
+ *         public function columns(): array { return [Column::text('name')->sortable()]; }
  *     }
  *
  *     Inertia::render('products/index', ['products' => fn () => ProductsTable::make()]);

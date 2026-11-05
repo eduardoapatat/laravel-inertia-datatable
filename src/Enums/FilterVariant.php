@@ -74,12 +74,4 @@ enum FilterVariant: string
     {
         return $this === self::Number || $this === self::Range;
     }
-
-    /**
-     * Variants whose options (and counts) the server computes.
-     */
-    public function hasOptions(): bool
-    {
-        return $this === self::Select || $this === self::MultiSelect;
-    }
 }

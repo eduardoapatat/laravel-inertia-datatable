@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use InertiaDataTable\Column;
+use InertiaDataTable\DataTable;
 use InertiaDataTable\Tests\Fixtures\Models\Category;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
 use InertiaDataTable\Tests\Fixtures\Tables\ProductsWithUrlTable;
@@ -234,6 +237,21 @@ it('returns the bounds of range columns from the unfiltered query', function () 
     $response->assertOk()->assertJsonPath('facets.price', ['min' => 30, 'max' => 120]);
 });
 
+it('sends the labels of option columns without a filter, without counting', function () {
+    $facets = DataTable::for(Product::query())
+        ->columns([
+            Column::option('status')->options(['active' => 'Activo', 'draft' => 'Borrador']),
+            Column::option('category')->from('category.name'),
+        ])
+        ->withRequest(Request::create('/'))
+        ->toArray()['facets'];
+
+    expect($facets)->toBe(['status' => [
+        ['value' => 'active', 'label' => 'Activo'],
+        ['value' => 'draft', 'label' => 'Borrador'],
+    ]]);
+});
+
 it('includes only visible columns, the primary key and non hideable columns in each row', function () {
     seedCatalog();
 
@@ -275,10 +293,11 @@ it('describes columns, options and query parameters in config', function () {
 
     $response->assertOk()
         ->assertJsonPath('config.columns.0', [
-            'id' => 'name', 'label' => 'Nombre', 'sortable' => true, 'variant' => 'text',
-            'placeholder' => 'Buscar nombre…', 'unit' => null, 'hideable' => false, 'visible' => true,
-            'display' => null,
+            'id' => 'name', 'label' => 'Nombre', 'sortable' => true, 'hideable' => false, 'visible' => true,
+            'display' => ['type' => 'text'], 'filter' => ['variant' => 'text', 'placeholder' => 'Buscar nombre…'],
         ])
+        ->assertJsonPath('config.columns.2.display', ['type' => 'number', 'unit' => '$'])
+        ->assertJsonPath('config.columns.2.filter', ['variant' => 'range'])
         ->assertJsonPath('config.locale', 'en')
         ->assertJsonPath('config.date_format', 'long')
         ->assertJsonPath('config.searchable', true)

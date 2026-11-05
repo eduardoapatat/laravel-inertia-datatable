@@ -19,14 +19,14 @@ class ProductsTable extends DataTable
     public function columns(): array
     {
         return [
-            Column::make('name', 'Nombre')->sortable()->searchable()->text('Buscar nombre…')->hideable(false),
-            Column::make('sku', 'SKU')->text()->hidden(),
-            Column::make('price', 'Precio')->sortable()->range(unit: '$'),
-            Column::make('stock', 'Stock')->number(),
-            Column::make('status', 'Estado')->multiSelect(['active' => 'Activo', 'draft' => 'Borrador', 'archived' => 'Archivado']),
-            Column::make('category', 'Categoría')->from('category.name')->multiSelect()->sortable()->searchable(),
-            Column::make('featured', 'Destacado')->boolean(),
-            Column::make('released_on', 'Lanzamiento')->date()->hidden(),
+            Column::text('name', 'Nombre')->sortable()->searchable()->filter('Buscar nombre…')->hideable(false),
+            Column::text('sku', 'SKU')->filter()->hidden(),
+            Column::number('price', 'Precio')->sortable()->unit('$')->range(),
+            Column::number('stock', 'Stock')->filter(),
+            Column::option('status', 'Estado')->options(['active' => 'Activo', 'draft' => 'Borrador', 'archived' => 'Archivado'])->filter(multiple: true),
+            Column::option('category', 'Categoría')->from('category.name')->filter(multiple: true)->sortable()->searchable(),
+            Column::boolean('featured', 'Destacado')->filter(),
+            Column::date('released_on', 'Lanzamiento')->filter()->hidden(),
         ];
     }
 

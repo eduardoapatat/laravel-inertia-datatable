@@ -51,8 +51,8 @@ return [
     |
     | currency: ISO 4217 code used by ->money() without a currency.
     |
-    | date_format: preset of ->dateFormat() without a format and of the date
-    | columns without one: short, medium, long, datetime or relative.
+    | date_format: preset of the date columns without ->format(): short,
+    | medium, long, datetime or relative.
     |
     | The UI texts follow the app language; publish them to translate or
     | change them: php artisan vendor:publish --tag=inertia-datatable-lang

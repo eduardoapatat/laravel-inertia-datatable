@@ -24,6 +24,6 @@ class CategoryProductsTable extends DataTable
 
     public function columns(): array
     {
-        return [Column::make('name')->sortable()];
+        return [Column::text('name')->sortable()];
     }
 }

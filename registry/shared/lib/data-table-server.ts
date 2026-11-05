@@ -45,14 +45,21 @@ export interface ServerFilter {
 }
 
 /**
- * How the cells of a column are displayed (`->money()`, `->dateFormat()`…).
- * Formats are Intl options, applied on the client with the table locale.
+ * How the cells of a column are displayed; `type` is the type of the column
+ * (`Column::number()`, `Column::date()`…). Formats are Intl options, applied on
+ * the client with the table locale.
  */
 export type ServerColumnDisplay =
-    | { type: 'number'; format?: Intl.NumberFormatOptions }
+    | {
+          type: 'number';
+          format?: Intl.NumberFormatOptions;
+          /** Unit after plain numbers (`->unit('kg')`). */
+          unit?: string;
+      }
     | {
           type: 'date';
-          format:
+          /** Without it, the date format of the table. */
+          format?:
               | 'short'
               | 'medium'
               | 'long'
@@ -81,17 +88,21 @@ export type ServerColumnDisplay =
           variants?: Record<string, string>;
       };
 
+/** Filter of a column (`->filter()`, `->range()`…). */
+export interface ServerColumnFilter {
+    variant: FilterVariant;
+    placeholder?: string;
+}
+
 export interface ServerColumnConfig {
     id: string;
     label: string;
     sortable: boolean;
-    variant: FilterVariant | null;
-    placeholder: string | null;
-    unit: string | null;
     hideable: boolean;
     visible: boolean;
-    /** Null: deduced from the filter variant. */
-    display?: ServerColumnDisplay | null;
+    display: ServerColumnDisplay;
+    /** Null: the column has no filter. */
+    filter: ServerColumnFilter | null;
 }
 
 export interface ServerFacetOption {
