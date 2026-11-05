@@ -44,19 +44,19 @@ it('sends the type of the column as its display', function () {
 
 it('sends the filter with only its own keys', function () {
     expect(filterOf(Column::text('name')))->toBeNull()
-        ->and(filterOf(Column::text('name')->filter()))->toBe(['variant' => 'text'])
-        ->and(filterOf(Column::text('name')->filter('Search name…')))->toBe(['variant' => 'text', 'placeholder' => 'Search name…'])
-        ->and(filterOf(Column::number('stock')->filter()))->toBe(['variant' => 'number'])
-        ->and(filterOf(Column::number('price')->range(0, 100)))->toBe(['variant' => 'range'])
-        ->and(filterOf(Column::date('created_at')->filter()))->toBe(['variant' => 'date'])
-        ->and(filterOf(Column::date('created_at')->range()))->toBe(['variant' => 'date-range'])
-        ->and(filterOf(Column::boolean('featured')->filter()))->toBe(['variant' => 'boolean'])
-        ->and(filterOf(Column::option('status')->filter()))->toBe(['variant' => 'select'])
-        ->and(filterOf(Column::option('status')->filter(multiple: true)))->toBe(['variant' => 'multi-select']);
+        ->and(filterOf(Column::text('name')->filterInput()))->toBe(['variant' => 'text'])
+        ->and(filterOf(Column::text('name')->filterInput('Search name…')))->toBe(['variant' => 'text', 'placeholder' => 'Search name…'])
+        ->and(filterOf(Column::number('stock')->filterInput()))->toBe(['variant' => 'number'])
+        ->and(filterOf(Column::number('price')->filterRange(0, 100)))->toBe(['variant' => 'range'])
+        ->and(filterOf(Column::date('created_at')->filterDate()))->toBe(['variant' => 'date'])
+        ->and(filterOf(Column::date('created_at')->filterRange()))->toBe(['variant' => 'date-range'])
+        ->and(filterOf(Column::boolean('featured')->filterSelect()))->toBe(['variant' => 'boolean'])
+        ->and(filterOf(Column::option('status')->filterSelect()))->toBe(['variant' => 'select'])
+        ->and(filterOf(Column::option('status')->filterMultiSelect()))->toBe(['variant' => 'multi-select']);
 });
 
 it('has one filter per column', function () {
-    Column::number('price')->filter()->range();
+    Column::number('price')->filterInput()->filterRange();
 })->throws(LogicException::class, 'The column [price] already has a number filter.');
 
 it('formats amounts in a currency', function () {
@@ -134,7 +134,7 @@ it('rejects invalid definitions', function (Closure $build, string $message) {
     'currency' => [fn () => Column::number('price')->money('pesos'), 'The currency [pesos] must be an ISO 4217 code'],
     'decimals' => [fn () => Column::number('price')->decimals(-1), 'The number of decimals cannot be negative.'],
     'unit' => [fn () => Column::number('weight')->unit(' '), 'The unit cannot be empty.'],
-    'range' => [fn () => Column::number('price')->range(10, 1), 'The range of the column [price] starts after it ends.'],
+    'range' => [fn () => Column::number('price')->filterRange(10, 1), 'The range of the column [price] starts after it ends.'],
     'date preset' => [fn () => Column::date('created_at')->format('full'), 'The date format [full] is not one of: short, medium, long, datetime, relative.'],
     'limit' => [fn () => Column::text('notes')->limit(0), 'The text limit must be at least 1 character.'],
     'badge variant' => [fn () => Column::option('status')->badge(' '), 'A badge variant must be a non-empty string'],
@@ -202,7 +202,7 @@ it('sends the display, the filter and the locale in the response config', functi
     config()->set('inertia-datatable.locale', 'es-CL');
 
     $config = DataTable::for(Product::query())
-        ->columns([Column::text('name', 'Name'), Column::number('price', 'Price')->money('CLP')->range()])
+        ->columns([Column::text('name', 'Name'), Column::number('price', 'Price')->money('CLP')->filterRange()])
         ->withRequest(Request::create('/'))
         ->toArray()['config'];
 

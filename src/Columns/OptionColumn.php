@@ -13,7 +13,7 @@ use InvalidArgumentException;
 
 /**
  * One value of a list, shown with its label:
- * `Column::option('status')->options(Status::class)->badge()->filter(multiple: true)`.
+ * `Column::option('status')->options(Status::class)->badge()->filterMultiSelect()`.
  * Without declared options, the filter offers the values of the column.
  */
 final class OptionColumn extends Column
@@ -39,21 +39,25 @@ final class OptionColumn extends Column
     }
 
     /**
-     * Shows or hides the number of rows of each option in the filter.
+     * List of the options in the toolbar to pick one. `counts: false` skips the
+     * query that counts the rows of each option.
      */
-    public function withCounts(bool $withCounts = true): self
+    public function filterSelect(bool $counts = true): self
     {
-        $this->withCounts = $withCounts;
+        $this->withCounts = $counts;
 
-        return $this;
+        return $this->withFilter(FilterVariant::Select);
     }
 
     /**
-     * Filter by the options: one at a time, or several with `multiple: true`.
+     * List of the options in the toolbar to pick several. `counts: false` skips
+     * the query that counts the rows of each option.
      */
-    public function filter(bool $multiple = false): self
+    public function filterMultiSelect(bool $counts = true): self
     {
-        return $this->withFilter($multiple ? FilterVariant::MultiSelect : FilterVariant::Select);
+        $this->withCounts = $counts;
+
+        return $this->withFilter(FilterVariant::MultiSelect);
     }
 
     /**

@@ -9,7 +9,7 @@ use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
 /**
- * Plain text: `Column::text('name')->limit(40)->filter('Search name…')`.
+ * Plain text: `Column::text('name')->limit(40)->filterInput('Search name…')`.
  */
 final class TextColumn extends Column
 {
@@ -55,9 +55,10 @@ final class TextColumn extends Column
     }
 
     /**
-     * Text filter (contains, does not contain, is, is empty…).
+     * Text input in the toolbar that keeps the rows containing the text. The
+     * URL also accepts other operators (`neq.`, `is.empty`…, docs/contract.md §1.4).
      */
-    public function filter(?string $placeholder = null): self
+    public function filterInput(?string $placeholder = null): self
     {
         $this->placeholder = $placeholder;
 

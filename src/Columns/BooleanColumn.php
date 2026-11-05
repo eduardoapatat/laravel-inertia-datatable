@@ -9,7 +9,7 @@ use InertiaDataTable\Concerns\HasBadge;
 use InertiaDataTable\Enums\FilterVariant;
 
 /**
- * Yes / No: `Column::boolean('featured')->labels('Sí', 'No')->badge()->filter()`.
+ * Yes / No: `Column::boolean('featured')->labels('Sí', 'No')->badge()->filterSelect()`.
  * Without `labels()`, the Yes / No of the UI texts in the app language. The
  * badge variants use the keys `true` and `false` (also given as 1 / 0).
  */
@@ -28,9 +28,9 @@ final class BooleanColumn extends Column
     }
 
     /**
-     * Yes / No filter.
+     * List in the toolbar to pick Yes or No (with the labels of `labels()`).
      */
-    public function filter(): self
+    public function filterSelect(): self
     {
         return $this->withFilter(FilterVariant::Boolean);
     }

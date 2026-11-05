@@ -10,8 +10,8 @@ use InvalidArgumentException;
 
 /**
  * Number, amount or percentage, formatted on the client with Intl and the
- * table locale: `Column::number('price')->money('CLP')->range()`. The format
- * methods add up (`->money('CLP')->decimals(0)`).
+ * table locale: `Column::number('price')->money('CLP')->filterRange()`. The
+ * format methods add up (`->money('CLP')->decimals(0)`).
  */
 final class NumberColumn extends Column
 {
@@ -90,9 +90,11 @@ final class NumberColumn extends Column
     }
 
     /**
-     * Number filter (is, greater than, between…).
+     * Number input in the toolbar that keeps the rows with that exact value.
+     * The URL also accepts other operators (`gt.100`, `between.10,50`…,
+     * docs/contract.md §1.4).
      */
-    public function filter(?string $placeholder = null): self
+    public function filterInput(?string $placeholder = null): self
     {
         $this->placeholder = $placeholder;
 
@@ -100,9 +102,10 @@ final class NumberColumn extends Column
     }
 
     /**
-     * Range filter with a slider. Without `min`/`max` they are computed from the base query.
+     * Slider with a from / to input in the toolbar. Without `min`/`max` its
+     * bounds are computed from the base query.
      */
-    public function range(int|float|null $min = null, int|float|null $max = null): self
+    public function filterRange(int|float|null $min = null, int|float|null $max = null): self
     {
         if ($min !== null && $max !== null && $min > $max) {
             throw new InvalidArgumentException("The range of the column [{$this->id()}] starts after it ends.");

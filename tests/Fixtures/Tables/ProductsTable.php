@@ -19,14 +19,14 @@ class ProductsTable extends DataTable
     public function columns(): array
     {
         return [
-            Column::text('name', 'Nombre')->sortable()->searchable()->filter('Buscar nombre…')->hideable(false),
-            Column::text('sku', 'SKU')->filter()->hidden(),
-            Column::number('price', 'Precio')->sortable()->unit('$')->range(),
-            Column::number('stock', 'Stock')->filter(),
-            Column::option('status', 'Estado')->options(['active' => 'Activo', 'draft' => 'Borrador', 'archived' => 'Archivado'])->filter(multiple: true),
-            Column::option('category', 'Categoría')->from('category.name')->filter(multiple: true)->sortable()->searchable(),
-            Column::boolean('featured', 'Destacado')->filter(),
-            Column::date('released_on', 'Lanzamiento')->filter()->hidden(),
+            Column::text('name', 'Nombre')->sortable()->searchable()->filterInput('Buscar nombre…')->hideable(false),
+            Column::text('sku', 'SKU')->filterInput()->hidden(),
+            Column::number('price', 'Precio')->sortable()->unit('$')->filterRange(),
+            Column::number('stock', 'Stock')->filterInput(),
+            Column::option('status', 'Estado')->options(['active' => 'Activo', 'draft' => 'Borrador', 'archived' => 'Archivado'])->filterMultiSelect(),
+            Column::option('category', 'Categoría')->from('category.name')->filterMultiSelect()->sortable()->searchable(),
+            Column::boolean('featured', 'Destacado')->filterSelect(),
+            Column::date('released_on', 'Lanzamiento')->filterDate()->hidden(),
         ];
     }
 

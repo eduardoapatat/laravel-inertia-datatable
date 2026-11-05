@@ -9,7 +9,7 @@ use InertiaDataTable\Enums\DatePreset;
 use InertiaDataTable\Enums\FilterVariant;
 
 /**
- * Date or date and time: `Column::date('published_at')->format('short')->range()`.
+ * Date or date and time: `Column::date('published_at')->format('short')->filterRange()`.
  * Without `format()`, the date format of the table.
  */
 final class DateColumn extends Column
@@ -34,17 +34,18 @@ final class DateColumn extends Column
     }
 
     /**
-     * Filter by one date (is, before, after…).
+     * Calendar in the toolbar to pick one day. The URL also accepts other
+     * operators (`lt.2026-01-01`, `is.empty`…, docs/contract.md §1.4).
      */
-    public function filter(): self
+    public function filterDate(): self
     {
         return $this->withFilter(FilterVariant::Date);
     }
 
     /**
-     * Filter by a range of dates with a calendar.
+     * Calendar in the toolbar to pick a from / to range of days.
      */
-    public function range(): self
+    public function filterRange(): self
     {
         return $this->withFilter(FilterVariant::DateRange);
     }

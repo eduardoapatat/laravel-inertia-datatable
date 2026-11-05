@@ -43,7 +43,7 @@ it('fails on the first load when a sortable column does not exist', function () 
 })->throws(LogicException::class, 'The column [weight] is sortable, but [products.weight] does not exist in the database.');
 
 it('names every SQL usage of a missing column', function () {
-    resolveTable(productsTable(Column::text('nickname', 'Nickname')->searchable()->filter()));
+    resolveTable(productsTable(Column::text('nickname', 'Nickname')->searchable()->filterInput()));
 })->throws(LogicException::class, 'The column [nickname] is searchable, filterable, but [products.nickname] does not exist');
 
 it('fails when the default sort uses a missing column', function () {

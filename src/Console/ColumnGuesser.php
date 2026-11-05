@@ -92,21 +92,21 @@ final class ColumnGuesser
         $castType = $cast === null ? null : strtolower(Str::before($cast, ':'));
 
         if ($cast !== null && enum_exists($cast) && is_subclass_of($cast, BackedEnum::class)) {
-            return new GuessedColumn($name, $label, 'option', ['options('.class_basename($cast).'::class)', 'filter(multiple: true)'], 'option', $nullable, $cast);
+            return new GuessedColumn($name, $label, 'option', ['options('.class_basename($cast).'::class)', 'filterMultiSelect()'], 'option', $nullable, $cast);
         }
 
         return match (true) {
-            in_array($castType, ['bool', 'boolean'], true) => new GuessedColumn($name, $label, 'boolean', ['filter()'], 'boolean', $nullable),
+            in_array($castType, ['bool', 'boolean'], true) => new GuessedColumn($name, $label, 'boolean', ['filterSelect()'], 'boolean', $nullable),
             // Without a cast, SQLite and MySQL return 1/0.
-            $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, 'boolean', ['filter()'], 'boolean-or-number', $nullable),
-            in_array($castType, ['date', 'datetime', 'immutable_date', 'immutable_datetime', 'timestamp'], true) || $this->isDateType($typeName) => new GuessedColumn($name, $label, 'date', ['sortable()', 'range()'], 'date', $nullable),
+            $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, 'boolean', ['filterSelect()'], 'boolean-or-number', $nullable),
+            in_array($castType, ['date', 'datetime', 'immutable_date', 'immutable_datetime', 'timestamp'], true) || $this->isDateType($typeName) => new GuessedColumn($name, $label, 'date', ['sortable()', 'filterRange()'], 'date', $nullable),
             // The decimal cast serializes as a string to keep the precision.
-            $castType === 'decimal' => new GuessedColumn($name, $label, 'number', ['sortable()', 'range()', ...$this->decimalsCall((string) $cast)], 'decimal', $nullable),
-            in_array($castType, ['float', 'double', 'real'], true) || $this->isFloatType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'range()'], 'number', $nullable),
+            $castType === 'decimal' => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterRange()', ...$this->decimalsCall((string) $cast)], 'decimal', $nullable),
+            in_array($castType, ['float', 'double', 'real'], true) || $this->isFloatType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterRange()'], 'number', $nullable),
             // Without a cast, MySQL and PostgreSQL return DECIMAL/NUMERIC as a string; SQLite as a number.
-            $this->isDecimalType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'range()'], 'number-or-string', $nullable),
-            in_array($castType, ['int', 'integer'], true) || $this->isIntegerType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'filter()'], 'number', $nullable),
-            $this->isStringType($typeName) => new GuessedColumn($name, $label, 'text', $this->isLongText($typeName) ? ['searchable()', 'filter()'] : ['sortable()', 'searchable()', 'filter()'], 'string', $nullable),
+            $this->isDecimalType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterRange()'], 'number-or-string', $nullable),
+            in_array($castType, ['int', 'integer'], true) || $this->isIntegerType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterInput()'], 'number', $nullable),
+            $this->isStringType($typeName) => new GuessedColumn($name, $label, 'text', $this->isLongText($typeName) ? ['searchable()', 'filterInput()'] : ['sortable()', 'searchable()', 'filterInput()'], 'string', $nullable),
             default => null,
         };
     }
@@ -147,7 +147,7 @@ final class ColumnGuesser
             Str::snake($relationName),
             Str::headline($relationName),
             'option',
-            ["from('{$relationName}.{$attribute}')", 'sortable()', 'searchable()', 'filter(multiple: true)'],
+            ["from('{$relationName}.{$attribute}')", 'sortable()', 'searchable()', 'filterMultiSelect()'],
             'string',
             $nullable,
             isRelation: true,
