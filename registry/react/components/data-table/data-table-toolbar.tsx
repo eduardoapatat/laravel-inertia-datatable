@@ -40,25 +40,20 @@ interface DataTableToolbarProps<
     searchPlaceholder?: string;
 }
 
+/**
+ * Disposición por defecto: búsqueda, filtros y Reset a la izquierda; `children`
+ * y el menú de columnas a la derecha. Para otro orden, compón las piezas
+ * (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`,
+ * `DataTableResetButton`, `DataTableViewOptions`) en tu propio contenedor.
+ */
 export function DataTableToolbar<TData extends RowData>({
     table,
     searchable,
-    searchPlaceholder = 'Search...',
+    searchPlaceholder,
     children,
     className,
     ...props
 }: DataTableToolbarProps<TData>) {
-    const columns = React.useMemo(
-        () => table.getAllColumns().filter((column) => column.getCanFilter()),
-        [table],
-    );
-
-    function onReset() {
-        table.resetColumnFilters(true);
-        table.resetGlobalFilter(true);
-        table.resetJoinOperator(true);
-    }
-
     return (
         <div
             data-slot="data-table-toolbar"
@@ -69,36 +64,13 @@ export function DataTableToolbar<TData extends RowData>({
             {...props}
         >
             <div className="flex flex-1 flex-wrap items-center gap-2">
-                {(searchable ?? table.options.meta?.searchable) && (
-                    <DataTableSearch
-                        table={table}
-                        placeholder={searchPlaceholder}
-                        className="w-40 lg:w-64"
-                    />
-                )}
-                {columns.map((column) => (
-                    <DataTableToolbarFilter key={column.id} column={column} />
-                ))}
-                <Subscribe
-                    source={table.store}
-                    selector={(state) =>
-                        state.columnFilters.length > 0 ||
-                        Boolean(state.globalFilter)
-                    }
-                >
-                    {(isFiltered) =>
-                        isFiltered && (
-                            <Button
-                                aria-label="Reset filters"
-                                variant="outline"
-                                onClick={onReset}
-                            >
-                                <X />
-                                Reset
-                            </Button>
-                        )
-                    }
-                </Subscribe>
+                <DataTableSearch
+                    table={table}
+                    searchable={searchable}
+                    placeholder={searchPlaceholder}
+                />
+                <DataTableFilters table={table} />
+                <DataTableResetButton table={table} />
             </div>
             <div className="flex items-center gap-2">
                 {children}
@@ -112,18 +84,33 @@ interface DataTableSearchProps<
     TData extends RowData,
 > extends React.ComponentProps<'input'> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Muestra la búsqueda global; por defecto, si el servidor la permite. */
+    searchable?: boolean;
 }
 
-function DataTableSearch<TData extends RowData>({
+/**
+ * Búsqueda global (`?search=`). No se muestra si la clase de la tabla no
+ * declara columnas `searchable()`, salvo que se fuerce con `searchable`.
+ */
+export function DataTableSearch<TData extends RowData>({
     table,
+    searchable,
+    placeholder = 'Search...',
+    className,
     ...props
 }: DataTableSearchProps<TData>) {
+    if (!(searchable ?? table.options.meta?.searchable)) {
+        return null;
+    }
+
     return (
         <Subscribe source={table.atoms.globalFilter}>
             {(globalFilter) => (
                 <Input
                     type="search"
-                    aria-label={props.placeholder}
+                    aria-label={placeholder}
+                    placeholder={placeholder}
+                    className={cn('w-40 lg:w-64', className)}
                     {...props}
                     value={typeof globalFilter === 'string' ? globalFilter : ''}
                     onChange={(event) =>
@@ -131,6 +118,102 @@ function DataTableSearch<TData extends RowData>({
                     }
                 />
             )}
+        </Subscribe>
+    );
+}
+
+interface DataTableFiltersProps<TData extends RowData> {
+    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Ids de las columnas a mostrar, en este orden; por defecto, todas. */
+    columns?: string[];
+}
+
+/**
+ * Un control por cada columna filtrable, en el orden de la tabla o en el de
+ * `columns`. Sin envoltorio: se colocan dentro del contenedor del padre.
+ */
+export function DataTableFilters<TData extends RowData>({
+    table,
+    columns,
+}: DataTableFiltersProps<TData>) {
+    const filterable = table
+        .getAllColumns()
+        .filter((column) => column.getCanFilter());
+    const shown = columns
+        ? columns.flatMap((id) =>
+              filterable.filter((column) => column.id === id),
+          )
+        : filterable;
+
+    return (
+        <>
+            {shown.map((column) => (
+                <DataTableToolbarFilter key={column.id} column={column} />
+            ))}
+        </>
+    );
+}
+
+interface DataTableFilterProps<TData extends RowData> {
+    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Id de la columna en la clase de la tabla. */
+    column: string;
+}
+
+/**
+ * El filtro de una sola columna, para colocarlo aparte del resto.
+ */
+export function DataTableFilter<TData extends RowData>({
+    table,
+    column,
+}: DataTableFilterProps<TData>) {
+    const found = table
+        .getAllColumns()
+        .find((item) => item.id === column && item.getCanFilter());
+
+    return found ? <DataTableToolbarFilter column={found} /> : null;
+}
+
+interface DataTableResetButtonProps<
+    TData extends RowData,
+> extends React.ComponentProps<typeof Button> {
+    table: ReactTable<DataTableFeatures, TData, unknown>;
+}
+
+/**
+ * Limpia los filtros y la búsqueda; solo aparece cuando hay alguno activo.
+ */
+export function DataTableResetButton<TData extends RowData>({
+    table,
+    children = 'Reset',
+    ...props
+}: DataTableResetButtonProps<TData>) {
+    function onReset() {
+        table.resetColumnFilters(true);
+        table.resetGlobalFilter(true);
+        table.resetJoinOperator(true);
+    }
+
+    return (
+        <Subscribe
+            source={table.store}
+            selector={(state) =>
+                state.columnFilters.length > 0 || Boolean(state.globalFilter)
+            }
+        >
+            {(isFiltered) =>
+                isFiltered && (
+                    <Button
+                        aria-label="Reset filters"
+                        variant="outline"
+                        onClick={onReset}
+                        {...props}
+                    >
+                        <X />
+                        {children}
+                    </Button>
+                )
+            }
         </Subscribe>
     );
 }
