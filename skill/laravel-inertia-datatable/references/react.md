@@ -69,7 +69,20 @@ Match the layout conventions of the app (breadcrumbs, wrappers, Wayfinder route 
 - To customize a column, declare it with the backend column id (`columnHelper.accessor('status', { cell })`). Missing `header` or `cell` fall back to the defaults, so declaring only `cell` is enough.
 - Client-only columns (no backend id: actions, row selection) go after the backend columns; add `meta: { position: 'start' }` to put one first (for example a selection checkbox).
 - You do not set `enableSorting`, `enableColumnFilter`, `enableHiding` or filter `meta` yourself: the hook fills them from the server config (label, variant, placeholder, unit, options with counts, range bounds).
-- In custom cells, `getOptionLabel(column.columnDef.meta, value)` turns enum/option values into their labels and `formatDate(value)` from `@/lib/data-table-format` formats dates.
+- In custom cells, reuse the default formatting instead of showing raw values:
+  - `getOptionLabel(column.columnDef.meta, value)` (from `@/components/data-table/data-table-default-column`) turns enum/option values into their labels (`active` → `Active`).
+  - `formatCellValue(column.columnDef.meta, value)` (same file) formats any value like the default cell.
+  - `formatDate(value)` (from `@/lib/data-table-format`) formats dates.
+
+```tsx
+import { getOptionLabel } from '@/components/data-table/data-table-default-column';
+
+columnHelper.accessor('status', {
+    cell: ({ cell, column }) => (
+        <Badge>{getOptionLabel(column.columnDef.meta, cell.getValue())}</Badge>
+    ),
+}),
+```
 
 ## Toolbar, pagination and loading state
 
