@@ -44,6 +44,26 @@ export interface ServerFilter {
     value: string | string[];
 }
 
+/**
+ * How the cells of a column are displayed (`->money()`, `->dateFormat()`…).
+ * Formats are Intl options, applied on the client with the table locale.
+ */
+export type ServerColumnDisplay =
+    | { type: 'number'; format?: Intl.NumberFormatOptions }
+    | {
+          type: 'date';
+          format:
+              | 'short'
+              | 'medium'
+              | 'long'
+              | 'datetime'
+              | 'relative'
+              | Intl.DateTimeFormatOptions;
+      }
+    | { type: 'text'; limit?: number; link?: 'url' | 'email' }
+    | { type: 'boolean'; labels?: { true: string; false: string } }
+    | { type: 'option'; badge?: boolean };
+
 export interface ServerColumnConfig {
     id: string;
     label: string;
@@ -53,6 +73,8 @@ export interface ServerColumnConfig {
     unit: string | null;
     hideable: boolean;
     visible: boolean;
+    /** Null: deduced from the filter variant. */
+    display?: ServerColumnDisplay | null;
 }
 
 export interface ServerFacetOption {
@@ -78,6 +100,8 @@ export interface ServerQueryKeys {
 export interface ServerTableConfig {
     columns: ServerColumnConfig[];
     searchable: boolean;
+    /** Locale to format numbers and dates; null uses the browser's. */
+    locale?: string | null;
     per_page: number;
     per_page_options: number[];
     default_sorting: ServerSort[];

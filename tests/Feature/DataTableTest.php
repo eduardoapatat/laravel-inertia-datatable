@@ -277,7 +277,9 @@ it('describes columns, options and query parameters in config', function () {
         ->assertJsonPath('config.columns.0', [
             'id' => 'name', 'label' => 'Nombre', 'sortable' => true, 'variant' => 'text',
             'placeholder' => 'Buscar nombre…', 'unit' => null, 'hideable' => false, 'visible' => true,
+            'display' => null,
         ])
+        ->assertJsonPath('config.locale', null)
         ->assertJsonPath('config.searchable', true)
         ->assertJsonPath('config.per_page', 10)
         ->assertJsonPath('config.per_page_options', [10, 20, 30, 50])

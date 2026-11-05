@@ -6,15 +6,18 @@ namespace InertiaDataTable;
 
 use BackedEnum;
 use Illuminate\Support\Str;
+use InertiaDataTable\Concerns\HasDisplay;
 use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
 /**
  * A DataTable column: public id, source of the value and capabilities
- * (sort, filter, search, hide).
+ * (sort, filter, search, hide) and how its cells are displayed.
  */
 final class Column
 {
+    use HasDisplay;
+
     private string $label;
 
     private string $path;
@@ -256,7 +259,7 @@ final class Column
     }
 
     /**
-     * @return array{id: string, label: string, sortable: bool, variant: string|null, placeholder: string|null, unit: string|null, hideable: bool, visible: bool}
+     * @return array{id: string, label: string, sortable: bool, variant: string|null, placeholder: string|null, unit: string|null, hideable: bool, visible: bool, display: array<string, mixed>|null}
      */
     public function toConfig(): array
     {
@@ -269,6 +272,7 @@ final class Column
             'unit' => $this->unit,
             'hideable' => $this->hideable,
             'visible' => $this->isVisibleByDefault(),
+            'display' => $this->display,
         ];
     }
 

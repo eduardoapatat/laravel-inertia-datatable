@@ -110,6 +110,7 @@ final class DataTableEngine
             'config' => [
                 'columns' => array_values(array_map(fn (Column $column): array => $column->toConfig(), $definition->columns)),
                 'searchable' => $definition->isSearchable(),
+                'locale' => config('inertia-datatable.locale'),
                 'per_page' => $definition->perPage,
                 'per_page_options' => $definition->perPageOptions,
                 'default_sorting' => array_map(fn (SortItem $item): array => $item->toArray(), $definition->defaultSort),

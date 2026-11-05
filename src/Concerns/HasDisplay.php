@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+namespace InertiaDataTable\Concerns;
+
+use InvalidArgumentException;
+
+/**
+ * How the cells of a column are displayed (docs/contract.md §2.6). Independent
+ * of the filter: `->dateRange()` filters by dates, `->dateFormat('long')` shows
+ * them. The value is formatted on the client with Intl and the table locale;
+ * the row keeps the raw value.
+ */
+trait HasDisplay
+{
+    private const DATE_PRESETS = ['short', 'medium', 'long', 'datetime', 'relative'];
+
+    /** @var array<string, mixed>|null */
+    private ?array $display = null;
+
+    /**
+     * Amount in a currency (ISO 4217 code): `money('CLP')` → `$1.234`.
+     */
+    public function money(string $currency, ?int $decimals = null): static
+    {
+        if (preg_match('/^[A-Z]{3}$/', $currency) !== 1) {
+            throw new InvalidArgumentException("The currency [{$currency}] must be an ISO 4217 code, such as USD or CLP.");
+        }
+
+        return $this->withNumberFormat(['style' => 'currency', 'currency' => $currency, ...$this->fractionDigits($decimals)]);
+    }
+
+    /**
+     * Fixed number of decimals: `decimals(2)` → `1.234,50`.
+     */
+    public function decimals(int $decimals): static
+    {
+        return $this->withNumberFormat($this->fractionDigits($decimals));
+    }
+
+    /**
+     * A ratio shown as a percentage: `0.25` → `25 %`.
+     */
+    public function percent(?int $decimals = null): static
+    {
+        return $this->withNumberFormat(['style' => 'percent', ...$this->fractionDigits($decimals)]);
+    }
+
+    /**
+     * Any Intl.NumberFormat option, such as `['notation' => 'compact']`.
+     *
+     * @param  array<string, mixed>  $options
+     */
+    public function numberFormat(array $options): static
+    {
+        return $this->withNumberFormat($options);
+    }
+
+    /**
+     * A preset (`short`, `medium`, `long`, `datetime`, `relative`) or Intl.DateTimeFormat options.
+     *
+     * @param  string|array<string, mixed>  $format
+     */
+    public function dateFormat(string|array $format = 'medium'): static
+    {
+        if (is_string($format) && ! in_array($format, self::DATE_PRESETS, true)) {
+            throw new InvalidArgumentException(sprintf('The date format [%s] is not one of: %s.', $format, implode(', ', self::DATE_PRESETS)));
+        }
+
+        $this->display = ['type' => 'date', 'format' => $format === [] ? 'medium' : $format];
+
+        return $this;
+    }
+
+    /**
+     * Cuts long texts to the given characters; the full text stays in the tooltip.
+     */
+    public function limit(int $characters): static
+    {
+        if ($characters < 1) {
+            throw new InvalidArgumentException('The text limit must be at least 1 character.');
+        }
+
+        return $this->withText(['limit' => $characters]);
+    }
+
+    /**
+     * Shows the value as a link (only http and https URLs).
+     */
+    public function url(): static
+    {
+        return $this->withText(['link' => 'url']);
+    }
+
+    /**
+     * Shows the value as a mailto link.
+     */
+    public function email(): static
+    {
+        return $this->withText(['link' => 'email']);
+    }
+
+    public function booleanLabels(string $true, string $false): static
+    {
+        $this->display = ['type' => 'boolean', 'labels' => ['true' => $true, 'false' => $false]];
+
+        return $this;
+    }
+
+    /**
+     * Shows the option labels as badges (with the icons declared in React, if any).
+     */
+    public function badge(bool $badge = true): static
+    {
+        $this->display = ['type' => 'option', 'badge' => $badge];
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function display(): ?array
+    {
+        return $this->display;
+    }
+
+    /**
+     * Number methods add up (`->money('CLP')->decimals(0)`); a method of another type replaces them.
+     *
+     * @param  array<string, mixed>  $format
+     */
+    private function withNumberFormat(array $format): static
+    {
+        $current = ($this->display['type'] ?? null) === 'number' ? (array) ($this->display['format'] ?? []) : [];
+        $merged = [...$current, ...$format];
+
+        $this->display = $merged === [] ? ['type' => 'number'] : ['type' => 'number', 'format' => $merged];
+
+        return $this;
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    private function withText(array $options): static
+    {
+        $current = ($this->display['type'] ?? null) === 'text' ? $this->display : ['type' => 'text'];
+        $this->display = [...$current, ...$options];
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function fractionDigits(?int $decimals): array
+    {
+        if ($decimals === null) {
+            return [];
+        }
+
+        if ($decimals < 0) {
+            throw new InvalidArgumentException('The number of decimals cannot be negative.');
+        }
+
+        return ['minimumFractionDigits' => $decimals, 'maximumFractionDigits' => $decimals];
+    }
+}
