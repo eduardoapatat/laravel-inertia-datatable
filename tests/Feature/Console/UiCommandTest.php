@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use InertiaDataTable\Console\RegistryUrl;
+use InertiaDataTable\Console\UiInstaller;
 
 use function Pest\Laravel\artisan;
 
@@ -28,7 +30,7 @@ it('installs the data table UI when the project does not have it', function () {
 
     Process::assertRan(fn ($process) => $process->command === [
         'npx', 'shadcn@latest', 'add',
-        'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json', '-y',
+        RegistryUrl::forInstalledVersion().'/data-table-react.json', '-y',
     ]);
 });
 
@@ -53,7 +55,7 @@ it('updates only the data table files after confirming', function () {
 
     Process::assertRan(fn ($process) => $process->command === [
         'npx', 'shadcn@latest', 'add',
-        'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react-files.json', '-y', '--overwrite',
+        RegistryUrl::forInstalledVersion().'/data-table-react-files.json', '-y', '--overwrite',
     ]);
 });
 
@@ -87,4 +89,10 @@ it('reads the registry url from the environment', function () {
     }
 
     expect($config['registry_url'])->toBe('/ci/checkout/r');
+});
+
+it('prefers the configured registry over the installed version', function () {
+    config(['inertia-datatable.registry_url' => '/ci/checkout/r/']);
+
+    expect(app(UiInstaller::class)->installCommand())->toContain('/ci/checkout/r/data-table-react.json');
 });

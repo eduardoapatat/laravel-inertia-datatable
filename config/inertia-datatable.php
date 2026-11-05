@@ -45,12 +45,12 @@ return [
     |--------------------------------------------------------------------------
     |
     | Base de los items del registro que usan `make:datatable --install-ui` e
-    | `inertia-datatable:ui`. Puede ser una URL o una carpeta local con los JSON
-    | compilados (`r/`). Con INERTIA_DATATABLE_REGISTRY_URL se fija, por ejemplo,
-    | a una versión etiquetada sin publicar este archivo.
+    | `inertia-datatable:ui`. Con null se usa el de la misma versión que el
+    | paquete instalado (`…/v0.1.0/r`, o `…/main/r` en versiones de desarrollo).
+    | También puede ser otra URL o una carpeta local con los JSON compilados.
     |
     */
 
-    'registry_url' => env('INERTIA_DATATABLE_REGISTRY_URL', 'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r'),
+    'registry_url' => env('INERTIA_DATATABLE_REGISTRY_URL'),
 
 ];

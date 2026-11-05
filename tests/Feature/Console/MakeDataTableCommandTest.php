@@ -6,6 +6,7 @@ use App\DataTables\ProductsTable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use InertiaDataTable\Console\RegistryUrl;
 use InertiaDataTable\Tests\Fixtures\Models\Account;
 use InertiaDataTable\Tests\Fixtures\Models\Category;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
@@ -97,7 +98,7 @@ it('shows the install command when the data table UI is missing', function () {
     Process::fake();
 
     artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--react' => true])
-        ->expectsOutputToContain('npx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json -y')
+        ->expectsOutputToContain('npx shadcn@latest add '.RegistryUrl::forInstalledVersion().'/data-table-react.json -y')
         ->assertSuccessful();
 
     Process::assertNothingRan();
@@ -116,7 +117,7 @@ it('installs the data table UI with the package runner of the lockfile', functio
 
     Process::assertRan(fn ($process) => $process->command === [
         'pnpm', 'dlx', 'shadcn@latest', 'add',
-        'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json', '-y',
+        RegistryUrl::forInstalledVersion().'/data-table-react.json', '-y',
     ]);
 });
 

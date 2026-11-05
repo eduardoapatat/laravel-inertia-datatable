@@ -93,8 +93,9 @@ final class UiInstaller
 
     private function itemUrl(string $item): string
     {
-        /** @var string $base */
-        $base = config('inertia-datatable.registry_url');
+        /** @var string|null $configured */
+        $configured = config('inertia-datatable.registry_url');
+        $base = $configured ?? RegistryUrl::forInstalledVersion();
 
         return rtrim($base, '/')."/{$item}.json";
     }
