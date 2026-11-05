@@ -49,7 +49,7 @@ php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
 
 Propone las columnas leyendo los casts del modelo y el esquema de la tabla: texto (buscable y ordenable), números, booleanos, fechas, enums (`multiSelect(Enum::class)`) y relaciones `belongsTo` (`category_id` → `from('category.name')`). Omite la clave primaria, los atributos `$hidden` y columnas sensibles (`password`, `remember_token`…).
 
-En React hay dos niveles: los componentes genéricos (`components/data-table/`, hook y libs) se instalan una vez por proyecto desde el registro, y cada tabla tiene su propio componente (`components/data-tables/<recurso>-table.tsx`, con tipos y columnas) reutilizable en cualquier página. `--install-ui` ejecuta `shadcn add` con el gestor del lockfile y responde "no" a sobrescribir los `ui/` existentes; la URL del registro se configura en `inertia-datatable.registry_url`.
+En React hay dos niveles: los componentes genéricos (`components/data-table/`, hook y libs) se instalan una vez por proyecto desde el registro, y cada tabla tiene su propio componente (`components/data-tables/<recurso>-table.tsx`, con tipos y columnas) reutilizable en cualquier página. `--install-ui` ejecuta `shadcn add` con el gestor del lockfile y responde "no" a sobrescribir los `ui/` existentes; la URL del registro se configura en `inertia-datatable.registry_url`. Si el modelo no existe, el comando lista los modelos disponibles.
 
 ### Instalar o actualizar la UI
 

@@ -133,12 +133,31 @@ class MakeDataTableCommand extends GeneratorCommand
         $model = class_exists($name) ? ltrim($name, '\\') : $this->qualifyModel($name);
 
         if (! class_exists($model) || ! is_subclass_of($model, Model::class)) {
+            $available = $this->availableModels();
+
             $this->components->error("Model [{$model}] does not exist. Use --model to choose one.");
+
+            if ($available !== []) {
+                $this->components->bulletList(['Available models: '.implode(', ', $available)]);
+            }
 
             return null;
         }
 
         return $model;
+    }
+
+    /**
+     * Modelos Eloquent de `app/Models` (o `app/`), por nombre corto.
+     *
+     * @return list<string>
+     */
+    private function availableModels(): array
+    {
+        return array_values(array_filter(
+            $this->possibleModels(),
+            fn (string $name): bool => is_subclass_of($this->qualifyModel($name), Model::class),
+        ));
     }
 
     /**

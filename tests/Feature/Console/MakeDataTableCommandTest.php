@@ -155,3 +155,21 @@ it('fails when the model does not exist', function () {
 
     expect(File::exists(app_path('DataTables/InvoicesTable.php')))->toBeFalse();
 });
+
+it('lists the available models when the model does not exist', function () {
+    // El esqueleto de Testbench no autocarga App\: el modelo se escribe y se carga a mano.
+    File::ensureDirectoryExists(app_path('Models'));
+    File::put(app_path('Models/Customer.php'), "<?php\n\nnamespace App\\Models;\n\nclass Customer extends \\Illuminate\\Database\\Eloquent\\Model {}\n");
+    File::put(app_path('Models/NotAModel.php'), "<?php\n\nnamespace App\\Models;\n\nclass NotAModel {}\n");
+    require_once app_path('Models/Customer.php');
+    require_once app_path('Models/NotAModel.php');
+
+    try {
+        artisan('make:datatable', ['name' => 'InvoicesTable'])
+            ->expectsOutputToContain('Available models: Customer')
+            ->doesntExpectOutputToContain('NotAModel')
+            ->assertFailed();
+    } finally {
+        File::delete([app_path('Models/Customer.php'), app_path('Models/NotAModel.php')]);
+    }
+});
