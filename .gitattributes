@@ -1,7 +1,6 @@
 * text=auto eol=lf
 
 # Excluidos del paquete Composer (dist): solo se distribuye src/ y config/
-/.claude            export-ignore
 /.github            export-ignore
 /docs               export-ignore
 /r                  export-ignore

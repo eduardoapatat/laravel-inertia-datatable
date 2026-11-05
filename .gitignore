@@ -8,3 +8,5 @@ phpstan.neon
 .idea/
 .vscode/
 .DS_Store
+.mcp.json
+.claude/
