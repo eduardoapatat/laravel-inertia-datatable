@@ -193,6 +193,8 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
     ],
     "searchable": true,
     "locale": "es-CL",
+    "date_format": "long",
+    "messages": { "search": "Buscar...", "page_of": "Página :page de :pages", "...": "..." },
     "per_page": 10,
     "per_page_options": [10, 20, 30, 50],
     "default_sorting": [ { "id": "created_at", "desc": true } ],
@@ -239,7 +241,11 @@ Data the client cannot compute by itself in server mode (they replace TanStack's
 
 ### 2.6 `config`
 
-Static table metadata to build the UI: columns (label, whether it is sortable, filter variant, placeholder, unit, whether it is hideable, default visibility, display), whether there is global search, the display locale, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
+Static table metadata to build the UI: columns (label, whether it is sortable, filter variant, placeholder, unit, whether it is hideable, default visibility, display), whether there is global search, the display locale, the default date format, the UI texts, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
+
+- `locale`: BCP 47 locale to format numbers and dates (`es-CL`), resolved on the server: the table (`locale()` / `->locale()`), then `inertia-datatable.locale`, then `app()->getLocale()`, with `_` turned into `-`. `null` when the setting is `'browser'`: the client uses the browser locale.
+- `date_format`: preset of the date cells without `display` (`inertia-datatable.date_format`, `long` by default).
+- `messages`: UI texts in the app language (`lang/{lang}/ui.php` of the package or the published copy in `lang/vendor/inertia-datatable`), English as fallback. Placeholders `:label`, `:count`, `:page` and `:pages` are replaced on the client.
 
 `display` says how the cells of a column are shown, independently of its filter. Rows keep the raw value and the client formats it with Intl and `locale` (`null`: the browser's):
 

@@ -5,6 +5,7 @@
 - Columns and cells
 - Toolbar, pagination and loading state
 - Layout: reorder the pieces
+- Language and texts
 - Custom meta (icons, labels)
 - Several tables on one page
 - Files installed by the registry
@@ -65,7 +66,7 @@ Match the layout conventions of the app (breadcrumbs, wrappers, Wayfinder route 
 
 ## Columns and cells
 
-- Every backend column is rendered, in the order of `columns()` in PHP, even if the component does not declare it: header with the server label and a default cell that follows the column display declared in PHP (`->money('CLP')`, `->dateFormat('long')`, `->limit(60)`, `->badge()`…, see `backend.md`) or, without it, the filter variant — dates (long), booleans as Yes/No (also `1`/`0`), select/multi-select as option labels, numbers with their unit, anything else as text. Numbers and dates use the table locale (`config('inertia-datatable.locale')`, or the browser's).
+- Every backend column is rendered, in the order of `columns()` in PHP, even if the component does not declare it: header with the server label and a default cell that follows the column display declared in PHP (`->money('CLP')`, `->dateFormat('long')`, `->limit(60)`, `->badge()`…, see `backend.md`) or, without it, the filter variant — dates (long), booleans as Yes/No (also `1`/`0`), select/multi-select as option labels, numbers with their unit, anything else as text. Numbers and dates use the table locale (resolved by the server from the table, the config or the app locale; the `locale` option of the hook overrides it). Date columns without a format use `config('inertia-datatable.date_format')`.
 - To customize a column, declare it with the backend column id (`columnHelper.accessor('status', { cell })`). Missing `header` or `cell` fall back to the defaults, so declaring only `cell` is enough.
 - Client-only columns (no backend id: actions, row selection) go after the backend columns; add `meta: { position: 'start' }` to put one first (for example a selection checkbox).
 - You do not set `enableSorting`, `enableColumnFilter`, `enableHiding` or filter `meta` yourself: the hook fills them from the server config (label, variant, placeholder, unit, options with counts, range bounds).
@@ -98,7 +99,7 @@ columnHelper.accessor('price', {
 }),
 ```
 
-- For plain strings, `formatCellValue(meta, value, locale?)`, `getOptionLabel(meta, value)` and `getOption(meta, value)` are exported from `@/components/data-table/data-table-default-column` (and `@/lib/data-table-format`). `row.original` gives the other visible fields of the row.
+- For plain strings, `formatCellValue(meta, value, getFormatContext(table))` (locale, default date format and Yes/No texts of the table), `getOptionLabel(meta, value)` and `getOption(meta, value)` are exported from `@/components/data-table/data-table-default-column` (and `@/lib/data-table-format`). `row.original` gives the other visible fields of the row.
 
 ## Toolbar, pagination and loading state
 
@@ -106,6 +107,14 @@ columnHelper.accessor('price', {
 - Pagination is part of `<DataTable>` (below the table; `pagination={false}` to place it yourself); page sizes come from the server.
 - `isLoading` is true while a visit is in flight; use it for a subtle opacity or a spinner, never to unmount the table (that would lose input focus).
 - Text filters and the search are debounced (300 ms, `debounceMs` option); paging, sorting and visibility navigate immediately.
+
+## Language and texts
+
+- Every text of the UI (search, Reset, Rows per page, Page 1 of 25, Yes/No, filter and calendar labels) comes from `config.messages`, translated by Laravel in the app language. Translate or change them in PHP (`php artisan vendor:publish --tag=inertia-datatable-lang`), not in the components: those are overwritten by `inertia-datatable:ui --update`.
+- Per table in React: `useServerDataTable({ table, prop, columns, locale: 'en-US', messages: { search: 'Find products…' } })`. `locale: 'browser'` uses the browser's.
+- In your own components, `getMessage(table, 'page_of', { page: 1, pages: 25 })` from `@/lib/data-table-messages` (keys = `DEFAULT_MESSAGES`).
+- `DataTableSkeleton` has no table: pass `label` for its screen-reader text.
+- The calendar of the date filters takes the month and day names and the first day of the week from the table locale with Intl; no date-fns locale is needed.
 
 ## Layout: reorder the pieces
 
@@ -179,6 +188,6 @@ Call the hook once per table with its own prop and give each backend table a `na
 - `hooks/use-server-data-table.ts` — the hook and `getOptionLabel`.
 - `components/data-table/data-table-default-column.tsx` — default header and cell for columns the component does not customize.
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
-- `lib/data-table-{features,filters,types,utils,format}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
+- `lib/data-table-{features,filters,types,utils,format,messages}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
 
-These files belong to the project after installation: adapt texts (for example to Spanish) or styles there. `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.
+These files belong to the project after installation: adapt styles there (texts are translated with the lang files, see above). `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.

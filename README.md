@@ -74,9 +74,36 @@ Column::make('status', 'Status')->multiSelect(ProductStatus::class)->badge(),
 Column::make('views', 'Views')->numberFormat(['notation' => 'compact']),   // any Intl option
 ```
 
-- The locale is `inertia-datatable.locale` (for example `es-CL`: `$1.234`, "5 de noviembre de 2026"); with `null`, each browser uses its own.
+- Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`.
 - Dates without time (Laravel `date` casts) never move to the previous day.
 - In the React component you can set or override the format (`meta: { display: … }`), add icons per option (`meta.options`, shown in the filter and in the cells) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. See the skill's React reference.
+
+### Language and formats
+
+The defaults come from your Laravel app and each layer can change them; the most specific one wins.
+
+| What | Order (first wins) |
+|---|---|
+| Locale of numbers, currencies and dates | `useServerDataTable({ locale })` → the table (`locale()` in the class, `->locale()` in `DataTable::for`) → `inertia-datatable.locale` → `app()->getLocale()` (`APP_LOCALE`) |
+| UI texts (Search, Reset, Rows per page…) | `useServerDataTable({ messages })` → `lang/vendor/inertia-datatable/{lang}/ui.php` → the package texts (`en`, `es`) in the app language → English |
+| Format of a column | your own `cell` → React `meta.display` → the column method (`->money()`, `->dateFormat()`…) → `inertia-datatable.currency` / `inertia-datatable.date_format` |
+
+```php
+// config/inertia-datatable.php
+'locale' => null,         // null = app locale; 'es-CL', 'en-US'…; 'browser' = each browser's
+'currency' => 'CLP',      // ->money() without a currency
+'date_format' => 'long',  // ->dateFormat() without a format and date columns without one
+```
+
+- A locale with a region gives the local symbols: with `es` a CLP amount shows `CLP 1.234`, with `es-CL` it shows `$1.234`. `es_CL` is accepted too.
+- The calendar of the date filters follows the same locale (month and day names, first day of the week).
+- To translate or change the texts, publish them and edit the copy; it survives `inertia-datatable:ui --update`:
+
+```bash
+php artisan vendor:publish --tag=inertia-datatable-lang   # → lang/vendor/inertia-datatable/{en,es}/ui.php
+```
+
+Add a language by copying `en/ui.php` to `lang/vendor/inertia-datatable/{lang}/ui.php`; keys missing in a file fall back to English. In React, `useServerDataTable({ messages: { search: 'Find products…' } })` changes texts for one table.
 
 ### Column validation
 

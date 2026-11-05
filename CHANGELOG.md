@@ -4,6 +4,17 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking:** the default locale of numbers and dates is the app locale (`app()->getLocale()`), not the browser's. Set `inertia-datatable.locale` to `'browser'` to keep the previous behaviour.
+
+### Added
+
+- Locale per table (`locale()` in the class, `->locale()` in `DataTable::for`) and in the React hook (`useServerDataTable({ locale })`); `es_CL` is accepted as `es-CL`.
+- `inertia-datatable.currency` (default of `money()`) and `inertia-datatable.date_format` (default of `dateFormat()` and of date columns without a format).
+- Every UI text is translatable with Laravel lang files (`en` and `es` included), sent in `config.messages` and publishable with `--tag=inertia-datatable-lang`; `useServerDataTable({ messages })` changes them per table.
+- The date filter calendar uses the table locale (month and day names, first day of the week), and the filter chips and counts format numbers and dates with it.
+
 ## [0.3.0] - 2026-11-05
 
 ### Added

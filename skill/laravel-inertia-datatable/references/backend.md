@@ -78,15 +78,15 @@ Both are `Arrayable` (Inertia prop) and `Responsable` (return them from a route 
 
 A column without a filter method is not filterable; a column without `sortable()` is not sortable.
 
-Display methods only change how cells look (the row keeps the raw value; the UI formats with Intl and `config('inertia-datatable.locale')`, or the browser locale when null). They are independent of the filter methods, and a method of another type replaces the previous one:
+Display methods only change how cells look (the row keeps the raw value; the UI formats with Intl and the table locale, see Configuration). They are independent of the filter methods, and a method of another type replaces the previous one:
 
 | Method | Cell |
 |---|---|
-| `money('CLP', decimals: 0)` | Currency (ISO 4217 code) |
+| `money('CLP', decimals: 0)` | Currency (ISO 4217 code); `money()` uses `inertia-datatable.currency` |
 | `decimals(2)` | Fixed decimals; adds up with `money()` / `percent()` |
 | `percent()` | Ratio as a percentage (`0.25` → `25 %`) |
 | `numberFormat(['notation' => 'compact'])` | Any Intl.NumberFormat option |
-| `dateFormat('long')` | `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; dates without time never move a day |
+| `dateFormat('long')` | Without a format, `inertia-datatable.date_format`; `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; dates without time never move a day |
 | `limit(60)` | Cuts the text, full text in the tooltip |
 | `url()` / `email()` | Link (only http/https URLs) / mailto |
 | `booleanLabels('Sí', 'No')` | Labels of booleans |
@@ -141,7 +141,13 @@ Never expose attributes only because a column exists: `$hidden` still applies to
 
 ## Configuration
 
-`php artisan vendor:publish --tag=inertia-datatable-config` → `config/inertia-datatable.php`: query parameter names, default `per_page` and options, `max_sorts`, `max_filters`, `max_search_length`. Stubs for `make:datatable`: `--tag=inertia-datatable-stubs`.
+`php artisan vendor:publish --tag=inertia-datatable-config` → `config/inertia-datatable.php`: query parameter names, default `per_page` and options, `max_sorts`, `max_filters`, `max_search_length`, `validate_columns`, and the language and formats. Stubs for `make:datatable`: `--tag=inertia-datatable-stubs`.
+
+Language and formats (defaults from the app; the most specific layer wins):
+
+- Locale of numbers and dates: React `useServerDataTable({ locale })` → the table (`public function locale(): ?string` in the class, `->locale('es-CL')` in the quick form) → `inertia-datatable.locale` → `app()->getLocale()`. `'browser'` at any level = the browser's. Use a locale with a region (`es-CL`, not `es`) for local currency symbols.
+- `inertia-datatable.currency`: default of `money()`. `inertia-datatable.date_format`: default of `dateFormat()` and of date columns without a format.
+- UI texts follow the app language (`en` and `es` included, English fallback). To translate or change them: `php artisan vendor:publish --tag=inertia-datatable-lang` → `lang/vendor/inertia-datatable/{lang}/ui.php`; never edit the React components for this.
 
 ## URL contract (query string)
 
