@@ -4,11 +4,16 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-11-05
+
+### Added
+
+- The header and the cells of a column are aligned together with `meta.align` (`'start' | 'center' | 'end'`): number columns are aligned to the end by default, with their header, and get more room before the next column (`pe-8`). It is plain CSS, so nothing moves after the page loads. Columns that were right-aligned with `meta.className: 'text-right'` no longer need it.
+
 ### Changed
 
 - The trigger of the range filter shows its bounds with the format of the column (`->money('CLP')` → `$10.000 - $900.000`); the unit is only added when the format has no currency or percentage.
 - Cell content that does not fit ends in "…" (`text-ellipsis`) instead of being cut against the next column; `meta.cellClassName: 'text-clip'` undoes it in a column.
-- The header and the cells of a column are aligned together with `meta.align` (`'start' | 'center' | 'end'`): number columns are aligned to the end by default, with their header, and get more room before the next column (`pe-8`). It is plain CSS, so nothing moves after the page loads. Columns that were right-aligned with `meta.className: 'text-right'` no longer need it.
 
 ## [0.6.0] - 2026-11-05
 
@@ -108,7 +113,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.0...v0.4.1
