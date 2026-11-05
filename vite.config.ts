@@ -5,7 +5,14 @@ export default defineConfig({
         include: ['registry/**/*.test.ts'],
     },
     lint: {
-        ignorePatterns: ['vendor/**', 'node_modules/**', 'r/**'],
+        // El código React se revisa con tipos en el playground, donde están
+        // instaladas sus dependencias (shadcn, TanStack, Inertia).
+        ignorePatterns: [
+            'vendor/**',
+            'node_modules/**',
+            'r/**',
+            'registry/react/**',
+        ],
         options: {
             denyWarnings: true,
             typeAware: true,
