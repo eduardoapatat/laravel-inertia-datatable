@@ -44,7 +44,13 @@ class MakeDataTableCommand extends GeneratorCommand
             return false;
         }
 
-        if ($this->option('react')) {
+        $wantsReact = $this->option('react') || $this->option('page');
+
+        if ($wantsReact) {
+            $this->writeReactComponent($model);
+        }
+
+        if ($this->option('page')) {
             $this->writeReactPage($model);
         }
 
@@ -101,7 +107,8 @@ class MakeDataTableCommand extends GeneratorCommand
     {
         return [
             ['model', 'm', InputOption::VALUE_REQUIRED, 'The model of the table (defaults to the singular of the class name)'],
-            ['react', null, InputOption::VALUE_NONE, 'Also create a React page that renders the table'],
+            ['react', null, InputOption::VALUE_NONE, 'Also create a React component with the columns of the table'],
+            ['page', null, InputOption::VALUE_NONE, 'Also create the React component and an Inertia page that renders it'],
             ['empty', null, InputOption::VALUE_NONE, 'Do not guess the columns from the model'],
             ['force', 'f', InputOption::VALUE_NONE, 'Overwrite the files if they already exist'],
         ];
@@ -170,53 +177,81 @@ PHP;
     }
 
     /**
+     * Componente de la tabla (tipos, columnas, hook y DataTable), reutilizable en cualquier página.
+     *
+     * @param  class-string<Model>  $model
+     */
+    private function writeReactComponent(string $model): void
+    {
+        $names = $this->resourceNames($model);
+        $columns = $this->guessColumns($model);
+        $kinds = array_map(fn (GuessedColumn $column): string => $column->kind, $columns);
+
+        $this->writeFile(
+            $this->laravel->resourcePath("js/components/data-tables/{$names['file']}.tsx"),
+            str_replace(
+                ['{{ imports }}', '{{ rowType }}', '{{ rowFields }}', '{{ prop }}', '{{ columns }}', '{{ component }}', '{{ title }}'],
+                [
+                    $this->componentImports(in_array('option', $kinds, true), in_array('date', $kinds, true)),
+                    $names['row'],
+                    collect($columns)->map(fn (GuessedColumn $column): string => sprintf(
+                        '    %s?: %s%s;',
+                        $column->id,
+                        match ($column->kind) {
+                            'number' => 'number',
+                            'boolean' => 'boolean',
+                            default => 'string',
+                        },
+                        $column->nullable ? ' | null' : '',
+                    ))->implode("\n"),
+                    $names['prop'],
+                    collect($columns)->map(fn (GuessedColumn $column): string => $this->reactColumn($column))->implode("\n"),
+                    $names['component'],
+                    $names['title'],
+                ],
+                $this->files->get($this->resolveStubPath('datatable-react-component.stub')),
+            ),
+            'React component',
+        );
+    }
+
+    /**
+     * Página de Inertia que solo renderiza el componente de la tabla.
+     *
      * @param  class-string<Model>  $model
      */
     private function writeReactPage(string $model): void
     {
         $names = $this->resourceNames($model);
-        $path = $this->laravel->resourcePath("js/pages/{$names['resource']}/index.tsx");
 
+        $this->writeFile(
+            $this->laravel->resourcePath("js/pages/{$names['resource']}/index.tsx"),
+            str_replace(
+                ['{{ component }}', '{{ file }}', '{{ rowType }}', '{{ prop }}', '{{ page }}', '{{ title }}', '{{ url }}'],
+                [$names['component'], $names['file'], $names['row'], $names['prop'], $names['page'], $names['title'], '/'.$names['resource']],
+                $this->files->get($this->resolveStubPath('datatable-react-page.stub')),
+            ),
+            'React page',
+        );
+    }
+
+    private function writeFile(string $path, string $contents, string $type): void
+    {
         if ($this->files->exists($path) && ! $this->option('force')) {
-            $this->components->warn("React page [{$path}] already exists.");
+            $this->components->warn("{$type} [{$path}] already exists.");
 
             return;
         }
 
-        $columns = $this->guessColumns($model);
-        $kinds = array_map(fn (GuessedColumn $column): string => $column->kind, $columns);
-
         $this->files->ensureDirectoryExists(dirname($path));
-        $this->files->put($path, str_replace(
-            ['{{ imports }}', '{{ rowType }}', '{{ rowFields }}', '{{ prop }}', '{{ columns }}', '{{ component }}', '{{ title }}', '{{ url }}'],
-            [
-                $this->reactImports(in_array('option', $kinds, true), in_array('date', $kinds, true)),
-                $names['row'],
-                collect($columns)->map(fn (GuessedColumn $column): string => sprintf(
-                    '    %s?: %s%s;',
-                    $column->id,
-                    match ($column->kind) {
-                        'number' => 'number',
-                        'boolean' => 'boolean',
-                        default => 'string',
-                    },
-                    $column->nullable ? ' | null' : '',
-                ))->implode("\n"),
-                $names['prop'],
-                collect($columns)->map(fn (GuessedColumn $column): string => $this->reactColumn($column))->implode("\n"),
-                $names['component'],
-                $names['title'],
-                '/'.$names['resource'],
-            ],
-            $this->files->get($this->resolveStubPath('datatable-page-react.stub')),
-        ));
-
-        $this->components->info("React page [{$path}] created successfully.");
+        $this->files->put($path, $contents);
+        $this->components->info("{$type} [{$path}] created successfully.");
     }
 
-    private function reactImports(bool $usesOptions, bool $usesDates): string
+    private function componentImports(bool $usesOptions, bool $usesDates): string
     {
         $imports = [
+            "import { createColumnHelper } from '@tanstack/react-table';",
             "import { DataTable } from '@/components/data-table/data-table';",
             "import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';",
             "import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';",
@@ -231,6 +266,7 @@ PHP;
         }
 
         $imports[] = "import type { ServerDataTable } from '@/lib/data-table-server';";
+        $imports[] = "import { cn } from '@/lib/utils';";
 
         return implode("\n", $imports);
     }
@@ -256,7 +292,7 @@ TSX;
 
     /**
      * @param  class-string<Model>  $model
-     * @return array{resource: string, prop: string, component: string, title: string, row: string}
+     * @return array{resource: string, prop: string, component: string, file: string, page: string, title: string, row: string}
      */
     private function resourceNames(string $model): array
     {
@@ -265,7 +301,9 @@ TSX;
         return [
             'resource' => Str::kebab($plural),
             'prop' => Str::camel($plural),
-            'component' => Str::studly($plural).'Index',
+            'component' => Str::studly($plural).'Table',
+            'file' => Str::kebab($plural).'-table',
+            'page' => Str::studly($plural).'Index',
             'title' => Str::headline($plural),
             'row' => class_basename($model),
         ];
@@ -279,11 +317,16 @@ TSX;
         $names = $this->resourceNames($model);
         $class = class_basename($this->qualifyClass($this->getNameInput()));
 
-        $this->components->bulletList([
+        $steps = [
             "Return it from a controller: Inertia::render('{$names['resource']}/index', ['{$names['prop']}' => fn () => {$class}::make()])",
             "Register a route: Route::get('{$names['resource']}', [{$names['row']}Controller::class, 'index'])->name('{$names['resource']}.index')",
-            'Install the UI once per project: pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json',
-        ]);
+        ];
+
+        if ($this->option('react') && ! $this->option('page')) {
+            $steps[] = "Render it in a page: <{$names['component']} {$names['prop']}={{$names['prop']}} /> from '@/components/data-tables/{$names['file']}'";
+        }
+
+        $this->components->bulletList($steps);
     }
 
     /**

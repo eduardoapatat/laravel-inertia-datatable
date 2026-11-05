@@ -23,7 +23,8 @@ class InertiaDataTableServiceProvider extends ServiceProvider
 
             $this->publishes([
                 __DIR__.'/../stubs/datatable.stub' => base_path('stubs/datatable.stub'),
-                __DIR__.'/../stubs/datatable-page-react.stub' => base_path('stubs/datatable-page-react.stub'),
+                __DIR__.'/../stubs/datatable-react-component.stub' => base_path('stubs/datatable-react-component.stub'),
+                __DIR__.'/../stubs/datatable-react-page.stub' => base_path('stubs/datatable-react-page.stub'),
             ], 'inertia-datatable-stubs');
 
             $this->commands([MakeDataTableCommand::class]);

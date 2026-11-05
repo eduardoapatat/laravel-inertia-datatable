@@ -14,6 +14,8 @@ use function Pest\Laravel\artisan;
 afterEach(function () {
     File::deleteDirectory(app_path('DataTables'));
     File::deleteDirectory(resource_path('js/pages/products'));
+    File::deleteDirectory(resource_path('js/components/data-tables'));
+    File::delete([resource_path('js/hooks/use-server-data-table.ts'), base_path('pnpm-lock.yaml')]);
 });
 
 it('creates a table class with the columns guessed from the model', function () {
@@ -63,12 +65,11 @@ it('creates a table that resolves against the database', function () {
         ->and($response['data'][0]['category'])->toBe('Home');
 });
 
-it('creates a React page for the table with the react option', function () {
+it('creates a reusable React component with the react option', function () {
     artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--react' => true])->assertSuccessful();
 
-    expect(File::get(resource_path('js/pages/products/index.tsx')))
-        ->toContain('export default function ProductsIndex({ products }: Props) {')
-        ->toContain("prop: 'products',")
+    expect(File::get(resource_path('js/components/data-tables/products-table.tsx')))
+        ->toContain('export type Product = {')
         ->toContain('    name?: string;')
         ->toContain('    category?: string | null;')
         ->toContain('    price?: number;')
@@ -76,6 +77,19 @@ it('creates a React page for the table with the react option', function () {
         ->toContain('getOptionLabel(column.columnDef.meta, cell.getValue()),')
         ->toContain("cell: ({ cell }) => (cell.getValue() ? 'Yes' : 'No'),")
         ->toContain("import { formatDate } from '@/lib/data-table-format';")
+        ->toContain('export function ProductsTable({')
+        ->toContain("prop = 'products',")
+        ->and(File::exists(resource_path('js/pages/products/index.tsx')))->toBeFalse();
+});
+
+it('creates a page that renders the component with the page option', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--page' => true])->assertSuccessful();
+
+    expect(File::exists(resource_path('js/components/data-tables/products-table.tsx')))->toBeTrue()
+        ->and(File::get(resource_path('js/pages/products/index.tsx')))
+        ->toContain("import { ProductsTable } from '@/components/data-tables/products-table';")
+        ->toContain('export default function ProductsIndex({ products }: Props) {')
+        ->toContain('<ProductsTable products={products} />')
         ->toContain("href: '/products',");
 });
 

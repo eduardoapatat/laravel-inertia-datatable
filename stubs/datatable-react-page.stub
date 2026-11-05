@@ -1,0 +1,28 @@
+import { Head } from '@inertiajs/react';
+import { {{ component }} } from '@/components/data-tables/{{ file }}';
+import type { {{ rowType }} } from '@/components/data-tables/{{ file }}';
+import type { ServerDataTable } from '@/lib/data-table-server';
+
+type Props = {
+    {{ prop }}: ServerDataTable<{{ rowType }}>;
+};
+
+export default function {{ page }}({ {{ prop }} }: Props) {
+    return (
+        <>
+            <Head title="{{ title }}" />
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <{{ component }} {{ prop }}={{{ prop }}} />
+            </div>
+        </>
+    );
+}
+
+{{ page }}.layout = {
+    breadcrumbs: [
+        {
+            title: '{{ title }}',
+            href: '{{ url }}',
+        },
+    ],
+};

@@ -1,0 +1,44 @@
+{{ imports }}
+
+/**
+ * Rows only include the visible columns, so most fields are optional.
+ */
+export type {{ rowType }} = {
+    id: number;
+{{ rowFields }}
+};
+
+const columnHelper = createColumnHelper<DataTableFeatures, {{ rowType }}>();
+
+const columns = columnHelper.columns([
+{{ columns }}
+]);
+
+type {{ component }}Props = {
+    {{ prop }}: ServerDataTable<{{ rowType }}>;
+    /** Name of the Inertia prop, so visits only reload this table. */
+    prop?: string;
+    className?: string;
+};
+
+export function {{ component }}({
+    {{ prop }},
+    prop = '{{ prop }}',
+    className,
+}: {{ component }}Props) {
+    const { table, isLoading } = useServerDataTable({
+        table: {{ prop }},
+        prop,
+        columns,
+    });
+
+    return (
+        <DataTable
+            table={table}
+            aria-label="{{ title }}"
+            className={cn(isLoading && 'opacity-60', className)}
+        >
+            <DataTableToolbar table={table} />
+        </DataTable>
+    );
+}
