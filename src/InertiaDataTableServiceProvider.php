@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EduardoApatat\InertiaDataTable;
 
 use EduardoApatat\InertiaDataTable\Console\MakeDataTableCommand;
+use EduardoApatat\InertiaDataTable\Console\UiCommand;
 use Illuminate\Support\ServiceProvider;
 
 class InertiaDataTableServiceProvider extends ServiceProvider
@@ -27,7 +28,7 @@ class InertiaDataTableServiceProvider extends ServiceProvider
                 __DIR__.'/../stubs/datatable-react-page.stub' => base_path('stubs/datatable-react-page.stub'),
             ], 'inertia-datatable-stubs');
 
-            $this->commands([MakeDataTableCommand::class]);
+            $this->commands([MakeDataTableCommand::class, UiCommand::class]);
         }
     }
 }
