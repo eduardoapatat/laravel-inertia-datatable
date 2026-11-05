@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-05
+
 ### Added
 
 - Cell formatting declared on the column and applied with Intl: `money()`, `decimals()`, `percent()`, `numberFormat()`, `dateFormat()` (`short`, `medium`, `long`, `datetime`, `relative`), `limit()`, `url()`, `email()`, `booleanLabels()` and `badge()`. It travels in `config.columns[].display`, can be overridden in the React `meta.display`, and uses `inertia-datatable.locale` (or the browser locale).
@@ -54,6 +56,7 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/releases/tag/v0.1.0
