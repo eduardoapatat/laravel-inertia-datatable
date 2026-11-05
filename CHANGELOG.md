@@ -4,6 +4,14 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Tailwind classes per column in the React `meta`: `className` (header and cells), `headerClassName` and `cellClassName`. A width class (`w-40 md:w-80`) replaces the `size` width, so widths can be responsive.
+
+### Changed
+
+- The column width is the `w-(--cell-size)` class instead of an inline style, and the table no longer has a `minWidth`: with `table-fixed` it grows to the sum of its columns.
+
 ## [0.5.0] - 2026-11-05
 
 ### Added

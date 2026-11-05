@@ -4,6 +4,7 @@
 - Page structure
 - Columns and cells
 - Toolbar, pagination and loading state
+- Column width and classes
 - Layout: reorder the pieces
 - Language and texts
 - Custom meta (icons, labels)
@@ -153,6 +154,22 @@ columnHelper.accessor('category', {
 - In your own components, `getMessage(table, 'page_of', { page: 1, pages: 25 })` from `@/lib/data-table-messages` (keys = `DEFAULT_MESSAGES`).
 - `DataTableSkeleton` has no table: pass `label` for its screen-reader text.
 - The calendar of the date filters takes the month and day names and the first day of the week from the table locale with Intl; no date-fns locale is needed.
+
+## Column width and classes
+
+Declared in the table component (Tailwind does not scan the PHP classes), only for the columns that need it; the column keeps everything the server declares:
+
+```tsx
+columnHelper.accessor('name', { size: 300 }),                                   // px (150 by default)
+columnHelper.accessor('notes', { meta: { className: 'w-40 md:w-80 lg:w-96' } }), // responsive width
+columnHelper.accessor('title', { size: 300, meta: { className: 'max-md:w-48' } }), // size from md up, class below
+columnHelper.accessor('sku', { meta: { cellClassName: 'font-mono text-xs' } }),
+columnHelper.accessor('price', { meta: { className: 'text-right' } }),
+```
+
+- `meta.className` goes to the header and the cells, `headerClassName` / `cellClassName` to one of them. A `w-*` class replaces the `size` width (they are merged with `cn`); a `md:w-*` alone keeps `size` below that breakpoint.
+- The table grows to the sum of its columns and scrolls horizontally when it does not fit; when it fits, the extra space is shared.
+- Pinned columns compute their offset from `size`: give them `size`, not width classes.
 
 ## Layout: reorder the pieces
 
