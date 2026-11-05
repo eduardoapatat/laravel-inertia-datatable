@@ -65,29 +65,31 @@ Each column has a type, and the type only offers the methods that make sense for
 ```php
 use InertiaDataTable\Column;
 
-Column::text('name', 'Name')->sortable()->searchable()->filter('Search name…'),
+Column::text('name', 'Name')->sortable()->searchable()->filterInput('Search name…'),
 Column::text('notes', 'Notes')->limit(60),
 Column::text('website', 'Web')->url(),                                          // or ->email()
-Column::number('price', 'Price')->sortable()->money('CLP')->range(),            // slider, bounds from the data
-Column::number('weight', 'Weight')->unit('kg')->decimals(1)->filter(),
+Column::number('price', 'Price')->sortable()->money('CLP')->filterRange(),            // slider, bounds from the data
+Column::number('weight', 'Weight')->unit('kg')->decimals(1)->filterInput(),
 Column::number('discount', 'Discount')->percent(),
 Column::number('views', 'Views')->format(['notation' => 'compact']),           // any Intl option
-Column::date('published_at', 'Published')->format('long')->range(),            // short | medium | long | datetime | relative
-Column::boolean('featured', 'Featured')->labels('Sí', 'No')->filter(),
-Column::option('status', 'Status')->options(ProductStatus::class)->badge()->filter(multiple: true),
+Column::date('published_at', 'Published')->format('long')->filterRange(),            // short | medium | long | datetime | relative
+Column::boolean('featured', 'Featured')->labels('Sí', 'No')->filterSelect(),
+Column::option('status', 'Status')->options(ProductStatus::class)->badge()->filterMultiSelect(),
 Column::option('stage', 'Stage')->options(Stage::class)->badge('secondary', ['lost' => 'destructive']),
-Column::option('category', 'Category')->from('category.name')->sortable()->filter(multiple: true),
+Column::option('category', 'Category')->from('category.name')->sortable()->filterMultiSelect(),
 ```
 
 | Type | Format | Filter |
 |---|---|---|
-| `Column::text()` | `limit()`, `url()`, `email()` | `filter(?placeholder)` |
-| `Column::number()` | `money(?currency, ?decimals)`, `decimals()`, `percent()`, `format([...])`, `unit()` | `filter(?placeholder)`, `range(?min, ?max)` |
-| `Column::date()` | `format(preset or Intl options)` | `filter()` (one date), `range()` |
-| `Column::boolean()` | `labels(true, false)`, `badge()` | `filter()` |
-| `Column::option()` | `options(list, map or enum)`, `badge()` | `filter(multiple: false)`, `withCounts(false)` |
+| `Column::text()` | `limit()`, `url()` or `email()` | `filterInput(?placeholder)`: text input, contains |
+| `Column::number()` | `money(?currency, ?decimals)`, `decimals()`, `percent()`, `format([...])`, `unit()` | `filterInput(?placeholder)`: number input, equal to; `filterRange(?min, ?max)`: slider |
+| `Column::date()` | `format(preset or Intl options)` | `filterDate()`: calendar, one day; `filterRange()`: calendar, from / to |
+| `Column::boolean()` | `labels(true, false)`, `badge()` | `filterSelect()`: list, Yes or No |
+| `Column::option()` | `options(list, map or enum)`, `badge()` | `filterSelect()`: list, one option; `filterMultiSelect()`: list, several (`counts: false` skips the counts) |
 
-- A column has at most one filter: calling two filter methods throws an error instead of keeping the last one.
+- The name of each filter method says the control shown in the toolbar. The URL also accepts other operators than the control uses (`filter[stock]=gt.100`, `between.10,50`, `is.empty`…, see `docs/contract.md`).
+- A column has at most one filter: calling two filter methods throws an error instead of keeping the last one. In the same way, `url()` with `email()` and `hidden()` with `hideable(false)` are errors.
+- `searchable()` exists in text, number and option columns: the global search compares text, which says nothing useful about dates or booleans.
 - The unit of `unit('kg')` goes after the number in the cells and next to the filter inputs; with `money()` the filter inputs end in the currency code (`[ 1200 | CLP ]`) while the cells keep the format (`$1.200`). `unit()` together with `money()` or `percent()` is an error, since they already say the unit.
 - An option column shows the labels of its declared options even without a filter; with a filter, the options carry the row counts.
 - Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`, and dates without `format()` use `inertia-datatable.date_format`.

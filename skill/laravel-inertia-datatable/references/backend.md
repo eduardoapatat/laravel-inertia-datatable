@@ -28,8 +28,8 @@ class ProductsTable extends DataTable
     public function columns(): array
     {
         return [
-            Column::text('name', 'Name')->sortable()->searchable()->filter()->hideable(false),
-            Column::number('price', 'Price')->sortable()->money('USD')->range(),
+            Column::text('name', 'Name')->sortable()->searchable()->filterInput()->hideable(false),
+            Column::number('price', 'Price')->sortable()->money('USD')->filterRange(),
         ];
     }
 
@@ -66,22 +66,23 @@ Methods of every type:
 |---|---|
 | `from('attribute')` / `from('relation.attribute')` | Read the value from another attribute or a to-one relation |
 | `sortable()` | Allowed in `sort` |
-| `searchable()` | Included in the global search (every word must match some searchable column) |
-| `hideable(false)` | Always visible (use for the column that identifies the row) |
+| `hideable(false)` | Always visible (use for the column that identifies the row); cannot be combined with `hidden()` |
 | `hidden()` | Hidden by default; the user can show it |
 
 Format (only changes how cells look; the row keeps the raw value and the UI formats with Intl and the table locale, see Configuration) and filter of each type:
 
 | Type | Format | Filter |
 |---|---|---|
-| `Column::text()` | `limit(60)` (full text in the tooltip), `url()` (only http/https) or `email()` (mailto) | `filter(?placeholder)`: text, `contains` by default |
-| `Column::number()` | `money('CLP', decimals: 0)` (ISO 4217; `money()` uses `inertia-datatable.currency`), `decimals(2)`, `percent()` (`0.25` → `25 %`), `format(['notation' => 'compact'])` (any Intl.NumberFormat option), `unit('kg')`; they add up | `filter(?placeholder)`: operators; `range(?min, ?max)`: slider, without bounds the server computes them |
-| `Column::date()` | `format('long')`: `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; without it, `inertia-datatable.date_format`. Dates without time never move a day | `filter()`: one date (`YYYY-MM-DD`); `range()`: from / to |
-| `Column::boolean()` | `labels('Active', 'Inactive')` (without it, Yes / No in the app language), `badge()` with values `true` / `false` (also 1 / 0) | `filter()`: Yes / No |
-| `Column::option()` | `options($options)`: list, `value => label` map or backed enum class (without it the filter offers the distinct values from the DB); `badge()` | `filter()`: one value; `filter(multiple: true)`: several; `withCounts(false)` skips the count query |
+| `Column::text()` | `limit(60)` (full text in the tooltip), `url()` (only http/https) or `email()` (mailto) | `filterInput(?placeholder)`: text input, contains |
+| `Column::number()` | `money('CLP', decimals: 0)` (ISO 4217; `money()` uses `inertia-datatable.currency`), `decimals(2)`, `percent()` (`0.25` → `25 %`), `format(['notation' => 'compact'])` (any Intl.NumberFormat option), `unit('kg')`; they add up | `filterInput(?placeholder)`: number input, equal to; `filterRange(?min, ?max)`: slider with from / to inputs, without bounds the server computes them |
+| `Column::date()` | `format('long')`: `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; without it, `inertia-datatable.date_format`. Dates without time never move a day | `filterDate()`: calendar, one day (`YYYY-MM-DD`); `filterRange()`: calendar, from / to |
+| `Column::boolean()` | `labels('Active', 'Inactive')` (without it, Yes / No in the app language), `badge()` with values `true` / `false` (also 1 / 0) | `filterSelect()`: list, Yes or No |
+| `Column::option()` | `options($options)`: list, `value => label` map or backed enum class (without it the filter offers the distinct values from the DB); `badge()` | `filterSelect()`: list, one option; `filterMultiSelect()`: list, several; `counts: false` skips the count query |
 
 - A column without a filter method is not filterable; a column without `sortable()` is not sortable.
-- One filter per column: calling two filter methods (`->filter()->range()`) throws a `LogicException`.
+- `searchable()` (text, number and option columns only): included in the global search; every word must match some searchable column.
+- The name of each filter method says the control in the toolbar; the URL also accepts the other operators of its variant (`filter[stock]=gt.100`, `between.10,50`, `is.empty`…, see `docs/contract.md` §1.4).
+- One filter per column: calling two filter methods (`->filterInput()->filterRange()`) throws a `LogicException`. `url()` with `email()` and `hidden()` with `hideable(false)` throw too.
 - `unit()` goes after plain numbers in the cells and next to the filter inputs. It cannot be combined with `money()` or `percent()` (`InvalidArgumentException`): the filter inputs already end in the currency code (`CLP`).
 - `badge()` / `badge('secondary', ['archived' => 'destructive'])` shows the labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels.
 - An option column without a filter still sends the labels of its declared options, so the cells show `Archived` instead of `archived`.
@@ -91,8 +92,8 @@ Format (only changes how cells look; the row keeps the raw value and the UI form
 ## Relations, enums and options
 
 ```php
-Column::option('category', 'Category')->from('category.name')->sortable()->searchable()->filter(multiple: true),
-Column::option('status', 'Status')->options(OrderStatus::class)->badge()->filter(multiple: true),
+Column::option('category', 'Category')->from('category.name')->sortable()->searchable()->filterMultiSelect(),
+Column::option('status', 'Status')->options(OrderStatus::class)->badge()->filterMultiSelect(),
 ```
 
 - Relations: one level, to-one only (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`). The relation is eager loaded automatically and the row gets the flat value under the column id (`"category": "Books"`). Sorting uses a correlated subquery, filtering uses `whereHas`.

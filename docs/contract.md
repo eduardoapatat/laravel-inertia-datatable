@@ -236,9 +236,9 @@ Data the client cannot compute by itself in server mode (they replace TanStack's
   - Not declared: distinct values present in the database, sorted by value, with `label = value`.
 - Selected values always appear, even if their count is 0.
 - In this phase `NULL` values are excluded.
-- Counts can be disabled per column (`->withCounts(false)`); then `count` is not sent.
+- Counts can be disabled per column (`->filterSelect(counts: false)` / `->filterMultiSelect(counts: false)`); then `count` is not sent.
 
-**`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `Column::number(...)->range(min: 0, max: 5000)` to skip the query.
+**`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `Column::number(...)->filterRange(min: 0, max: 5000)` to skip the query.
 
 ### 2.6 `config`
 
@@ -260,11 +260,11 @@ Each column:
 
 | Column | `display.type` | Filter variants |
 |---|---|---|
-| `Column::text()` | `text` | `text` (`placeholder` with `filter('…')`) |
-| `Column::number()` | `number` | `number` (`placeholder`), `range` (bounds in `facets`) |
-| `Column::date()` | `date` | `date`, `date-range` |
-| `Column::boolean()` | `boolean` | `boolean` |
-| `Column::option()` | `option` | `select`, `multi-select` (options in `facets`) |
+| `Column::text()` | `text` | `text` (`filterInput('…')`, with its `placeholder`) |
+| `Column::number()` | `number` | `number` (`filterInput()`, with its `placeholder`), `range` (`filterRange()`, bounds in `facets`) |
+| `Column::date()` | `date` | `date` (`filterDate()`), `date-range` (`filterRange()`) |
+| `Column::boolean()` | `boolean` | `boolean` (`filterSelect()`) |
+| `Column::option()` | `option` | `select` (`filterSelect()`), `multi-select` (`filterMultiSelect()`); options in `facets` |
 
 `display` is always present: `type` is the type of the column and the other keys say how its cells are shown. Rows keep the raw value and the client formats it with Intl and `locale` (`null`: the browser's):
 
@@ -326,11 +326,11 @@ class ProductsTable extends DataTable
     {
         return [
             Column::text('name', 'Name')->sortable()->searchable()->hideable(false),
-            Column::number('price', 'Price')->sortable()->money('USD')->range(),
-            Column::option('status', 'Status')->options(['active' => 'Active', 'draft' => 'Draft'])->filter(multiple: true),
-            Column::option('category', 'Category')->from('category.name')->filter(multiple: true)->sortable()->searchable(),
-            Column::boolean('featured', 'Featured')->filter(),
-            Column::date('created_at', 'Created')->sortable()->range()->hidden(),
+            Column::number('price', 'Price')->sortable()->money('USD')->filterRange(),
+            Column::option('status', 'Status')->options(['active' => 'Active', 'draft' => 'Draft'])->filterMultiSelect(),
+            Column::option('category', 'Category')->from('category.name')->filterMultiSelect()->sortable()->searchable(),
+            Column::boolean('featured', 'Featured')->filterSelect(),
+            Column::date('created_at', 'Created')->sortable()->filterRange()->hidden(),
         ];
     }
 
@@ -350,7 +350,7 @@ return Inertia::render('products/index', ['products' => fn () => ProductsTable::
 DataTable::for(User::query())
     ->columns([
         Column::text('name', 'Name')->sortable()->searchable(),
-        Column::option('role', 'Role')->filter(),
+        Column::option('role', 'Role')->filterSelect(),
     ])
     ->defaultSort('name');
 ```
