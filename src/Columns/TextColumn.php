@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace InertiaDataTable\Columns;
 
 use InertiaDataTable\Column;
+use InertiaDataTable\Concerns\Searchable;
 use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
@@ -13,6 +14,8 @@ use InvalidArgumentException;
  */
 final class TextColumn extends Column
 {
+    use Searchable;
+
     private ?int $limit = null;
 
     /** @var 'url'|'email'|null */
@@ -39,9 +42,7 @@ final class TextColumn extends Column
      */
     public function url(): self
     {
-        $this->link = 'url';
-
-        return $this;
+        return $this->withLink('url');
     }
 
     /**
@@ -49,9 +50,7 @@ final class TextColumn extends Column
      */
     public function email(): self
     {
-        $this->link = 'email';
-
-        return $this;
+        return $this->withLink('email');
     }
 
     /**
@@ -76,5 +75,19 @@ final class TextColumn extends Column
     protected function filterOptions(): array
     {
         return $this->placeholder === null ? [] : ['placeholder' => $this->placeholder];
+    }
+
+    /**
+     * @param  'url'|'email'  $link
+     */
+    private function withLink(string $link): self
+    {
+        if ($this->link !== null && $this->link !== $link) {
+            throw new InvalidArgumentException("The column [{$this->id()}] is already shown as a {$this->link} link.");
+        }
+
+        $this->link = $link;
+
+        return $this;
     }
 }

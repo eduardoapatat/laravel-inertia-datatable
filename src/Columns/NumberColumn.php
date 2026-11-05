@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace InertiaDataTable\Columns;
 
 use InertiaDataTable\Column;
+use InertiaDataTable\Concerns\Searchable;
 use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
@@ -15,6 +16,8 @@ use InvalidArgumentException;
  */
 final class NumberColumn extends Column
 {
+    use Searchable;
+
     /** @var array<string, mixed> */
     private array $format = [];
 

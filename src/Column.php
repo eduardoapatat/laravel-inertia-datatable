@@ -108,16 +108,14 @@ abstract class Column
         return $this;
     }
 
-    public function searchable(bool $searchable = true): static
-    {
-        $this->searchable = $searchable;
-
-        return $this;
-    }
-
+    /**
+     * Whether the user can hide the column; `hideable(false)` for the column
+     * that identifies the row.
+     */
     public function hideable(bool $hideable = true): static
     {
         $this->hideable = $hideable;
+        $this->ensureCanBeShown();
 
         return $this;
     }
@@ -128,6 +126,7 @@ abstract class Column
     public function hidden(bool $hidden = true): static
     {
         $this->visible = ! $hidden;
+        $this->ensureCanBeShown();
 
         return $this;
     }
@@ -169,7 +168,7 @@ abstract class Column
 
     public function isVisibleByDefault(): bool
     {
-        return $this->visible || ! $this->hideable;
+        return $this->visible;
     }
 
     public function filterVariant(): ?FilterVariant
@@ -211,6 +210,17 @@ abstract class Column
     }
 
     /**
+     * Included in the global search, which compares text (`LIKE`): offered by
+     * the text, number and option columns.
+     */
+    protected function withSearch(bool $searchable): static
+    {
+        $this->searchable = $searchable;
+
+        return $this;
+    }
+
+    /**
      * A column has one filter: a second filter method is a mistake, not a change.
      */
     protected function withFilter(FilterVariant $variant): static
@@ -222,5 +232,15 @@ abstract class Column
         $this->filter = $variant;
 
         return $this;
+    }
+
+    /**
+     * A hidden column that cannot be hidden would have no way to be shown.
+     */
+    private function ensureCanBeShown(): void
+    {
+        if (! $this->visible && ! $this->hideable) {
+            throw new LogicException("The column [{$this->id}] is hidden but not hideable, so the user could never show it.");
+        }
     }
 }

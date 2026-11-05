@@ -8,6 +8,7 @@ use BackedEnum;
 use Illuminate\Support\Str;
 use InertiaDataTable\Column;
 use InertiaDataTable\Concerns\HasBadge;
+use InertiaDataTable\Concerns\Searchable;
 use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
@@ -19,6 +20,7 @@ use InvalidArgumentException;
 final class OptionColumn extends Column
 {
     use HasBadge;
+    use Searchable;
 
     /** @var array<string, string>|null */
     private ?array $options = null;

@@ -211,3 +211,27 @@ it('sends the display, the filter and the locale in the response config', functi
         ->and($config['columns'][1]['display'])->toBe(['type' => 'number', 'format' => ['style' => 'currency', 'currency' => 'CLP']])
         ->and($config['columns'][1]['filter'])->toBe(['variant' => 'range']);
 });
+
+it('shows a text as one kind of link', function () {
+    Column::text('contact')->url()->email();
+})->throws(InvalidArgumentException::class, 'The column [contact] is already shown as a url link.');
+
+it('rejects a hidden column the user could never show', function (Closure $build) {
+    expect($build)->toThrow(LogicException::class, 'The column [sku] is hidden but not hideable, so the user could never show it.');
+})->with([
+    'hidden, then not hideable' => [fn () => Column::text('sku')->hidden()->hideable(false)],
+    'not hideable, then hidden' => [fn () => Column::text('sku')->hideable(false)->hidden()],
+]);
+
+it('counts the options of a filter unless it is told not to', function () {
+    expect(Column::option('status')->filterSelect()->hasCounts())->toBeTrue()
+        ->and(Column::option('status')->filterMultiSelect(counts: false)->hasCounts())->toBeFalse();
+});
+
+it('only searches the types whose values can be compared as text', function () {
+    expect(method_exists(TextColumn::class, 'searchable'))->toBeTrue()
+        ->and(method_exists(NumberColumn::class, 'searchable'))->toBeTrue()
+        ->and(method_exists(OptionColumn::class, 'searchable'))->toBeTrue()
+        ->and(method_exists(DateColumn::class, 'searchable'))->toBeFalse()
+        ->and(method_exists(BooleanColumn::class, 'searchable'))->toBeFalse();
+});
