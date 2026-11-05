@@ -113,8 +113,8 @@ export type DataTableColumnMeta = {
      */
     cellClassName?: string | DataTableCellClassName;
     /**
-     * Classes of the right-aligned box of number cells (`min-w-20` by
-     * default), for example `min-w-28` for long amounts.
+     * Classes of the right-aligned box of number cells (as wide as the header
+     * label by default), for example `min-w-28` for figures longer than it.
      */
     numberClassName?: string;
 } & ColumnVariantMeta;

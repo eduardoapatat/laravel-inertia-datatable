@@ -306,7 +306,25 @@ export function getSelectFilterValue(filter: ColumnFilterItem) {
     return typeof filter.value === 'string' ? filter.value : undefined;
 }
 
-function getColumnVar(columnId: string, property: 'size' | 'offset') {
+/**
+ * CSS variable with the width of the header label of a number column, from its
+ * start to the end of its last icon: number cells use it so figures end right
+ * under the header (see `useHeaderLabelWidth` in data-table.tsx).
+ */
+export function getColumnLabelVar(columnId: string) {
+    return getColumnVar(columnId, 'label');
+}
+
+/**
+ * Whether the default cell of the column is a number cell.
+ */
+export function isNumberColumn(meta: DataTableColumnMeta | undefined) {
+    return meta?.display
+        ? meta.display.type === 'number'
+        : meta?.variant === 'number';
+}
+
+function getColumnVar(columnId: string, property: 'size' | 'offset' | 'label') {
     const name = columnId.replace(
         /[^a-zA-Z0-9-]/g,
         (char) => `_${char.codePointAt(0)?.toString(16)}_`,
