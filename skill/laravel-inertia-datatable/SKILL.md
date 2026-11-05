@@ -41,16 +41,17 @@ pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/larav
 
 When the CLI asks to overwrite existing `components/ui/*` files, answer **no**: the table only needs variants the Laravel starter kits already have, and overwriting would change components the app already uses. In a non-interactive shell, pipe the answers: `yes n | pnpm dlx shadcn@latest add <url> -y`. Then run the project's type check; if `components/ui/command.tsx` fails because `DialogContent` has no `showCloseButton` prop, the app has an old `dialog.tsx` — update it with `pnpm dlx shadcn@latest add dialog --overwrite` after telling the user.
 
-### 3. Create the table class
+### 3. Create the table class (and its React component)
 
 ```bash
-php artisan make:datatable ProductsTable --react
+php artisan make:datatable ProductsTable --react --install-ui
 ```
 
 - The model is guessed from the class name (`ProductsTable` → `App\Models\Product`); pass `--model=...` otherwise (a full class name works for models outside `app/Models`).
 - Columns are proposed from the model casts and the DB schema: strings (searchable, sortable), numbers, booleans, dates, backed enums (`multiSelect(Enum::class)`) and `belongsTo` relations (`category_id` → `from('category.name')`). Primary key, `$hidden` and sensitive columns are skipped.
-- `--react` also writes `resources/js/pages/<resource>/index.tsx`. Without it, write the page by hand (see `references/react.md`).
-- `--empty` skips the guessing.
+- `--react` also writes `resources/js/components/data-tables/products-table.tsx`: a per-table component (row type, columns, hook, toolbar) used as `<ProductsTable products={products} />` in any page. `--page` additionally writes `resources/js/pages/products/index.tsx`, which only renders that component. Prefer `--react` when the page has more than the table (headers, tabs, several tables) and write the page by hand.
+- `--install-ui` installs the shared UI (`components/data-table/*`, hook, libs) when the project does not have it yet, declining to overwrite existing `ui/` files; without it the command only prints the install command. You can skip step 2's frontend install when using this flag.
+- `--empty` skips the column guessing.
 
 Then **review the generated columns with the user's intent in mind** — the guess is a starting point: remove columns nobody needs, add labels in the app's language, mark rarely used ones `->hidden()`, set `defaultSort()`. The full `Column` API, relations, enums, parent-model tables and multiple tables per page are in `references/backend.md`.
 

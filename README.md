@@ -40,12 +40,18 @@ php artisan vendor:publish --tag=inertia-datatable-config   # opcional
 ## Crear una tabla
 
 ```bash
-php artisan make:datatable ProductsTable            # modelo deducido: App\Models\Product
-php artisan make:datatable ProductsTable --react    # además, resources/js/pages/products/index.tsx
+php artisan make:datatable ProductsTable                 # solo la clase (modelo deducido: App\Models\Product)
+php artisan make:datatable ProductsTable --react         # + componente components/data-tables/products-table.tsx
+php artisan make:datatable ProductsTable --page          # + componente + página pages/products/index.tsx
+php artisan make:datatable ProductsTable --react --install-ui   # instala también la UI genérica si falta
 php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
 ```
 
-Propone las columnas leyendo los casts del modelo y el esquema de la tabla: texto (buscable y ordenable), números, booleanos, fechas, enums (`multiSelect(Enum::class)`) y relaciones `belongsTo` (`category_id` → `from('category.name')`). Omite la clave primaria, los atributos `$hidden` y columnas sensibles (`password`, `remember_token`…). Los stubs se pueden personalizar con `php artisan vendor:publish --tag=inertia-datatable-stubs`.
+Propone las columnas leyendo los casts del modelo y el esquema de la tabla: texto (buscable y ordenable), números, booleanos, fechas, enums (`multiSelect(Enum::class)`) y relaciones `belongsTo` (`category_id` → `from('category.name')`). Omite la clave primaria, los atributos `$hidden` y columnas sensibles (`password`, `remember_token`…).
+
+En React hay dos niveles: los componentes genéricos (`components/data-table/`, hook y libs) se instalan una vez por proyecto desde el registro, y cada tabla tiene su propio componente (`components/data-tables/<recurso>-table.tsx`, con tipos y columnas) reutilizable en cualquier página. `--install-ui` ejecuta `shadcn add` con el gestor del lockfile y responde "no" a sobrescribir los `ui/` existentes; la URL del registro se configura en `inertia-datatable.registry_url`.
+
+Los stubs se pueden personalizar con `php artisan vendor:publish --tag=inertia-datatable-stubs`.
 
 ## Instalación del frontend (React)
 

@@ -10,6 +10,10 @@
 
 ## Page structure
 
+`make:datatable --react` generates the per-table component (`components/data-tables/<resource>-table.tsx`) with this same structure, so most of the time you only adjust labels and cells there. Everything below also applies when writing it by hand.
+
+Two levels: the shared UI (`components/data-table/*`, `hooks/use-server-data-table.ts`, `lib/data-table-*.ts`) is installed once per project; each table gets its own component with its row type and columns, and pages just render it.
+
 ```tsx
 import { Head } from '@inertiajs/react';
 import { createColumnHelper } from '@tanstack/react-table';
