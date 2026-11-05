@@ -56,6 +56,17 @@ it('labels booleans and shows options as badges', function () {
         ->toBe(['type' => 'option', 'badge' => true, 'variant' => 'outline']);
 });
 
+it('shows booleans as badges with their labels, in any order', function () {
+    $expected = ['type' => 'boolean', 'labels' => ['true' => 'Yes', 'false' => 'No'], 'badge' => true, 'variant' => 'secondary', 'variants' => ['true' => 'default', 'false' => 'destructive']];
+
+    expect(displayOf(Column::make('featured')->boolean()->booleanLabels('Yes', 'No')->badge('secondary', ['true' => 'default', 'false' => 'destructive'])))
+        ->toBe($expected)
+        ->and(displayOf(Column::make('featured')->boolean()->badge('secondary', [1 => 'default', 0 => 'destructive'])->booleanLabels('Yes', 'No')))
+        ->toBe($expected)
+        ->and(displayOf(Column::make('featured')->badge('outline')->boolean()))
+        ->toBe(['type' => 'boolean', 'badge' => true, 'variant' => 'outline']);
+});
+
 it('picks the badge variant of the column and of some values', function () {
     expect(displayOf(Column::make('status')->badge('secondary')))
         ->toBe(['type' => 'option', 'badge' => true, 'variant' => 'secondary'])

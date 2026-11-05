@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import {
+    formatBoolean,
     formatCellValue,
     formatDateValue,
     getFormatContext,
@@ -165,12 +166,40 @@ export function DataTableDateCell<TData extends RowData, TValue>(
 }
 
 /**
- * The labels of `->booleanLabels()` or the Yes / No texts of the table.
+ * The labels of `->booleanLabels()` or the Yes / No texts of the table; with
+ * `->badge()`, inside the project's Badge (variant of `true` / `false`, else
+ * the column one).
  */
 export function DataTableBooleanCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
 ) {
     const { meta, context } = cellSetup(props);
+    const display =
+        meta?.display?.type === 'boolean' ? meta.display : undefined;
+    const value = props.cell.getValue();
+
+    if (display?.badge) {
+        if (value === null || value === undefined || value === '') {
+            return null;
+        }
+
+        const key =
+            formatBoolean(value, { true: 'true', false: 'false' }) === 'true'
+                ? 'true'
+                : 'false';
+
+        return (
+            <DataTableOptionBadge
+                variant={
+                    (display.variants?.[key] ??
+                        display.variant ??
+                        'outline') as DataTableBadgeVariant
+                }
+            >
+                {formatCellValue(meta, value, context)}
+            </DataTableOptionBadge>
+        );
+    }
 
     return formatCellValue(
         meta?.display?.type === 'boolean'

@@ -89,8 +89,8 @@ Display methods only change how cells look (the row keeps the raw value; the UI 
 | `dateFormat('long')` | Without a format, `inertia-datatable.date_format`; `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; dates without time never move a day |
 | `limit(60)` | Cuts the text, full text in the tooltip |
 | `url()` / `email()` | Link (only http/https URLs) / mailto |
-| `booleanLabels('Sí', 'No')` | Labels of booleans |
-| `badge()` / `badge('secondary', ['archived' => 'destructive'])` | Option labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels |
+| `booleanLabels('Active', 'Inactive')` | Own labels of booleans; without it, Yes / No in the app language (UI lang files) |
+| `badge()` / `badge('secondary', ['archived' => 'destructive'])` | Option labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels. In a `boolean()` column the values are `true` / `false` and it adds up with `booleanLabels()` |
 
 `make:datatable` proposes `decimals(N)` for `decimal:N` casts; it never guesses a currency.
 

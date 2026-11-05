@@ -77,7 +77,7 @@ Column::make('views', 'Views')->numberFormat(['notation' => 'compact']),   // an
 
 - Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`.
 - Dates without time (Laravel `date` casts) never move to the previous day.
-- `badge()` uses the project's shadcn `Badge` with any variant of its `badge.tsx` (`outline` by default), for the column and per value.
+- `badge()` uses the project's shadcn `Badge` with any variant of its `badge.tsx` (`outline` by default), for the column and per value. In boolean columns the values are `true` and `false`, and it adds up with `booleanLabels()`; without `booleanLabels()`, booleans show Yes / No in the app language.
 - In the React component you can set or override the format (`meta: { display: … }`), add icons per option (`meta.options`, shown in the filter and in the cells) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. Option cells take `badge` (props of the same Badge per value) or `renderOption` (anything else, such as a colored dot), and `DataTableOptionBadge` is exported for fully custom cells. See the skill's React reference.
 
 ### Language and formats

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace InertiaDataTable\Concerns;
 
 use InertiaDataTable\Enums\DatePreset;
+use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
 /**
@@ -110,9 +111,13 @@ trait HasDisplay
         return $this->withText(['link' => 'email']);
     }
 
+    /**
+     * Texts of true and false; without them, the Yes / No of the UI texts in the
+     * app language. Adds up with `badge()`.
+     */
     public function booleanLabels(string $true, string $false): static
     {
-        $this->display = ['type' => 'boolean', 'labels' => ['true' => $true, 'false' => $false]];
+        $this->display = ['type' => 'boolean', 'labels' => ['true' => $true, 'false' => $false], ...$this->currentBadge()];
 
         return $this;
     }
@@ -121,16 +126,15 @@ trait HasDisplay
      * Shows the option labels with the project's shadcn Badge (and the icons
      * declared in React, if any): `badge('secondary', ['archived' => 'destructive'])`
      * gives the column variant and the variant of some values. Any variant of the
-     * project's badge.tsx works; `false` shows plain labels.
+     * project's badge.tsx works; `false` shows plain labels. In a boolean column
+     * the values are `true` and `false`, and it adds up with `booleanLabels()`.
      *
-     * @param  array<string, string>  $variants  Variant per option value.
+     * @param  array<array-key, string>  $variants  Variant per option value.
      */
     public function badge(string|false $variant = 'outline', array $variants = []): static
     {
         if ($variant === false) {
-            $this->display = ['type' => 'option', 'badge' => false];
-
-            return $this;
+            return $this->withBadge(['badge' => false]);
         }
 
         foreach ([$variant, ...array_values($variants)] as $name) {
@@ -139,21 +143,72 @@ trait HasDisplay
             }
         }
 
-        $this->display = ['type' => 'option', 'badge' => true, 'variant' => $variant];
+        $badge = ['badge' => true, 'variant' => $variant];
 
         if ($variants !== []) {
-            $this->display['variants'] = array_combine(array_map(strval(...), array_keys($variants)), array_values($variants));
+            $badge['variants'] = array_combine(array_map(strval(...), array_keys($variants)), array_values($variants));
         }
+
+        return $this->withBadge($badge);
+    }
+
+    /**
+     * The display of the column; in a boolean column, `badge()` displays
+     * booleans (with keys `true` / `false`, also given as 1 / 0).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function display(): ?array
+    {
+        $display = $this->display;
+
+        if ($display === null || $this->variant !== FilterVariant::Boolean || ! in_array($display['type'], ['option', 'boolean'], true)) {
+            return $display;
+        }
+
+        $display['type'] = 'boolean';
+
+        if (isset($display['variants']) && is_array($display['variants'])) {
+            $variants = [];
+
+            foreach ($display['variants'] as $key => $name) {
+                $variants[match ((string) $key) {
+                    '1' => 'true',
+                    '0' => 'false',
+                    default => (string) $key,
+                }] = $name;
+            }
+
+            $display['variants'] = $variants;
+        }
+
+        return $display;
+    }
+
+    /**
+     * `badge()` keeps the labels of `booleanLabels()` and the other way around.
+     *
+     * @param  array<string, mixed>  $badge
+     */
+    private function withBadge(array $badge): static
+    {
+        $this->display = ($this->display['type'] ?? null) === 'boolean'
+            ? [...array_diff_key($this->display, array_flip(['badge', 'variant', 'variants'])), ...$badge]
+            : ['type' => 'option', ...$badge];
 
         return $this;
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return array<string, mixed>
      */
-    public function display(): ?array
+    private function currentBadge(): array
     {
-        return $this->display;
+        if (! in_array($this->display['type'] ?? null, ['option', 'boolean'], true)) {
+            return [];
+        }
+
+        return array_intersect_key((array) $this->display, array_flip(['badge', 'variant', 'variants']));
     }
 
     /**

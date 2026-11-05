@@ -61,7 +61,16 @@ export type ServerColumnDisplay =
               | Intl.DateTimeFormatOptions;
       }
     | { type: 'text'; limit?: number; link?: 'url' | 'email' }
-    | { type: 'boolean'; labels?: { true: string; false: string } }
+    | {
+          type: 'boolean';
+          labels?: { true: string; false: string };
+          /** Labels with the project's shadcn Badge. */
+          badge?: boolean;
+          /** Badge variant of the column (`outline` by default). */
+          variant?: string;
+          /** Badge variant of `true` and `false`. */
+          variants?: { true?: string; false?: string };
+      }
     | {
           type: 'option';
           /** Labels with the project's shadcn Badge. */

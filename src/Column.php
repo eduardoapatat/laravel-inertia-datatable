@@ -272,7 +272,7 @@ final class Column
             'unit' => $this->unit,
             'hideable' => $this->hideable,
             'visible' => $this->isVisibleByDefault(),
-            'display' => $this->display,
+            'display' => $this->display(),
         ];
     }
 

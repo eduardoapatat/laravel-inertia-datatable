@@ -6,7 +6,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Added
 
-- `badge()` takes the variant of the column and of some values: `badge('secondary', ['archived' => 'destructive'])`, with any variant of the project's `badge.tsx` (`outline` by default). They travel in `display.variant` and `display.variants`.
+- `badge()` takes the variant of the column and of some values: `badge('secondary', ['archived' => 'destructive'])`, with any variant of the project's `badge.tsx` (`outline` by default). They travel in `display.variant` and `display.variants`. In boolean columns it adds up with `booleanLabels()` (in any order), and the values are `true` and `false`: `->boolean()->badge('secondary', ['true' => 'default', 'false' => 'destructive'])`.
 - `DataTableOptionCell` accepts `badge` (props of the same Badge per value) and `renderOption` (draw each value with anything else), and `DataTableOptionBadge` is exported for fully custom cells.
 
 ### Changed
