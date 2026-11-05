@@ -108,7 +108,7 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align="start"
-                className="w-28 data-closed:fill-mode-forwards"
+                className="w-28 data-[state=closed]:fill-mode-forwards"
             >
                 {column.getCanSort() && (
                     <>
