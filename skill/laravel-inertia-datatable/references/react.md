@@ -175,6 +175,8 @@ columnHelper.accessor('price', {
 
 - Alignment goes in `meta.align` (`start`, `center`, `end`), never as `text-right` in `className`: it aligns the header and the cells together so they line up exactly (the header button compensates its padding). Number columns are `end` by default, with `pe-8` of room before the next column.
 - `meta.className` goes to the header and the cells, `headerClassName` / `cellClassName` to one of them. A `w-*` class replaces the `size` width (they are merged with `cn`); a `md:w-*` alone keeps `size` below that breakpoint.
+- Cells cut what does not fit with "…" (`text-ellipsis`); `cellClassName: 'text-clip'` undoes it. To show more, widen the column (`size` or a `w-*` class), or use `->limit()` in PHP to cut by characters with the full text in a tooltip.
+- A narrow column must still fit its header and its padding: an end-aligned column has `pe-8`, so with `w-20` give it less (`className: 'w-20 pe-2'`).
 - The table grows to the sum of its columns and scrolls horizontally when it does not fit; when it fits, the extra space is shared.
 - Pinned columns compute their offset from `size`: give them `size`, not width classes.
 
