@@ -16,7 +16,7 @@ use InvalidArgumentException;
  */
 final readonly class TableDefinition
 {
-    /** @var Builder<Model> */
+    /** @var Builder<covariant Model> */
     public Builder $query;
 
     /** @var array<string, Column> */
@@ -34,7 +34,7 @@ final readonly class TableDefinition
     public array $alwaysInclude;
 
     /**
-     * @param  Builder<Model>|Relation<Model, Model, mixed>  $query
+     * @param  Builder<covariant Model>|Relation<covariant Model, covariant Model, mixed>  $query
      * @param  list<Column>  $columns
      * @param  list<int>  $perPageOptions
      * @param  list<string>|null  $alwaysInclude

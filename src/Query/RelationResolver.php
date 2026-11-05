@@ -46,8 +46,8 @@ final class RelationResolver
     /**
      * Subconsulta correlacionada que devuelve el valor relacionado de cada fila del padre.
      *
-     * @param  Builder<Model>  $parent
-     * @return Builder<Model>
+     * @param  Builder<covariant Model>  $parent
+     * @return Builder<covariant Model>
      */
     public function valueQuery(Builder $parent, Column $column): Builder
     {
@@ -56,7 +56,7 @@ final class RelationResolver
         // Columna sin calificar: dentro de la subconsulta se resuelve contra la tabla
         // relacionada, también cuando Laravel le pone alias (relaciones consigo misma).
         return $relation
-            ->getRelationExistenceQuery($relation->getRelated()->newQuery(), $parent, [$column->attribute()])
+            ->getRelationExistenceQuery($relation->getRelated()->newQuery(), $parent->getModel()->newQuery(), [$column->attribute()])
             ->limit(1);
     }
 }

@@ -23,7 +23,7 @@ final class QueryApplier
     public function __construct(private readonly RelationResolver $relations = new RelationResolver) {}
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      * @param  list<FilterItem>  $filters
      */
     public function applyFilters(Builder $query, TableDefinition $definition, array $filters): void
@@ -40,7 +40,7 @@ final class QueryApplier
     /**
      * Cada palabra debe aparecer en alguna columna buscable.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     public function applySearch(Builder $query, TableDefinition $definition, string $search): void
     {
@@ -70,7 +70,7 @@ final class QueryApplier
     /**
      * Aplica el orden y, al final, la clave primaria como desempate para que la paginación sea estable.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      * @param  list<SortItem>  $sorting
      */
     public function applySorting(Builder $query, TableDefinition $definition, array $sorting): void
@@ -104,7 +104,7 @@ final class QueryApplier
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function applyFilter(Builder $query, Column $column, FilterItem $filter): void
     {
@@ -145,7 +145,7 @@ final class QueryApplier
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function wherePredicate(Builder $query, string $column, FilterOperator $operator, FilterItem $filter): void
     {
@@ -162,7 +162,7 @@ final class QueryApplier
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function whereEquals(Builder $query, string $column, FilterVariant $variant, string $value): void
     {
@@ -176,7 +176,7 @@ final class QueryApplier
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function whereCompare(Builder $query, string $column, FilterVariant $variant, FilterOperator $operator, string $value): void
     {
@@ -195,7 +195,7 @@ final class QueryApplier
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      * @param  array<int, string>  $bounds
      */
     private function whereBetween(Builder $query, string $column, FilterVariant $variant, array $bounds): void
@@ -212,7 +212,7 @@ final class QueryApplier
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function whereNotEmpty(Builder $query, string $column, FilterVariant $variant): void
     {
@@ -226,7 +226,7 @@ final class QueryApplier
     /**
      * `LIKE %valor%` sin distinguir mayúsculas y con los comodines del usuario escapados.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function whereContains(Builder $query, string $column, string $value): void
     {
@@ -242,7 +242,7 @@ final class QueryApplier
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function wrap(Builder $query, string $column): string
     {

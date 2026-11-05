@@ -41,7 +41,7 @@ final class TableBuilder implements Arrayable, JsonSerializable, Responsable
     private ?Closure $transformer = null;
 
     /**
-     * @param  Builder<Model>|Relation<Model, Model, mixed>  $query
+     * @param  Builder<covariant Model>|Relation<covariant Model, covariant Model, mixed>  $query
      */
     public function __construct(private readonly Builder|Relation $query) {}
 

@@ -87,7 +87,7 @@ final class FacetResolver
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      * @return array<string, int>
      */
     private function groupedCounts(Builder $query, Column $column): array
@@ -139,7 +139,7 @@ final class FacetResolver
     /**
      * Consulta escalar que expone el valor de la columna como `facet_value`.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<covariant Model>  $query
      */
     private function valueQuery(Builder $query, Column $column): QueryBuilder
     {

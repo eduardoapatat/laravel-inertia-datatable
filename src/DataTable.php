@@ -42,7 +42,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     /**
      * Forma rápida, sin clase: `DataTable::for(User::query())->columns([...])`.
      *
-     * @param  Builder<Model>|Relation<Model, Model, mixed>  $query
+     * @param  Builder<covariant Model>|Relation<covariant Model, covariant Model, mixed>  $query
      */
     public static function for(Builder|Relation $query): TableBuilder
     {
@@ -50,7 +50,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
-     * @return Builder<Model>|Relation<Model, Model, mixed>
+     * @return Builder<covariant Model>|Relation<covariant Model, covariant Model, mixed>
      */
     abstract public function query(): Builder|Relation;
 
