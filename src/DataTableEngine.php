@@ -7,6 +7,7 @@ namespace InertiaDataTable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use InertiaDataTable\Parsing\StateParser;
+use InertiaDataTable\Query\ColumnValidator;
 use InertiaDataTable\Query\FacetResolver;
 use InertiaDataTable\Query\QueryApplier;
 use InertiaDataTable\Query\RelationResolver;
@@ -35,6 +36,7 @@ final class DataTableEngine
         private readonly QueryApplier $applier = new QueryApplier,
         private readonly FacetResolver $facets = new FacetResolver,
         private readonly RelationResolver $relations = new RelationResolver,
+        private readonly ColumnValidator $validator = new ColumnValidator,
     ) {}
 
     /**
@@ -43,6 +45,11 @@ final class DataTableEngine
     public function resolve(TableDefinition $definition, Request $request): array
     {
         $this->ensureRelationsAreToOne($definition);
+        $validate = $this->validator->enabled();
+
+        if ($validate) {
+            $this->validator->ensureQueryColumnsExist($definition);
+        }
 
         /** @var array<array-key, mixed> $query */
         $query = $request->query->all();
@@ -65,7 +72,14 @@ final class DataTableEngine
             $rows->with($relations);
         }
 
-        $data = $rows->forPage($page, $state->perPage)->get()
+        $models = $rows->forPage($page, $state->perPage)->get();
+        $first = $models->first();
+
+        if ($validate && $definition->transformer === null && $first instanceof Model) {
+            $this->validator->ensureDisplayedColumnsExist($definition, $state->visibleColumns, $first);
+        }
+
+        $data = $models
             ->map(fn (Model $model): array => $this->row($definition, $state, $model))
             ->values()
             ->all();

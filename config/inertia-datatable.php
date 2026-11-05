@@ -41,6 +41,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Column validation
+    |--------------------------------------------------------------------------
+    |
+    | Checks on every request that the declared columns exist: the ones used
+    | to sort, search or filter must be columns of their table, and the
+    | displayed ones must have a value in the model (column, query alias or
+    | $appends). A typo then fails on the first load with a clear message
+    | instead of when someone sorts. With null, only in debug mode.
+    |
+    */
+
+    'validate_columns' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Frontend shadcn registry
     |--------------------------------------------------------------------------
     |

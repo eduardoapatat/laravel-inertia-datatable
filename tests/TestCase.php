@@ -29,6 +29,8 @@ abstract class TestCase extends Orchestra
     {
         // In-memory SQLite by default; CI passes DB_CONNECTION=mysql|pgsql and Testbench's DB_* variables.
         $app['config']->set('database.default', env('DB_CONNECTION', 'testing'));
+        // Every test also checks that its tables only declare existing columns.
+        $app['config']->set('inertia-datatable.validate_columns', true);
     }
 
     /**
