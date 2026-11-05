@@ -120,10 +120,11 @@ it('breaks ties with the primary key in the direction of the first sort column',
 it('sorts by the value of a belongs-to relation', function () {
     seedCatalog();
 
-    $response = getJson('/products?sort=-category');
+    // Sin Teclado, que no tiene categoría: cada motor ubica los NULL a su manera.
+    $response = getJson('/products?sort=-category&filter[category]=not.is.empty');
 
     // Lámpara y Mesa empatan en Hogar: el desempate por id sigue la dirección del orden.
-    $response->assertOk()->assertJsonPath('data.*.name', ['Silla', 'Mesa', 'Lámpara', 'Teclado']);
+    $response->assertOk()->assertJsonPath('data.*.name', ['Silla', 'Mesa', 'Lámpara']);
 });
 
 it('filters rows with each variant and operator', function (string $query, array $expected) {
@@ -239,7 +240,7 @@ it('includes only visible columns, the primary key and non hideable columns in e
     $response = getJson('/products?columns=price,category&per_page=10');
 
     $response->assertOk()
-        ->assertJsonPath('data.0', ['id' => 1, 'name' => 'Lámpara', 'price' => 30, 'category' => 'Hogar'])
+        ->assertJsonPath('data.0', ['id' => productId('Lámpara'), 'name' => 'Lámpara', 'price' => 30, 'category' => 'Hogar'])
         ->assertJsonPath('state.columnVisibility', [
             'name' => true, 'sku' => false, 'price' => true, 'stock' => false,
             'status' => false, 'category' => true, 'featured' => false, 'released_on' => false,
@@ -252,7 +253,7 @@ it('shows the default visible columns when no columns are requested', function (
     $response = getJson('/products');
 
     $response->assertOk()->assertJsonPath('data.0', [
-        'id' => 1, 'name' => 'Lámpara', 'price' => 30, 'stock' => 2,
+        'id' => productId('Lámpara'), 'name' => 'Lámpara', 'price' => 30, 'stock' => 2,
         'status' => 'active', 'category' => 'Hogar', 'featured' => true,
     ]);
 });
@@ -313,4 +314,12 @@ function orderByPriceAndId(string $direction): string
     $grammar = DB::connection()->getQueryGrammar();
 
     return "order by {$grammar->wrap('products.price')} {$direction}, {$grammar->wrap('products.id')} {$direction} limit 10 offset 0";
+}
+
+/**
+ * Id real del producto: en Postgres las secuencias no vuelven atrás entre tests.
+ */
+function productId(string $name): int
+{
+    return (int) Product::query()->where('name', $name)->value('id');
 }
