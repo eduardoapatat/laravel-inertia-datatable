@@ -13,6 +13,10 @@ import {
 import * as React from 'react';
 
 import {
+    DataTableDefaultCell,
+    DataTableDefaultHeader,
+} from '@/components/data-table/data-table-default-column';
+import {
     dataTableFeatures,
     type DataTableFeatures,
 } from '@/lib/data-table-features';
@@ -34,6 +38,8 @@ import type {
 } from '@/lib/data-table-types';
 import { normalizeColumnFilter } from '@/lib/data-table-utils';
 
+export { getOptionLabel } from '@/components/data-table/data-table-default-column';
+
 type DataTableColumns<TData extends RowData> = TableOptions<
     DataTableFeatures,
     TData
@@ -54,7 +60,11 @@ export interface UseServerDataTableOptions<TData extends RowData> {
     table: ServerDataTable<TData>;
     /** Nombre de esa prop: las visitas recargan solo esta prop (`only`). */
     prop: string;
-    /** Columnas de TanStack; su `meta` se completa con lo que declara el servidor. */
+    /**
+     * Columnas de TanStack que personalizan las de la clase de la tabla (mismo
+     * id) o que solo existen en el cliente. El orden, las columnas que falten y
+     * su `meta` los decide el servidor.
+     */
     columns: DataTableColumns<TData>;
     /** Espera tras escribir un filtro o la búsqueda antes de pedir al servidor. */
     debounceMs?: number;
@@ -293,8 +303,8 @@ function toQueryState(state: LocalTableState, config: ServerTableConfig) {
 }
 
 /**
- * Ordena las columnas como la clase de la tabla y completa cada una con lo que
- * declara el servidor: etiqueta, variante de filtro, opciones con conteo,
+ * Ordena las columnas como la clase de la tabla, crea las que el componente no
+ * declara y completa cada una con lo que declara el servidor: etiqueta, variante de filtro, opciones con conteo,
  * límites del rango y capacidades. La `meta` que declare la página (por
  * ejemplo, iconos) tiene prioridad.
  */
@@ -303,28 +313,54 @@ function withServerMeta<TData extends RowData>(
     config: ServerTableConfig,
     facets: ServerDataTable<TData>['facets'],
 ): DataTableColumns<TData> {
-    const byId = new Map(config.columns.map((column) => [column.id, column]));
-    const declared = new Set(columns.map(getColumnId));
-
     return arrangeColumns(
         columns,
-        config.columns
-            .map((column) => column.id)
-            .filter((id) => declared.has(id)),
+        config.columns.map((column) => column.id),
         {
             getId: getColumnId,
             isLeading: (column) =>
                 (column.meta as DataTableColumnMeta | undefined)?.position ===
                 'start',
             resolve: (id, column) => {
-                const server = byId.get(id);
+                const server = config.columns.find((item) => item.id === id);
 
-                return column && server
-                    ? withColumnMeta(column, server, facets[id])
-                    : (column as DataTableColumn<TData>);
+                return server
+                    ? withColumnMeta(
+                          withDefaults(column ?? defaultColumn<TData>(id)),
+                          server,
+                          facets[id],
+                      )
+                    : (column ?? defaultColumn<TData>(id));
             },
         },
     );
+}
+
+/**
+ * Columna de la clase de la tabla que el componente no declara: lee el valor
+ * por id, que es como el servidor arma cada fila.
+ */
+function defaultColumn<TData extends RowData>(
+    id: string,
+): DataTableColumn<TData> {
+    return {
+        id,
+        accessorFn: (row: TData) => (row as Record<string, unknown>)[id],
+    } as DataTableColumn<TData>;
+}
+
+/**
+ * Cabecera y celda por defecto para lo que no personalice el componente:
+ * basta con declarar `cell` para cambiar solo cómo se ve el valor.
+ */
+function withDefaults<TData extends RowData>(
+    column: DataTableColumn<TData>,
+): DataTableColumn<TData> {
+    return {
+        ...column,
+        header: column.header ?? DataTableDefaultHeader,
+        cell: column.cell ?? DataTableDefaultCell,
+    } as DataTableColumn<TData>;
 }
 
 function withColumnMeta<TData extends RowData>(
@@ -457,18 +493,4 @@ function getDefaultRowId<TData extends RowData>(
     return typeof id === 'string' || typeof id === 'number'
         ? String(id)
         : String(index);
-}
-
-/**
- * Etiqueta de una opción (select / multi-select) tal como la declara el
- * servidor, para mostrar `Administrador` en lugar de `admin` en una celda.
- */
-export function getOptionLabel(
-    meta: DataTableColumnMeta | undefined,
-    value: string | number | boolean | null | undefined,
-): string {
-    const text = value === null || value === undefined ? '' : String(value);
-    const options = meta && 'options' in meta ? meta.options : undefined;
-
-    return options?.find((option) => option.value === text)?.label ?? text;
 }

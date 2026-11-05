@@ -76,6 +76,11 @@
                     "target": "~/resources/js/components/data-table/data-table-column-header.tsx"
                 },
                 {
+                    "path": "registry/react/components/data-table/data-table-default-column.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-default-column.tsx"
+                },
+                {
                     "path": "registry/react/components/data-table/data-table-date-filter.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-date-filter.tsx"
@@ -177,6 +182,11 @@
                     "path": "registry/react/components/data-table/data-table-column-header.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-column-header.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-default-column.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-default-column.tsx"
                 },
                 {
                     "path": "registry/react/components/data-table/data-table-date-filter.tsx",
