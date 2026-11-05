@@ -25,7 +25,8 @@ abstract class TestCase extends Orchestra
 
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('database.default', 'testing');
+        // SQLite en memoria por defecto; el CI pasa DB_CONNECTION=mysql|pgsql y los DB_* de Testbench.
+        $app['config']->set('database.default', env('DB_CONNECTION', 'testing'));
     }
 
     protected function defineDatabaseMigrations(): void
