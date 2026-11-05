@@ -3,23 +3,28 @@
 [![tests](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/tests.yml/badge.svg)](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/tests.yml)
 [![starter kit](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/starter-kit.yml/badge.svg)](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/starter-kit.yml)
 
-DataTable reutilizable para **Laravel + Inertia** (React y Vue), basado en shadcn/ui y TanStack Table, con paginación, ordenamiento, filtros, búsqueda global y visibilidad de columnas **resueltos en el servidor**.
+DataTable reutilizable para **Laravel + Inertia + React**, basado en shadcn/ui y TanStack Table, con paginación, ordenamiento, filtros, búsqueda global y visibilidad de columnas **resueltos en el servidor**.
 
-> Estado: en desarrollo (fase 1: contrato HTTP y backend).
+> Versión 0.1: backend y UI de React. La versión para Vue está en desarrollo. Cambios en [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Qué contiene este repo
 
 | Parte | Dónde | Cómo se instala |
 |---|---|---|
 | Paquete Composer (backend) | `src/`, `config/` | `composer require eduardoapatat/laravel-inertia-datatable` |
-| Registro shadcn (React) y shadcn-vue (Vue) | `registry.json`, `registry/`, `r/` | `pnpm dlx shadcn@latest add <url>` / `pnpm dlx shadcn-vue@latest add <url>` |
-| Skill de Claude Code | `skill/` | — |
+| Registro shadcn (React) | `registry.json`, `registry/`, `r/` | `php artisan inertia-datatable:ui` o `pnpm dlx shadcn@latest add <url>` |
+| Skill de Claude Code | `skill/` | `pnpm dlx shadcn@latest add <url>` |
 
 El contrato entre frontend y backend está en [`docs/contract.md`](docs/contract.md).
 
 ## Instalación del backend
 
-Desde GitHub (repositorio `vcs`):
+```bash
+composer require eduardoapatat/laravel-inertia-datatable
+php artisan vendor:publish --tag=inertia-datatable-config   # opcional
+```
+
+Requiere PHP 8.3+ y Laravel 12 o 13. También se puede instalar directamente desde GitHub (repositorio `vcs`):
 
 ```json
 "repositories": [
@@ -35,10 +40,7 @@ O desde una carpeta local (`path`), útil para desarrollo:
 ]
 ```
 
-```bash
-composer require eduardoapatat/laravel-inertia-datatable:@dev
-php artisan vendor:publish --tag=inertia-datatable-config   # opcional
-```
+Con estos repositorios: `composer require eduardoapatat/laravel-inertia-datatable:@dev`.
 
 ## Crear una tabla
 
@@ -72,29 +74,24 @@ Los stubs se pueden personalizar con `php artisan vendor:publish --tag=inertia-d
 En un proyecto con el starter kit de React de Laravel:
 
 ```bash
-pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json
+php artisan inertia-datatable:ui            # o make:datatable … --install-ui
+php artisan inertia-datatable:ui --update   # trae la versión nueva de los archivos del DataTable
 ```
 
-Instala `@tanstack/react-table` v9, el hook `useServerDataTable`, los componentes en `resources/js/components/data-table/` y las primitivas de shadcn que falten. Cuando pregunte si sobrescribir componentes de `ui/` que ya existen, se puede responder que no: el DataTable solo usa variantes que ya tiene el starter kit.
+Instala, desde el registro de la misma versión que el paquete, `@tanstack/react-table` v9, el hook `useServerDataTable`, los componentes en `resources/js/components/data-table/` y las primitivas de shadcn que falten, respondiendo que no a sobrescribir los `ui/` que ya existen (el DataTable solo usa variantes que ya tiene el starter kit). A mano:
 
-Si `resources/js/components/ui/dialog.tsx` es una versión antigua (sin la prop `showCloseButton`), la primitiva `command` no compila; actualízala con `pnpm dlx shadcn@latest add dialog --overwrite`.
-
-Uso en una página:
-
-```tsx
-const { table, isLoading } = useServerDataTable({ table: users, prop: 'users', columns });
-
-<DataTable table={table}>
-    <DataTableToolbar table={table} searchable={users.config.searchable} />
-</DataTable>
+```bash
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.1.0/r/data-table-react.json
 ```
+
+Para el uso en páginas, ver `make:datatable --react` arriba y la referencia de React de la skill (`skill/laravel-inertia-datatable/references/react.md`).
 
 ## Skill de Claude Code
 
 Para que Claude Code sepa instalar el paquete y crear tablas en un proyecto:
 
 ```bash
-pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-skill.json
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.1.0/r/data-table-skill.json
 ```
 
 La deja en `.claude/skills/laravel-inertia-datatable/`.
@@ -120,6 +117,12 @@ El CI (`.github/workflows/`) corre:
 
 - **tests**: Pest con PHP 8.3 a 8.5 y Laravel 12 y 13, MySQL 8.4 y Postgres 17, y el registro (formato, tests, tipos y que `r/` esté recompilado).
 - **starter kit**: crea un starter kit de React limpio, instala el paquete y la UI de este commit con `make:datatable --react --page --install-ui` (con npm y con pnpm) y pasa el `composer ci:check` del starter kit. También corre cada semana, porque el instalador usa `shadcn@latest`. Se puede ejecutar en local con `.github/scripts/starter-kit.sh npm /tmp/app`.
+
+## Publicar una versión
+
+1. Mover lo de `## [Sin publicar]` de `CHANGELOG.md` a la nueva versión.
+2. Cambiar la versión en las URLs del registro del README y de la skill (`…/vX.Y.Z/r/…`) y recompilar `r/`.
+3. Commit, tag anotado `vX.Y.Z` y push del tag. Packagist la publica solo; `inertia-datatable:ui` instala la UI de ese tag.
 
 ## Créditos
 

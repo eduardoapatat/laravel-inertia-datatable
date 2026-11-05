@@ -27,19 +27,22 @@ Use the package manager of the lockfile (pnpm/npm/yarn/bun) for every JS command
 Backend (only if missing):
 
 ```bash
-composer config repositories.laravel-inertia-datatable vcs https://github.com/eduardoapatat/laravel-inertia-datatable
-composer require eduardoapatat/laravel-inertia-datatable:@dev
+composer require eduardoapatat/laravel-inertia-datatable
 ```
+
+If Composer cannot find it, install it from GitHub: `composer config repositories.laravel-inertia-datatable vcs https://github.com/eduardoapatat/laravel-inertia-datatable` and then `composer require eduardoapatat/laravel-inertia-datatable:@dev`.
 
 For local development of the package itself, use a `path` repository pointing to its folder instead of `vcs`.
 
 Frontend (once per project):
 
 ```bash
-pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json
+php artisan inertia-datatable:ui
 ```
 
-When the CLI asks to overwrite existing `components/ui/*` files, answer **no**: the table only needs variants the Laravel starter kits already have, and overwriting would change components the app already uses. In a non-interactive shell, pipe the answers: `yes n | pnpm dlx shadcn@latest add <url> -y`. Then run the project's type check; if `components/ui/command.tsx` fails because `DialogContent` has no `showCloseButton` prop, the app has an old `dialog.tsx` — update it with `pnpm dlx shadcn@latest add dialog --overwrite` after telling the user.
+It installs the UI of the same version as the backend. Manual equivalent: `pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.1.0/r/data-table-react.json`.
+
+When the CLI asks to overwrite existing `components/ui/*` files, answer **no**: the table only needs variants the Laravel starter kits already have, and overwriting would change components the app already uses. In a non-interactive shell, pipe the answers: `yes n | pnpm dlx shadcn@latest add <url> -y`. `inertia-datatable:ui` already does this. Then run the project's type check and lint.
 
 ### 3. Create the table class (and its React component)
 

@@ -1,6 +1,6 @@
 {
     "name": "eduardoapatat/laravel-inertia-datatable",
-    "description": "Server-side DataTable para Laravel + Inertia (React y Vue) basado en shadcn y TanStack Table.",
+    "description": "Server-side DataTables for Laravel + Inertia + React: pagination, sorting, filters, faceted counts and global search resolved on the server, with a shadcn/TanStack Table UI.",
     "keywords": ["laravel", "inertia", "datatable", "tanstack-table", "shadcn"],
     "homepage": "https://github.com/eduardoapatat/laravel-inertia-datatable",
     "license": "MIT",
