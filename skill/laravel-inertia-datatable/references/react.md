@@ -86,7 +86,7 @@ columnHelper.accessor('status', {
 }),
 ```
 
-- To render a value differently (color by threshold, extra icons, other fields of the row), write a custom `cell` and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell`. They take the cell context:
+- To render a value differently (extra icons, other fields of the row, another component), write a custom `cell` (for a color or a class by value, `meta.cellClassName` as a function is shorter, see "Column width and classes") and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell`. They take the cell context:
 
 ```tsx
 import { DataTableNumberCell } from '@/components/data-table/data-table-cells';
@@ -165,7 +165,13 @@ columnHelper.accessor('notes', { meta: { className: 'w-40 md:w-80 lg:w-96' } }),
 columnHelper.accessor('title', { size: 300, meta: { className: 'max-md:w-48' } }), // size from md up, class below
 columnHelper.accessor('sku', { meta: { cellClassName: 'font-mono text-xs' } }),
 columnHelper.accessor('price', { meta: { className: 'text-right' } }),
+// Classes by value: the default cell (and its PHP format) stays as it is
+columnHelper.accessor('price', {
+    meta: { cellClassName: (cell) => Number(cell.getValue()) < 100 && 'font-medium text-red-600' },
+}),
 ```
+
+- Prefer `meta.*ClassName` to a custom `cell` when only spacing, size, alignment or colors change; write a `cell` to render something else. Tailwind classes are for layout and colors: when shadcn has a component for the thing (Badge, Checkbox, Button), use the component.
 
 - `meta.className` goes to the header and the cells, `headerClassName` / `cellClassName` to one of them. A `w-*` class replaces the `size` width (they are merged with `cn`); a `md:w-*` alone keeps `size` below that breakpoint.
 - The table grows to the sum of its columns and scrolls horizontally when it does not fit; when it fits, the extra space is shared.

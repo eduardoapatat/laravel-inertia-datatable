@@ -6,7 +6,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Added
 
-- Tailwind classes per column in the React `meta`: `className` (header and cells), `headerClassName` and `cellClassName`. A width class (`w-40 md:w-80`) replaces the `size` width, so widths can be responsive.
+- Tailwind classes per column in the React `meta`: `className` (header and cells), `headerClassName` and `cellClassName`, which can also be a function of the cell for classes by value (`(cell) => Number(cell.getValue()) < 100 && 'text-red-600'`). A width class (`w-40 md:w-80`) replaces the `size` width, so widths can be responsive.
 - `<DataTable>` takes `headerClassName` and `rowClassName` (a string or a function of the row), for the row height (`[&>td]:py-1`) or to color rows by their data.
 
 ### Changed
