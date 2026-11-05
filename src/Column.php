@@ -45,7 +45,7 @@ final class Column
     private function __construct(private readonly string $id, ?string $label)
     {
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $id) !== 1) {
-            throw new InvalidArgumentException("El id de columna [{$id}] solo puede contener letras, números y guiones bajos.");
+            throw new InvalidArgumentException("The column id [{$id}] may only contain letters, numbers and underscores.");
         }
 
         $this->label = $label ?? Str::headline($id);
@@ -63,7 +63,7 @@ final class Column
     public function from(string $path): self
     {
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/', $path) !== 1) {
-            throw new InvalidArgumentException("La ruta [{$path}] debe ser 'columna' o 'relacion.columna' (un solo nivel).");
+            throw new InvalidArgumentException("The path [{$path}] must be 'column' or 'relation.column' (one level).");
         }
 
         $this->path = $path;
@@ -286,7 +286,7 @@ final class Column
 
         if (is_string($options)) {
             if (! is_subclass_of($options, BackedEnum::class)) {
-                throw new InvalidArgumentException("[{$options}] no es un enum respaldado.");
+                throw new InvalidArgumentException("[{$options}] is not a backed enum.");
             }
 
             $normalized = [];

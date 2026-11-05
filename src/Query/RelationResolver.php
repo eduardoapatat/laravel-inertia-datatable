@@ -27,7 +27,7 @@ final class RelationResolver
         $name = (string) $column->relation();
 
         if (! method_exists($model, $name)) {
-            throw new LogicException(sprintf('La columna [%s] usa la relación [%s], que no existe en %s.', $column->id(), $name, $model::class));
+            throw new LogicException(sprintf('The column [%s] uses the relation [%s], which does not exist on %s.', $column->id(), $name, $model::class));
         }
 
         /** @var mixed $relation */
@@ -37,7 +37,7 @@ final class RelationResolver
             && ! $relation instanceof HasOne
             && ! $relation instanceof MorphOne
             && ! $relation instanceof HasOneThrough) {
-            throw new LogicException(sprintf('La columna [%s] usa la relación [%s], que no es a uno (belongsTo / hasOne).', $column->id(), $name));
+            throw new LogicException(sprintf('The column [%s] uses the relation [%s], which is not a to-one relation (belongsTo / hasOne).', $column->id(), $name));
         }
 
         return $relation;

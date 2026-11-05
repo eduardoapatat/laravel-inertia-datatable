@@ -56,7 +56,7 @@ final readonly class TableDefinition
 
         foreach ($columns as $column) {
             if (isset($indexed[$column->id()])) {
-                throw new InvalidArgumentException("La columna [{$column->id()}] está declarada dos veces.");
+                throw new InvalidArgumentException("The column [{$column->id()}] is declared twice.");
             }
 
             $indexed[$column->id()] = $column;
@@ -66,7 +66,7 @@ final readonly class TableDefinition
         $this->defaultSort = $defaultSort === null ? [] : SortItem::parseList($defaultSort);
 
         if ($perPage < 1) {
-            throw new InvalidArgumentException('perPage debe ser mayor que 0.');
+            throw new InvalidArgumentException('perPage must be greater than 0.');
         }
 
         $options = array_values(array_unique(array_filter($perPageOptions, fn (int $size): bool => $size > 0)));
@@ -82,7 +82,7 @@ final readonly class TableDefinition
         $this->alwaysInclude = $alwaysInclude ?? [$this->query->getModel()->getKeyName()];
 
         if ($name !== null && preg_match('/^[A-Za-z][A-Za-z0-9_]*$/', $name) !== 1) {
-            throw new InvalidArgumentException("El nombre de tabla [{$name}] solo puede contener letras, números y guiones bajos.");
+            throw new InvalidArgumentException("The table name [{$name}] may only contain letters, numbers and underscores.");
         }
     }
 

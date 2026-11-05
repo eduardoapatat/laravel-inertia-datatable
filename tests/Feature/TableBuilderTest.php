@@ -63,5 +63,5 @@ it('rejects a column that reads a to-many relation', function () {
         ->columns([Column::make('product')->from('products.name')])
         ->withRequest(Request::create('/'));
 
-    expect(fn () => $table->toArray())->toThrow(LogicException::class, 'no es a uno');
+    expect(fn () => $table->toArray())->toThrow(LogicException::class, 'is not a to-one relation');
 });
