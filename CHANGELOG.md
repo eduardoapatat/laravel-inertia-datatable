@@ -4,6 +4,34 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed (breaking)
+
+- Columns have a type: `Column::text()`, `Column::number()`, `Column::date()`, `Column::boolean()` and `Column::option()` replace `Column::make()`. Each type only offers the format and filter methods that make sense for its values, so combinations such as `->boolean()->money()` or `->dateRange()->badge()` no longer exist, and the IDE and PHPStan catch them.
+- A column has one filter: calling two filter methods throws a `LogicException` instead of keeping the last one.
+- `config.columns[]` sends `display` always (its `type` is the column type) and `filter` (`null` or `{ variant, placeholder? }`) instead of `variant`, `placeholder` and `unit`; the unit moves to `display.unit`. Update the generic UI with `php artisan inertia-datatable:ui --update`.
+
+Migration:
+
+| Before | Now |
+|---|---|
+| `Column::make('name')->text('Search…')` | `Column::text('name')->filter('Search…')` |
+| `Column::make('notes')->limit(60)` | `Column::text('notes')->limit(60)` |
+| `Column::make('stock')->number('u.')` | `Column::number('stock')->unit('u.')->filter()` |
+| `Column::make('price')->range(0, 100, '$')->money('USD')` | `Column::number('price')->money('USD')->range(0, 100)` (the filter shows the currency symbol) |
+| `->numberFormat([...])` | `Column::number(...)->format([...])` |
+| `Column::make('day')->date()` / `->dateRange()` | `Column::date('day')->filter()` / `->range()` |
+| `->dateFormat('long')` | `Column::date(...)->format('long')` |
+| `Column::make('active')->boolean()->booleanLabels('Sí', 'No')` | `Column::boolean('active')->labels('Sí', 'No')->filter()` |
+| `Column::make('status')->select($options)` / `->multiSelect($options)` | `Column::option('status')->options($options)->filter()` / `->filter(multiple: true)` |
+| `->placeholder('…')` | the argument of `filter('…')` (text and number columns) |
+| `Column::make('total')` (no filter) | the factory of its type: `Column::number('total')` |
+
+### Added
+
+- Number filters show the currency symbol of `->money()` next to their inputs, on the side of the locale (`$` before in `es-CL`, `€` after in `de-DE`), or the unit of `->unit()`. The inputs of the range filter are as wide as its bounds.
+- Option columns without a filter send the labels of their declared options, so the cells show `Archived` instead of `archived`.
+- Date columns without `format()` use the `date_format` of the table.
+
 ## [0.6.1] - 2026-11-05
 
 ### Added

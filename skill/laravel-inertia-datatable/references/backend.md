@@ -28,8 +28,8 @@ class ProductsTable extends DataTable
     public function columns(): array
     {
         return [
-            Column::make('name', 'Name')->sortable()->searchable()->text()->hideable(false),
-            Column::make('price', 'Price')->sortable()->range(unit: '$'),
+            Column::text('name', 'Name')->sortable()->searchable()->filter()->hideable(false),
+            Column::number('price', 'Price')->sortable()->money('USD')->range(),
         ];
     }
 
@@ -47,7 +47,7 @@ Quick form for one-off tables (same features, no class):
 
 ```php
 DataTable::for(User::query())
-    ->columns([Column::make('name')->sortable()->searchable()])
+    ->columns([Column::text('name')->sortable()->searchable()])
     ->defaultSort('name')
     ->perPage(20)->perPageOptions([20, 50])
     ->name('users')
@@ -58,7 +58,9 @@ Both are `Arrayable` (Inertia prop) and `Responsable` (return them from a route 
 
 ## `Column` API
 
-`Column::make(string $id, ?string $label = null)` — `$id` is the public name used in the URL and in each row; label defaults to the headline of the id.
+Every column is created with the factory of its type: `Column::text()`, `Column::number()`, `Column::date()`, `Column::boolean()` or `Column::option()` (`string $id, ?string $label = null`). `$id` is the public name used in the URL and in each row; label defaults to the headline of the id. The type decides how the cells look and which filters exist, so each one only has the methods that make sense (a date has no `money()`). `Column::make()` no longer exists.
+
+Methods of every type:
 
 | Method | Effect |
 |---|---|
@@ -67,38 +69,30 @@ Both are `Arrayable` (Inertia prop) and `Responsable` (return them from a route 
 | `searchable()` | Included in the global search (every word must match some searchable column) |
 | `hideable(false)` | Always visible (use for the column that identifies the row) |
 | `hidden()` | Hidden by default; the user can show it |
-| `placeholder('...')` | Placeholder of the toolbar filter |
-| `text()` | Text filter (`contains` by default) |
-| `number(unit: '$')` | Numeric filter with operators |
-| `range(min: 0, max: 100, unit: '$')` | Range slider; without min/max the server computes them |
-| `date()` / `dateRange()` | Date filter (`YYYY-MM-DD`) |
-| `boolean()` | Yes/No filter |
-| `select($options)` / `multiSelect($options)` | Options with counts; `$options` = list, `value => label` map, backed enum class or `null` (distinct values from the DB) |
-| `withCounts(false)` | Skip the count query of a select column |
 
-A column without a filter method is not filterable; a column without `sortable()` is not sortable.
+Format (only changes how cells look; the row keeps the raw value and the UI formats with Intl and the table locale, see Configuration) and filter of each type:
 
-Display methods only change how cells look (the row keeps the raw value; the UI formats with Intl and the table locale, see Configuration). They are independent of the filter methods, and a method of another type replaces the previous one:
+| Type | Format | Filter |
+|---|---|---|
+| `Column::text()` | `limit(60)` (full text in the tooltip), `url()` (only http/https) or `email()` (mailto) | `filter(?placeholder)`: text, `contains` by default |
+| `Column::number()` | `money('CLP', decimals: 0)` (ISO 4217; `money()` uses `inertia-datatable.currency`), `decimals(2)`, `percent()` (`0.25` → `25 %`), `format(['notation' => 'compact'])` (any Intl.NumberFormat option), `unit('kg')`; they add up | `filter(?placeholder)`: operators; `range(?min, ?max)`: slider, without bounds the server computes them |
+| `Column::date()` | `format('long')`: `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; without it, `inertia-datatable.date_format`. Dates without time never move a day | `filter()`: one date (`YYYY-MM-DD`); `range()`: from / to |
+| `Column::boolean()` | `labels('Active', 'Inactive')` (without it, Yes / No in the app language), `badge()` with values `true` / `false` (also 1 / 0) | `filter()`: Yes / No |
+| `Column::option()` | `options($options)`: list, `value => label` map or backed enum class (without it the filter offers the distinct values from the DB); `badge()` | `filter()`: one value; `filter(multiple: true)`: several; `withCounts(false)` skips the count query |
 
-| Method | Cell |
-|---|---|
-| `money('CLP', decimals: 0)` | Currency (ISO 4217 code); `money()` uses `inertia-datatable.currency` |
-| `decimals(2)` | Fixed decimals; adds up with `money()` / `percent()` |
-| `percent()` | Ratio as a percentage (`0.25` → `25 %`) |
-| `numberFormat(['notation' => 'compact'])` | Any Intl.NumberFormat option |
-| `dateFormat('long')` | Without a format, `inertia-datatable.date_format`; `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; dates without time never move a day |
-| `limit(60)` | Cuts the text, full text in the tooltip |
-| `url()` / `email()` | Link (only http/https URLs) / mailto |
-| `booleanLabels('Active', 'Inactive')` | Own labels of booleans; without it, Yes / No in the app language (UI lang files) |
-| `badge()` / `badge('secondary', ['archived' => 'destructive'])` | Option labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels. In a `boolean()` column the values are `true` / `false` and it adds up with `booleanLabels()` |
+- A column without a filter method is not filterable; a column without `sortable()` is not sortable.
+- One filter per column: calling two filter methods (`->filter()->range()`) throws a `LogicException`.
+- `unit()` goes after plain numbers in the cells and next to the filter inputs. It cannot be combined with `money()` or `percent()` (`InvalidArgumentException`): the filter inputs already show the currency symbol.
+- `badge()` / `badge('secondary', ['archived' => 'destructive'])` shows the labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels.
+- An option column without a filter still sends the labels of its declared options, so the cells show `Archived` instead of `archived`.
 
 `make:datatable` proposes `decimals(N)` for `decimal:N` casts; it never guesses a currency.
 
 ## Relations, enums and options
 
 ```php
-Column::make('category', 'Category')->from('category.name')->sortable()->searchable()->multiSelect(),
-Column::make('status', 'Status')->multiSelect(OrderStatus::class),
+Column::option('category', 'Category')->from('category.name')->sortable()->searchable()->filter(multiple: true),
+Column::option('status', 'Status')->options(OrderStatus::class)->badge()->filter(multiple: true),
 ```
 
 - Relations: one level, to-one only (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`). The relation is eager loaded automatically and the row gets the flat value under the column id (`"category": "Books"`). Sorting uses a correlated subquery, filtering uses `whereHas`.
@@ -146,7 +140,7 @@ Never expose attributes only because a column exists: `$hidden` still applies to
 Language and formats (defaults from the app; the most specific layer wins):
 
 - Locale of numbers and dates: React `useServerDataTable({ locale })` → the table (`public function locale(): ?string` in the class, `->locale('es-CL')` in the quick form) → `inertia-datatable.locale` → `app()->getLocale()`. `'browser'` at any level = the browser's. Use a locale with a region (`es-CL`, not `es`) for local currency symbols.
-- `inertia-datatable.currency`: default of `money()`. `inertia-datatable.date_format`: default of `dateFormat()` and of date columns without a format.
+- `inertia-datatable.currency`: default of `money()`. `inertia-datatable.date_format`: default of date columns without `format()`.
 - UI texts follow the app language (`en` and `es` included, English fallback). To translate or change them: `php artisan vendor:publish --tag=inertia-datatable-lang` → `lang/vendor/inertia-datatable/{lang}/ui.php`; never edit the React components for this.
 
 ## URL contract (query string)

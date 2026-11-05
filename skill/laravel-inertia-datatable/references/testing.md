@@ -32,8 +32,8 @@ Useful paths in the prop:
 | `<prop>.data` | Rows of the current page (only visible columns) |
 | `<prop>.meta` | `current_page`, `per_page`, `last_page`, `total`, `from`, `to` |
 | `<prop>.state.sorting` / `.columnFilters` / `.globalFilter` / `.columnVisibility` | Normalized state actually applied |
-| `<prop>.facets.<column>` | `[{value, label, count}]` for select columns, `{min, max}` for ranges |
-| `<prop>.config` | Columns, page sizes, default sort, query parameter names |
+| `<prop>.facets.<column>` | `[{value, label, count}]` for option columns (without `count` when they have no filter), `{min, max}` for ranges |
+| `<prop>.config` | Columns (`display`, `filter`), page sizes, default sort, query parameter names |
 
 What is worth a test in an app:
 

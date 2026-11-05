@@ -52,32 +52,47 @@ php artisan make:datatable ProductsTable --react --install-ui   # also installs 
 php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
 ```
 
-It proposes the columns from the model casts and the table schema: text (searchable and sortable), numbers, booleans, dates, enums (`multiSelect(Enum::class)`) and `belongsTo` relations (`category_id` → `from('category.name')`). It skips the primary key, `$hidden` attributes and sensitive columns (`password`, `remember_token`…).
+It proposes the columns from the model casts and the table schema: text (searchable and sortable), numbers, booleans, dates, enums (`Column::option()->options(Enum::class)`) and `belongsTo` relations (`category_id` → `Column::option('category')->from('category.name')`). It skips the primary key, `$hidden` attributes and sensitive columns (`password`, `remember_token`…).
 
 React has two levels: the generic components (`components/data-table/`, hook and libs) are installed once per project from the registry, and each table has its own component (`components/data-tables/<resource>-table.tsx`) reusable in any page. The PHP class decides which columns are shown and in which order (also the order of the filters): the columns the component does not declare are rendered with a default cell for their type, and the component only declares the columns it wants to customize (for example, a cell with a badge) or the ones that only exist on the client (actions or selection, at the end unless `meta: { position: 'start' }`).
 
 The layout (search, filters, Reset, column menu and pagination) is also changed in each table's component, without touching the shared components: `DataTableToolbar` is made of exported pieces (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton`, `DataTableViewOptions`) that can be placed in any order, and with `<DataTable pagination={false}>` the `DataTablePagination` goes wherever you want (for example, on top). `--install-ui` runs `shadcn add` with the lockfile's package manager and answers "no" to overwriting existing `ui/` files; the registry URL is set in `inertia-datatable.registry_url` or with the `INERTIA_DATATABLE_REGISTRY_URL` variable (a URL or a local folder with the compiled JSON, for example to pin the UI to a version). The UI is installed even when the table is not created (unknown model or existing class). When the model does not exist, the command lists the available models.
 
-### Formatting cells
+### Columns, formats and filters
 
-The row always carries the raw value; how it looks is declared on the column and formatted in the browser with Intl:
+Each column has a type, and the type only offers the methods that make sense for its values: a date has no `money()` and a number has no `badge()`, so the IDE and PHPStan catch a wrong combination. The row always carries the raw value; how it looks is declared on the column and formatted in the browser with Intl.
 
 ```php
-Column::make('price', 'Price')->sortable()->range()->money('CLP'),
-Column::make('weight', 'Weight')->number('kg')->decimals(1),
-Column::make('discount', 'Discount')->percent(),
-Column::make('published_at', 'Published')->dateRange()->dateFormat('long'),  // short | medium | long | datetime | relative
-Column::make('notes', 'Notes')->text()->limit(60),
-Column::make('website', 'Web')->url(),
-Column::make('featured', 'Featured')->boolean()->booleanLabels('Sí', 'No'),
-Column::make('status', 'Status')->multiSelect(ProductStatus::class)->badge(),  // shadcn Badge, outline
-Column::make('stage', 'Stage')->select(Stage::class)->badge('secondary', ['lost' => 'destructive']),
-Column::make('views', 'Views')->numberFormat(['notation' => 'compact']),   // any Intl option
+use InertiaDataTable\Column;
+
+Column::text('name', 'Name')->sortable()->searchable()->filter('Search name…'),
+Column::text('notes', 'Notes')->limit(60),
+Column::text('website', 'Web')->url(),                                          // or ->email()
+Column::number('price', 'Price')->sortable()->money('CLP')->range(),            // slider, bounds from the data
+Column::number('weight', 'Weight')->unit('kg')->decimals(1)->filter(),
+Column::number('discount', 'Discount')->percent(),
+Column::number('views', 'Views')->format(['notation' => 'compact']),           // any Intl option
+Column::date('published_at', 'Published')->format('long')->range(),            // short | medium | long | datetime | relative
+Column::boolean('featured', 'Featured')->labels('Sí', 'No')->filter(),
+Column::option('status', 'Status')->options(ProductStatus::class)->badge()->filter(multiple: true),
+Column::option('stage', 'Stage')->options(Stage::class)->badge('secondary', ['lost' => 'destructive']),
+Column::option('category', 'Category')->from('category.name')->sortable()->filter(multiple: true),
 ```
 
-- Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`.
+| Type | Format | Filter |
+|---|---|---|
+| `Column::text()` | `limit()`, `url()`, `email()` | `filter(?placeholder)` |
+| `Column::number()` | `money(?currency, ?decimals)`, `decimals()`, `percent()`, `format([...])`, `unit()` | `filter(?placeholder)`, `range(?min, ?max)` |
+| `Column::date()` | `format(preset or Intl options)` | `filter()` (one date), `range()` |
+| `Column::boolean()` | `labels(true, false)`, `badge()` | `filter()` |
+| `Column::option()` | `options(list, map or enum)`, `badge()` | `filter(multiple: false)`, `withCounts(false)` |
+
+- A column has at most one filter: calling two filter methods throws an error instead of keeping the last one.
+- The unit of `unit('kg')` goes after the number in the cells and next to the filter inputs; with `money()` the filters show the currency symbol on the side of the locale (`$` before in `es-CL`, `€` after in `de-DE`). `unit()` together with `money()` or `percent()` is an error, since they already say the unit.
+- An option column shows the labels of its declared options even without a filter; with a filter, the options carry the row counts.
+- Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`, and dates without `format()` use `inertia-datatable.date_format`.
 - Dates without time (Laravel `date` casts) never move to the previous day.
-- `badge()` uses the project's shadcn `Badge` with any variant of its `badge.tsx` (`outline` by default), for the column and per value. In boolean columns the values are `true` and `false`, and it adds up with `booleanLabels()`; without `booleanLabels()`, booleans show Yes / No in the app language.
+- `badge()` uses the project's shadcn `Badge` with any variant of its `badge.tsx` (`outline` by default), for the column and per value. In boolean columns the values are `true` and `false`; without `labels()`, booleans show Yes / No in the app language.
 - In the React component you can set or override the format (`meta: { display: … }`), add icons per option (`meta.options`, shown in the filter and in the cells) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. Option cells take `badge` (props of the same Badge per value) or `renderOption` (anything else, such as a colored dot), and `DataTableOptionBadge` is exported for fully custom cells. See the skill's React reference.
 - Column width and classes also live in the React component: `size: 280` (px) or Tailwind classes, responsive too, in `meta: { className: 'w-40 md:w-80' }` (`headerClassName` / `cellClassName` for one of them; `cellClassName` can be a function of the cell for classes by value). Alignment is `meta.align` (`start`, `center` or `end`; numbers are `end` by default), which moves the header and the cells together. Row height and row colors go in `<DataTable headerClassName="[&>th]:h-8" rowClassName={(row) => …}>`.
 
@@ -89,13 +104,13 @@ The defaults come from your Laravel app and each layer can change them; the most
 |---|---|
 | Locale of numbers, currencies and dates | `useServerDataTable({ locale })` → the table (`locale()` in the class, `->locale()` in `DataTable::for`) → `inertia-datatable.locale` → `app()->getLocale()` (`APP_LOCALE`) |
 | UI texts (Search, Reset, Rows per page…) | `useServerDataTable({ messages })` → `lang/vendor/inertia-datatable/{lang}/ui.php` → the package texts (`en`, `es`) in the app language → English |
-| Format of a column | your own `cell` → React `meta.display` → the column method (`->money()`, `->dateFormat()`…) → `inertia-datatable.currency` / `inertia-datatable.date_format` |
+| Format of a column | your own `cell` → React `meta.display` → the column method (`->money()`, `->format()`…) → `inertia-datatable.currency` / `inertia-datatable.date_format` |
 
 ```php
 // config/inertia-datatable.php
 'locale' => null,         // null = app locale; 'es-CL', 'en-US'…; 'browser' = each browser's
 'currency' => 'CLP',      // ->money() without a currency
-'date_format' => 'long',  // ->dateFormat() without a format and date columns without one
+'date_format' => 'long',  // date columns without ->format()
 ```
 
 - A locale with a region gives the local symbols: with `es` a CLP amount shows `CLP 1.234`, with `es-CL` it shows `$1.234`. `es_CL` is accepted too.

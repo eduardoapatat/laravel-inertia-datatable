@@ -186,10 +186,10 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
   },
   "config": {
     "columns": [
-      { "id": "name", "label": "Name", "sortable": true, "variant": null, "placeholder": null, "hideable": false, "visible": true, "display": null },
-      { "id": "email", "label": "Email", "sortable": true, "variant": "text", "placeholder": "Search email…", "hideable": true, "visible": true },
-      { "id": "status", "label": "Status", "sortable": false, "variant": "multi-select", "placeholder": null, "hideable": true, "visible": true },
-      { "id": "price", "label": "Price", "sortable": true, "variant": "range", "placeholder": null, "unit": "$", "hideable": true, "visible": true, "display": { "type": "number", "format": { "style": "currency", "currency": "USD" } } }
+      { "id": "name", "label": "Name", "sortable": true, "hideable": false, "visible": true, "display": { "type": "text" }, "filter": null },
+      { "id": "email", "label": "Email", "sortable": true, "hideable": true, "visible": true, "display": { "type": "text" }, "filter": { "variant": "text", "placeholder": "Search email…" } },
+      { "id": "status", "label": "Status", "sortable": false, "hideable": true, "visible": true, "display": { "type": "option" }, "filter": { "variant": "multi-select" } },
+      { "id": "price", "label": "Price", "sortable": true, "hideable": true, "visible": true, "display": { "type": "number", "format": { "style": "currency", "currency": "USD" } }, "filter": { "variant": "range" } }
     ],
     "searchable": true,
     "locale": "es-CL",
@@ -227,38 +227,57 @@ Each `columnFilters` item has the frontend's `ColumnFilterItem` shape: `id`, `fi
 
 Data the client cannot compute by itself in server mode (they replace TanStack's `getFacetedUniqueValues` / `getFacetedMinMaxValues`):
 
-**`select` / `multi-select`** → list of options with the frontend's `ColumnSelectOption` shape (`value`, `label`, `count`; the client adds the icon):
+**`select` / `multi-select`** (and option columns without a filter) → list of options with the frontend's `ColumnSelectOption` shape (`value`, `label`, `count`; the client adds the icon):
 
 - **Cross counts:** each facet count is computed with all the other filters and the search applied, **except the facet's own filter**. This way, after checking "active" the counts of "pending" and "inactive" are still visible. It is one `GROUP BY` per facet.
 - **Source of the options:**
-  - Declared (`->multiSelect(['active' => 'Active', …])`): all of them appear, in the declared order and with `count: 0` when there are no rows.
+  - Declared (`->options(['active' => 'Active', …])`): all of them appear, in the declared order and with `count: 0` when there are no rows.
+  - An option column without a filter sends only its declared options, without `count` and without a query, so the cells show their labels.
   - Not declared: distinct values present in the database, sorted by value, with `label = value`.
 - Selected values always appear, even if their count is 0.
 - In this phase `NULL` values are excluded.
 - Counts can be disabled per column (`->withCounts(false)`); then `count` is not sent.
 
-**`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `->range(min: 0, max: 5000)` to skip the query.
+**`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `Column::number(...)->range(min: 0, max: 5000)` to skip the query.
 
 ### 2.6 `config`
 
-Static table metadata to build the UI: columns (label, whether it is sortable, filter variant, placeholder, unit, whether it is hideable, default visibility, display), whether there is global search, the display locale, the default date format, the UI texts, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
+Static table metadata to build the UI: columns (label, whether it is sortable, whether it is hideable, default visibility, display and filter), whether there is global search, the display locale, the default date format, the UI texts, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
 
 - `locale`: BCP 47 locale to format numbers and dates (`es-CL`), resolved on the server: the table (`locale()` / `->locale()`), then `inertia-datatable.locale`, then `app()->getLocale()`, with `_` turned into `-`. `null` when the setting is `'browser'`: the client uses the browser locale.
-- `date_format`: preset of the date cells without `display` (`inertia-datatable.date_format`, `long` by default).
+- `date_format`: preset of the date columns without a `format` (`inertia-datatable.date_format`, `long` by default).
 - `messages`: UI texts in the app language (`lang/{lang}/ui.php` of the package or the published copy in `lang/vendor/inertia-datatable`), English as fallback. Placeholders `:label`, `:count`, `:page` and `:pages` are replaced on the client.
 
-`display` says how the cells of a column are shown, independently of its filter. Rows keep the raw value and the client formats it with Intl and `locale` (`null`: the browser's):
+Each column:
+
+```json
+{ "id": "price", "label": "Price", "sortable": true, "hideable": true, "visible": true,
+  "display": { "type": "number", "format": { "style": "currency", "currency": "CLP" } },
+  "filter": { "variant": "range" } }
+```
+
+`filter` is `null` or `{ "variant": …, "placeholder"?: … }`, with the variants of §1.4. Each type of column allows only some of them:
+
+| Column | `display.type` | Filter variants |
+|---|---|---|
+| `Column::text()` | `text` | `text` (`placeholder` with `filter('…')`) |
+| `Column::number()` | `number` | `number` (`placeholder`), `range` (bounds in `facets`) |
+| `Column::date()` | `date` | `date`, `date-range` |
+| `Column::boolean()` | `boolean` | `boolean` |
+| `Column::option()` | `option` | `select`, `multi-select` (options in `facets`) |
+
+`display` is always present: `type` is the type of the column and the other keys say how its cells are shown. Rows keep the raw value and the client formats it with Intl and `locale` (`null`: the browser's):
 
 | `display` | Declared with | Cell |
 |---|---|---|
-| `null` | — | Deduced from the filter variant (dates, Yes/No, option labels, number with unit, text) |
-| `{ "type": "number", "format": { "style": "currency", "currency": "CLP" } }` | `money()`, `decimals()`, `percent()`, `numberFormat()` | `format` = Intl.NumberFormat options |
-| `{ "type": "date", "format": "long" }` | `dateFormat()` | `short`, `medium`, `long`, `datetime`, `relative` or Intl.DateTimeFormat options; dates without time are formatted in UTC |
+| `{ "type": "number", "format": { "style": "currency", "currency": "CLP" } }` | `money()`, `decimals()`, `percent()`, `format()` | `format` = Intl.NumberFormat options |
+| `{ "type": "number", "unit": "kg" }` | `unit()` | Unit after plain numbers and next to the filter inputs (never with a `style`) |
+| `{ "type": "date", "format": "long" }` | `format()` | `short`, `medium`, `long`, `datetime`, `relative` or Intl.DateTimeFormat options; without `format`, the table `date_format`; dates without time are formatted in UTC |
 | `{ "type": "text", "limit": 60, "link": "url" }` | `limit()`, `url()`, `email()` | Cut text; link only for http/https URLs |
-| `{ "type": "boolean", "labels": { "true": "Sí", "false": "No" } }` | `booleanLabels()` | Labels of true/false (also `1`/`0`) |
+| `{ "type": "boolean", "labels": { "true": "Sí", "false": "No" } }` | `labels()` | Labels of true/false (also `1`/`0`); without them, the Yes / No of `messages` |
 | `{ "type": "option", "badge": true, "variant": "outline", "variants": { "archived": "destructive" } }` | `badge()`, `badge('secondary', ['archived' => 'destructive'])` | Option labels with the project's shadcn `Badge`: the variant of the value, else the column one (`outline` by default); any variant of the project's `badge.tsx` |
 
-The client adapter translates each column into the columns' `meta` (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) and into `enableSorting` / `enableColumnFilter` / `enableHiding`, so the definition lives in a single place: the server.
+The client adapter translates each column into the columns' `meta` (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`, `display`) and into `enableSorting` / `enableColumnFilter` / `enableHiding`, so the definition lives in a single place: the server.
 
 ---
 
@@ -306,12 +325,12 @@ class ProductsTable extends DataTable
     public function columns(): array
     {
         return [
-            Column::make('name', 'Name')->sortable()->searchable()->hideable(false),
-            Column::make('price', 'Price')->sortable()->range(unit: '$'),
-            Column::make('status', 'Status')->multiSelect(['active' => 'Active', 'draft' => 'Draft']),
-            Column::make('category', 'Category')->from('category.name')->multiSelect()->sortable()->searchable(),
-            Column::make('featured', 'Featured')->boolean(),
-            Column::make('created_at', 'Created')->sortable()->dateRange()->hidden(),
+            Column::text('name', 'Name')->sortable()->searchable()->hideable(false),
+            Column::number('price', 'Price')->sortable()->money('USD')->range(),
+            Column::option('status', 'Status')->options(['active' => 'Active', 'draft' => 'Draft'])->filter(multiple: true),
+            Column::option('category', 'Category')->from('category.name')->filter(multiple: true)->sortable()->searchable(),
+            Column::boolean('featured', 'Featured')->filter(),
+            Column::date('created_at', 'Created')->sortable()->range()->hidden(),
         ];
     }
 
@@ -330,8 +349,8 @@ return Inertia::render('products/index', ['products' => fn () => ProductsTable::
 ```php
 DataTable::for(User::query())
     ->columns([
-        Column::make('name', 'Name')->sortable()->searchable(),
-        Column::make('role', 'Role')->select(),
+        Column::text('name', 'Name')->sortable()->searchable(),
+        Column::option('role', 'Role')->filter(),
     ])
     ->defaultSort('name');
 ```

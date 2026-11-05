@@ -51,14 +51,14 @@ php artisan make:datatable ProductsTable --react --install-ui
 ```
 
 - The model is guessed from the class name (`ProductsTable` → `App\Models\Product`); pass `--model=...` otherwise (a full class name works for models outside `app/Models`).
-- Columns are proposed from the model casts and the DB schema: strings (searchable, sortable), numbers, booleans, dates, backed enums (`multiSelect(Enum::class)`) and `belongsTo` relations (`category_id` → `from('category.name')`). Primary key, `$hidden` and sensitive columns are skipped.
+- Columns are proposed from the model casts and the DB schema: strings (searchable, sortable), numbers, booleans, dates, backed enums (`Column::option()->options(Enum::class)`) and `belongsTo` relations (`category_id` → `Column::option('category')->from('category.name')`). Each column is created with the factory of its type (`Column::text()`, `number()`, `date()`, `boolean()`, `option()`), which only offers the format and filter methods of that type. Primary key, `$hidden` and sensitive columns are skipped.
 - `--react` also writes `resources/js/components/data-tables/products-table.tsx`: a per-table component (row type, hook, toolbar) used as `<ProductsTable products={products} />` in any page. It declares no columns: the PHP class decides which columns are shown and in which order, and the component only customizes cells or adds client-only columns (`references/react.md`). `--page` additionally writes `resources/js/pages/products/index.tsx`, which only renders that component. Prefer `--react` when the page has more than the table (headers, tabs, several tables) and write the page by hand.
 - `--install-ui` installs the shared UI (`components/data-table/*`, hook, libs) when the project does not have it yet, declining to overwrite existing `ui/` files; without it the command only prints the install command. You can skip step 2's frontend install when using this flag. The UI is installed even when the table class is not created (unknown model or existing class). When the model does not exist, the command lists the available models: pick one with `--model`. The registry it installs from is `inertia-datatable.registry_url` (env `INERTIA_DATATABLE_REGISTRY_URL`: a URL or a local folder with the compiled JSON).
 - `--empty` skips the column guessing.
 
 To install the shared UI on its own, or to update it later without touching the project's other `components/ui` files: `php artisan inertia-datatable:ui` / `php artisan inertia-datatable:ui --update`.
 
-Then **review the generated columns with the user's intent in mind** — the guess is a starting point: remove columns nobody needs, add labels in the app's language, mark rarely used ones `->hidden()`, set `defaultSort()`. The full `Column` API, relations, enums, parent-model tables and multiple tables per page are in `references/backend.md`.
+Then **review the generated columns with the user's intent in mind** — the guess is a starting point: remove columns nobody needs, add labels in the app's language, mark rarely used ones `->hidden()`, set `defaultSort()`, pick the type of each column. The full `Column` API, relations, enums, parent-model tables and multiple tables per page are in `references/backend.md`.
 
 ### 4. Wire controller, route and page
 
@@ -92,7 +92,7 @@ Write feature tests in the app's test style (see `references/testing.md`): autho
 - **Rows only contain visible columns.** Type row fields as optional in TypeScript and handle `undefined` in cells.
 - **Layout is composed in JSX.** To move the search, filters, Reset, View menu or pagination, replace `<DataTableToolbar>` with its exported pieces in the per-table component (`references/react.md`, "Layout"); never edit `components/data-table/*` for that.
 - **Columns and their order live in PHP.** Add, remove or reorder columns in `columns()`; do not mirror them in the React component unless a cell needs custom rendering.
-- **Formats are declared on the column.** Currency, decimals, percentages, dates, cut texts, links, Yes/No labels and badges go in PHP (`->money('CLP')`, `->dateFormat('long')`…); do not reformat them by hand in React. To render a value differently, write a custom `cell` that reuses the type cells of `components/data-table/data-table-cells.tsx` (`references/react.md`).
+- **Formats are declared on the column.** Currency, decimals, percentages, dates, cut texts, links, Yes/No labels and badges go in PHP (`Column::number(...)->money('CLP')`, `Column::date(...)->format('long')`…); do not reformat them by hand in React. To render a value differently, write a custom `cell` that reuses the type cells of `components/data-table/data-table-cells.tsx` (`references/react.md`).
 - **Several tables on one page** need `name()` (query parameter prefix) and distinct prop names.
 - **Encoded URLs** (`filter%5Bstatus%5D=a%2Cb`) come from Inertia (`$request->fullUrl()`), not from the package; for readable URLs add `urlResolver()` to `HandleInertiaRequests` (`references/react.md`, "Readable URLs").
 - **Case-insensitive matching of non-ASCII letters** (`Á`/`á`) does not work on SQLite; it does on MySQL/PostgreSQL.
