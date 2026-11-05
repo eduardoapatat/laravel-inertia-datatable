@@ -40,11 +40,17 @@ interface DataTableProps<
 > extends React.ComponentProps<'div'> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
     actionBar?: React.ReactNode;
+    /**
+     * Pinta la paginación debajo de la tabla. Con `false`, coloca
+     * `<DataTablePagination table={table} />` donde quieras (p. ej. arriba).
+     */
+    pagination?: boolean;
 }
 
 export function DataTable<TData extends RowData>({
     table,
     actionBar,
+    pagination = true,
     children,
     className,
     'aria-label': ariaLabel,
@@ -74,12 +80,17 @@ export function DataTable<TData extends RowData>({
                     <DataTableBody table={table} />
                 </DataTableLayout>
             </div>
-            <div className="flex flex-col gap-2.5">
-                <DataTablePagination table={table} />
-                {actionBar ? (
-                    <DataTableActionBar table={table} actionBar={actionBar} />
-                ) : null}
-            </div>
+            {pagination || actionBar ? (
+                <div className="flex flex-col gap-2.5">
+                    {pagination ? <DataTablePagination table={table} /> : null}
+                    {actionBar ? (
+                        <DataTableActionBar
+                            table={table}
+                            actionBar={actionBar}
+                        />
+                    ) : null}
+                </div>
+            ) : null}
         </div>
     );
 }
