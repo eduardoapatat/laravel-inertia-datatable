@@ -1,31 +1,31 @@
-# Contrato HTTP del DataTable
+# DataTable HTTP contract
 
-Este documento define cómo se comunican el frontend (DataTable de shadcn sobre TanStack Table, en React o Vue) y el backend (paquete `eduardoapatat/laravel-inertia-datatable`).
+This document defines how the frontend (shadcn DataTable on top of TanStack Table, in React or Vue) and the backend (the `eduardoapatat/laravel-inertia-datatable` package) communicate.
 
-Principios:
+Principles:
 
-- **El servidor es la fuente de verdad.** Paginación, ordenamiento, filtros, búsqueda global y visibilidad de columnas se resuelven en el servidor. TanStack Table trabaja en modo manual (`manualPagination`, `manualSorting`, `manualFiltering`).
-- **El estado vive en la URL.** Todo el estado de la tabla se serializa en el query string, así que recargar, compartir el enlace o usar atrás/adelante reproduce la misma vista.
-- **Listas blancas.** Solo se puede ordenar, filtrar, buscar y mostrar por columnas declaradas en el servidor. Los nombres que llegan en la request nunca se interpolan en SQL.
-- **Normalizar, no fallar.** Un valor inválido (columna no permitida, `per_page` fuera de la lista, página inexistente…) se ignora o se corrige; no devuelve 400. La respuesta incluye el estado normalizado para que el cliente se rehidrate con lo que realmente se aplicó.
-- **Convención compatible con spatie/laravel-query-builder** (`sort=-col`, `filter[col]=a,b`), por si en el futuro conviene migrar.
+- **The server is the source of truth.** Pagination, sorting, filters, global search and column visibility are resolved on the server. TanStack Table works in manual mode (`manualPagination`, `manualSorting`, `manualFiltering`).
+- **The state lives in the URL.** The whole table state is serialized in the query string, so reloading, sharing the link or using back/forward reproduces the same view.
+- **Allowlists.** Sorting, filtering, searching and displaying are only possible on columns declared on the server. Names coming from the request are never interpolated into SQL.
+- **Normalize, don't fail.** An invalid value (column not allowed, `per_page` outside the list, nonexistent page…) is ignored or corrected; it does not return 400. The response includes the normalized state so the client rehydrates with what was actually applied.
+- **Convention compatible with spatie/laravel-query-builder** (`sort=-col`, `filter[col]=a,b`), in case migrating ever makes sense.
 
 ---
 
 ## 1. Request
 
-Petición `GET` a la ruta de la página (Inertia) o a un endpoint JSON. Todos los parámetros son opcionales.
+A `GET` request to the page route (Inertia) or to a JSON endpoint. All parameters are optional.
 
-| Parámetro | Ejemplo | Significado |
+| Parameter | Example | Meaning |
 |---|---|---|
-| `page` | `page=3` | Página, base 1 |
-| `per_page` | `per_page=20` | Tamaño de página |
-| `sort` | `sort=-created_at,name` | Ordenamiento, admite varias columnas |
-| `filter[<col>]` | `filter[status]=active,pending` | Filtro por columna |
-| `search` | `search=ana perez` | Búsqueda global |
-| `columns` | `columns=name,email,status` | Columnas visibles |
+| `page` | `page=3` | Page, 1-based |
+| `per_page` | `per_page=20` | Page size |
+| `sort` | `sort=-created_at,name` | Sorting, accepts several columns |
+| `filter[<col>]` | `filter[status]=active,pending` | Column filter |
+| `search` | `search=ana perez` | Global search |
+| `columns` | `columns=name,email,status` | Visible columns |
 
-Ejemplo completo:
+Full example:
 
 ```
 /users?page=2&per_page=20&sort=-created_at,name&filter[status]=active,pending&filter[role]=admin&search=ana&columns=name,email,status
@@ -33,111 +33,111 @@ Ejemplo completo:
 
 ### 1.1 `page`
 
-- Entero ≥ 1. Por defecto `1`.
-- No numérico o < 1 → `1`.
-- Mayor que la última página → se usa la última (`meta` y `state` reflejan la página real).
+- Integer ≥ 1. Defaults to `1`.
+- Not numeric or < 1 → `1`.
+- Greater than the last page → the last page is used (`meta` and `state` reflect the actual page).
 
 ### 1.2 `per_page`
 
-- Debe estar en `perPageOptions` de la tabla (por defecto `[10, 20, 30, 50]`). Si no está → valor por defecto de la tabla (por defecto `10`).
-- Es una lista cerrada, no un máximo, para evitar `per_page=100000`.
+- Must be in the table's `perPageOptions` (by default `[10, 20, 30, 50]`). If it is not → the table's default value (by default `10`).
+- It is a closed list, not a maximum, to prevent `per_page=100000`.
 
 ### 1.3 `sort`
 
-- Lista separada por comas; el prefijo `-` indica descendente: `sort=-created_at,name`.
-- Se respeta el orden (prioridad de izquierda a derecha).
-- Se usa `-created_at` (convención de spatie y JSON:API) en lugar de `created_at.desc`. La traducción desde el estado de TanStack la hace `registry/shared`.
-- Se descartan columnas que no son `sortable`, duplicados y lo que supere `maxSorts` (por defecto 3).
-- Sin orden válido → se aplica `defaultSort` de la tabla, si existe.
-- Siempre se añade la clave primaria como desempate final (si no está ya), para que la paginación sea estable. Va en la dirección del primer criterio: `sort=-created_at` → `created_at desc, id desc`.
-- `state.sorting` refleja **solo el orden pedido explícitamente** (vacío si se usó el de por defecto); el de por defecto se informa en `config.default_sorting`. Así el cliente no escribe en la URL un orden que el usuario no eligió.
+- Comma-separated list; the `-` prefix means descending: `sort=-created_at,name`.
+- The order is respected (priority from left to right).
+- `-created_at` (the spatie and JSON:API convention) is used instead of `created_at.desc`. `registry/shared` translates it from the TanStack state.
+- Columns that are not `sortable`, duplicates and anything beyond `maxSorts` (by default 3) are dropped.
+- With no valid sort → the table's `defaultSort` is applied, if any.
+- The primary key is always added as the final tiebreaker (unless already present), so pagination is stable. It follows the direction of the first criterion: `sort=-created_at` → `created_at desc, id desc`.
+- `state.sorting` reflects **only the explicitly requested sort** (empty if the default was used); the default one is reported in `config.default_sorting`. This way the client does not write into the URL a sort the user did not choose.
 
 ### 1.4 `filter[<col>]`
 
-Solo columnas declaradas como filtrables. El modelo de filtros es el de los componentes del DataTable del frontend (variantes + operadores): faceted filter, range/slider, date filter, filter menu y sort menu.
+Only columns declared as filterable. The filter model is the one of the frontend DataTable components (variants + operators): faceted filter, range/slider, date filter, filter menu and sort menu.
 
-#### Sintaxis
+#### Syntax
 
 ```
-filter[<col>]=[<operador>.]<valor>
+filter[<col>]=[<operator>.]<value>
 ```
 
-- **Sin operador** se aplica el operador implícito de la variante: `filter[status]=active,pending` = `filter[status]=in.active,pending`.
-- **Listas** separadas por comas. Un valor que contenga coma, comillas o espacios en los extremos va entre comillas dobles, y las comillas internas se duplican: `filter[name]=in."Pérez, Ana",Luis`.
-- **Varios filtros sobre la misma columna** con la forma de array; se combinan con AND: `filter[price][]=gte.10&filter[price][]=lte.100`.
-- Si el prefijo no es un operador válido para la variante, todo el texto se toma como valor con el operador implícito (`filter[email]=foo.bar` busca «foo.bar»). Para evitar ambigüedades, el cliente escribe el operador explícito cuando el valor empieza por un nombre de operador.
-- Los nombres de operador no distinguen mayúsculas y se aceptan en dos formas: nombre de URL (`neq`, `not.in`) o clave (`ne`, `notInArray`).
+- **Without an operator** the variant's implicit operator is applied: `filter[status]=active,pending` = `filter[status]=in.active,pending`.
+- **Lists** are comma-separated. A value containing a comma, quotes or leading/trailing spaces goes in double quotes, with inner quotes doubled: `filter[name]=in."Pérez, Ana",Luis`.
+- **Several filters on the same column** use the array form and are combined with AND: `filter[price][]=gte.10&filter[price][]=lte.100`.
+- If the prefix is not a valid operator for the variant, the whole text is taken as the value with the implicit operator (`filter[email]=foo.bar` searches for "foo.bar"). To avoid ambiguity, the client writes the explicit operator when the value starts with an operator name.
+- Operator names are case-insensitive and accepted in two forms: URL name (`neq`, `not.in`) or key (`ne`, `notInArray`).
 
-#### Variantes y operadores
+#### Variants and operators
 
-| Variante | `meta` de la columna en el frontend | Operador implícito | Operadores (nombre en URL) | Valor |
+| Variant | Column `meta` in the frontend | Implicit operator | Operators (URL name) | Value |
 |---|---|---|---|---|
-| `text` | `variant: "text"` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | texto |
-| `number` | `variant: "number"` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | número (`.` decimal) |
-| `range` | `variant: "number", filter: "range"` | `between` | igual que `number` | `min,max`; un extremo puede ir vacío (`10,` / `,100`) |
-| `date` | `variant: "date"` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` (`rel` en fase futura) | `YYYY-MM-DD` |
-| `date-range` | `variant: "date", filter: "range"` | `between` | igual que `date` | `desde,hasta` (`YYYY-MM-DD`) |
+| `text` | `variant: "text"` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | text |
+| `number` | `variant: "number"` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | number (`.` decimal) |
+| `range` | `variant: "number", filter: "range"` | `between` | same as `number` | `min,max`; one end may be empty (`10,` / `,100`) |
+| `date` | `variant: "date"` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` (`rel` in a future phase) | `YYYY-MM-DD` |
+| `date-range` | `variant: "date", filter: "range"` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`) |
 | `boolean` | `variant: "boolean"` | `eq` | `eq`, `neq` | `true` / `false` |
-| `select` | `variant: "select"` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | valor o lista |
-| `multi-select` | `variant: "multi-select"` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | lista |
+| `select` | `variant: "select"` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | value or list |
+| `multi-select` | `variant: "multi-select"` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | list |
 
-#### Traducción a SQL
+#### Translation to SQL
 
-| Operador | SQL |
+| Operator | SQL |
 |---|---|
-| `ilike` / `not.ilike` | `whereLike` / `whereNotLike` con `%valor%`, sin distinguir mayúsculas y escapando `%` y `_` |
-| `eq` / `neq` | `=` / `<>`; en `date` compara el día completo (`whereDate`); en `text` no distingue mayúsculas |
-| `lt` `lte` `gt` `gte` | comparación; en `date` por día (`lte` 2026-01-31 incluye todo ese día) |
-| `between` | ambos extremos inclusivos; con un extremo vacío equivale a `gte` / `lte` |
+| `ilike` / `not.ilike` | `whereLike` / `whereNotLike` with `%value%`, case-insensitive and escaping `%` and `_` |
+| `eq` / `neq` | `=` / `<>`; in `date` it compares the whole day (`whereDate`); in `text` it is case-insensitive |
+| `lt` `lte` `gt` `gte` | comparison; in `date` by day (`lte` 2026-01-31 includes that whole day) |
+| `between` | both ends inclusive; with one empty end it is equivalent to `gte` / `lte` |
 | `in` / `not.in` | `whereIn` / `whereNotIn` |
-| `is.empty` / `not.is.empty` | `IS NULL` (o `''` en `text`) / lo contrario |
+| `is.empty` / `not.is.empty` | `IS NULL` (or `''` in `text`) / the opposite |
 
-- Las negaciones (`not.ilike`, `neq`, `not.in`) incluyen las filas sin valor (`NULL`): «no es X» también vale para lo que no tiene valor. En columnas de relaciones incluyen las filas sin relación.
-- «Sin distinguir mayúsculas» depende de la base de datos: en MySQL/MariaDB (collation `_ci`) y PostgreSQL (`ILIKE`, `lower()`) funciona con cualquier letra; en SQLite solo con letras ASCII (`Á` ≠ `á`).
+- Negations (`not.ilike`, `neq`, `not.in`) include rows without a value (`NULL`): "is not X" also holds for what has no value. On relation columns they include rows without the relation.
+- "Case-insensitive" depends on the database: in MySQL/MariaDB (`_ci` collation) and PostgreSQL (`ILIKE`, `lower()`) it works with any letter; in SQLite only with ASCII letters (`Á` ≠ `á`).
 
-#### Normalización
+#### Normalization
 
-- Un filtro sin valor (salvo `is.empty` / `not.is.empty`) se ignora: `filter[status]=` = sin filtro.
-- Un valor que no corresponde a la variante (`filter[price]=abc`, fecha inválida, booleano distinto de `true`/`false`) descarta ese filtro.
-- `between` con `min > max` intercambia los extremos.
-- En `select` / `multi-select` con opciones declaradas, se descartan los valores que no estén en la lista.
-- Las columnas de relaciones `belongsTo` / `hasOne` se filtran igual (ver §5).
+- A filter without a value (except `is.empty` / `not.is.empty`) is ignored: `filter[status]=` = no filter.
+- A value that does not match the variant (`filter[price]=abc`, invalid date, boolean other than `true`/`false`) drops that filter.
+- `between` with `min > max` swaps the ends.
+- In `select` / `multi-select` with declared options, values not in the list are dropped.
+- Columns from `belongsTo` / `hasOne` relations are filtered the same way (see §5).
 
-#### Etapas
+#### Phases
 
-- **Fase 1:** todas las variantes y operadores de la tabla, varios filtros por columna, combinación AND.
-- **Fase futura:** `join=or` (combinar filtros con OR, usado por el filter menu avanzado; el nombre del parámetro queda reservado), operador `rel` (fechas relativas a hoy) y relaciones a muchos (`hasMany`, `belongsToMany`).
+- **Phase 1:** all the variants and operators in the table, several filters per column, AND combination.
+- **Future phase:** `join=or` (combine filters with OR, used by the advanced filter menu; the parameter name is reserved), the `rel` operator (dates relative to today) and to-many relations (`hasMany`, `belongsToMany`).
 
 ### 1.5 `search`
 
-- Se recorta (`trim`). Si queda vacío, no hay búsqueda. Longitud máxima: 100 caracteres (lo que exceda se corta).
-- Se divide en palabras: **cada palabra** debe coincidir en **alguna** columna `searchable`: `(name LIKE %ana% OR email LIKE %ana%) AND (name LIKE %perez% OR email LIKE %perez%)`.
-- Usa `whereLike(..., caseSensitive: false)` de Laravel (en PostgreSQL usa `ILIKE`) y escapa `%` y `_`.
-- Se mapea 1:1 con `globalFilter` de TanStack; por eso es un parámetro de primer nivel y no `filter[search]`.
+- It is trimmed (`trim`). If it ends up empty, there is no search. Maximum length: 100 characters (the excess is cut).
+- It is split into words: **each word** must match in **some** `searchable` column: `(name LIKE %ana% OR email LIKE %ana%) AND (name LIKE %perez% OR email LIKE %perez%)`.
+- It uses Laravel's `whereLike(..., caseSensitive: false)` (`ILIKE` in PostgreSQL) and escapes `%` and `_`.
+- It maps 1:1 to TanStack's `globalFilter`; that is why it is a top-level parameter and not `filter[search]`.
 
 ### 1.6 `columns`
 
-- Lista separada por comas de las columnas **visibles**.
-- Ausente → visibilidad por defecto (cada columna declara si se ve por defecto).
-- Se ignoran las columnas desconocidas; las no ocultables (`hideable: false`) siempre se muestran.
-- Las filas de `data` no incluyen las claves de las columnas ocultas (ver §2.2). Mostrar una columna oculta implica pedirla de nuevo al servidor.
-- Se usa una lista de visibles (no de ocultas) para poder mostrar columnas ocultas por defecto.
+- Comma-separated list of the **visible** columns.
+- Missing → default visibility (each column declares whether it is visible by default).
+- Unknown columns are ignored; non-hideable ones (`hideable: false`) are always shown.
+- `data` rows do not include the keys of hidden columns (see §2.2). Showing a hidden column means requesting it from the server again.
+- A list of visible columns (not hidden ones) is used so that columns hidden by default can be shown.
 
-### 1.7 Varias tablas en la misma página
+### 1.7 Several tables on the same page
 
-Cada tabla puede tener un nombre que se usa como prefijo de sus parámetros:
+Each table can have a name used as the prefix of its parameters:
 
 ```
 /dashboard?users_page=2&users_sort=-name&orders_filter[status]=paid
 ```
 
-Los nombres efectivos se devuelven en `config.query`, así que el cliente nunca los deduce por su cuenta. Los nombres base (`page`, `per_page`, …) se pueden cambiar en `config/inertia-datatable.php`.
+The effective names are returned in `config.query`, so the client never infers them on its own. The base names (`page`, `per_page`, …) can be changed in `config/inertia-datatable.php`.
 
 ---
 
-## 2. Respuesta
+## 2. Response
 
-El backend devuelve un objeto que sirve como **prop de Inertia** o como **respuesta JSON** (implementa `Arrayable`, `JsonSerializable` y `Responsable`).
+The backend returns an object that works as an **Inertia prop** or as a **JSON response** (it implements `Arrayable`, `JsonSerializable` and `Responsable`).
 
 ```php
 return Inertia::render('users/index', [
@@ -145,9 +145,9 @@ return Inertia::render('users/index', [
 ]);
 ```
 
-Inertia convierte el objeto con `toArray()` (es `Arrayable`). Usar un closure evita resolver la tabla cuando una recarga parcial no la pide (`router.get(url, {}, { only: ['users'] })`).
+Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closure avoids resolving the table when a partial reload does not request it (`router.get(url, {}, { only: ['users'] })`).
 
-### 2.1 Forma
+### 2.1 Shape
 
 ```json
 {
@@ -175,9 +175,9 @@ Inertia convierte el objeto con `toArray()` (es `Arrayable`). Usar un closure ev
   },
   "facets": {
     "status": [
-      { "value": "active", "label": "Activo", "count": 120 },
-      { "value": "pending", "label": "Pendiente", "count": 31 },
-      { "value": "inactive", "label": "Inactivo", "count": 0 }
+      { "value": "active", "label": "Active", "count": 120 },
+      { "value": "pending", "label": "Pending", "count": 31 },
+      { "value": "inactive", "label": "Inactive", "count": 0 }
     ],
     "role": [
       { "value": "admin", "label": "admin", "count": 4 }
@@ -186,10 +186,10 @@ Inertia convierte el objeto con `toArray()` (es `Arrayable`). Usar un closure ev
   },
   "config": {
     "columns": [
-      { "id": "name", "label": "Nombre", "sortable": true, "variant": null, "placeholder": null, "hideable": false, "visible": true },
-      { "id": "email", "label": "Email", "sortable": true, "variant": "text", "placeholder": "Buscar email…", "hideable": true, "visible": true },
-      { "id": "status", "label": "Estado", "sortable": false, "variant": "multi-select", "placeholder": null, "hideable": true, "visible": true },
-      { "id": "price", "label": "Precio", "sortable": true, "variant": "range", "placeholder": null, "unit": "$", "hideable": true, "visible": true }
+      { "id": "name", "label": "Name", "sortable": true, "variant": null, "placeholder": null, "hideable": false, "visible": true },
+      { "id": "email", "label": "Email", "sortable": true, "variant": "text", "placeholder": "Search email…", "hideable": true, "visible": true },
+      { "id": "status", "label": "Status", "sortable": false, "variant": "multi-select", "placeholder": null, "hideable": true, "visible": true },
+      { "id": "price", "label": "Price", "sortable": true, "variant": "range", "placeholder": null, "unit": "$", "hideable": true, "visible": true }
     ],
     "searchable": true,
     "per_page": 10,
@@ -205,75 +205,75 @@ Inertia convierte el objeto con `toArray()` (es `Arrayable`). Usar un closure ev
 
 ### 2.2 `data`
 
-Filas de la página actual:
+Rows of the current page:
 
-- **Sin `transform`:** solo las columnas visibles más las claves fijas (`alwaysInclude`, por defecto la clave primaria). Cada valor sale del `toArray()` del modelo (respeta `$hidden`, casts y formato de fechas); las columnas de relaciones se aplanan bajo su id.
-- **Con `transform`:** lo que devuelva el método `transform()` de la clase o el closure de `->transform()`, quitando las claves de las columnas ocultas. Las claves que no son columnas (por ejemplo `url`) se mantienen.
+- **Without `transform`:** only the visible columns plus the fixed keys (`alwaysInclude`, by default the primary key). Each value comes from the model's `toArray()` (it respects `$hidden`, casts and date format); relation columns are flattened under their id.
+- **With `transform`:** whatever the class's `transform()` method or the `->transform()` closure returns, removing the keys of hidden columns. Keys that are not columns (for example `url`) are kept.
 
 ### 2.3 `meta`
 
-Igual que el `LengthAwarePaginator` de Laravel (en snake_case). `from` y `to` son `null` si no hay resultados.
+Same as Laravel's `LengthAwarePaginator` (in snake_case). `from` and `to` are `null` when there are no results.
 
 ### 2.4 `state`
 
-Estado **normalizado y aplicado**, con las formas de TanStack Table v9 (`PaginationState`, `SortingState`, `ColumnFiltersState`, `globalFilter`, `VisibilityState`) para pasarlo tal cual a la tabla. `pageIndex` es base 0 (`page - 1`).
+The **normalized and applied** state, with the TanStack Table v9 shapes (`PaginationState`, `SortingState`, `ColumnFiltersState`, `globalFilter`, `VisibilityState`) so it can be passed to the table as is. `pageIndex` is 0-based (`page - 1`).
 
-Cada elemento de `columnFilters` tiene la forma `ColumnFilterItem` del frontend: `id`, `filterId` (`<id>-<índice>`), `variant`, `operator` (clave del operador: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) y `value` (`string` o `string[]`, siempre como texto, igual que en la URL).
+Each `columnFilters` item has the frontend's `ColumnFilterItem` shape: `id`, `filterId` (`<id>-<index>`), `variant`, `operator` (operator key: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) and `value` (`string` or `string[]`, always as text, just like in the URL).
 
 ### 2.5 `facets`
 
-Datos que el cliente no puede calcular por sí mismo en modo servidor (sustituyen a `getFacetedUniqueValues` / `getFacetedMinMaxValues` de TanStack):
+Data the client cannot compute by itself in server mode (they replace TanStack's `getFacetedUniqueValues` / `getFacetedMinMaxValues`):
 
-**`select` / `multi-select`** → lista de opciones con la forma `ColumnSelectOption` del frontend (`value`, `label`, `count`; el icono lo pone el cliente):
+**`select` / `multi-select`** → list of options with the frontend's `ColumnSelectOption` shape (`value`, `label`, `count`; the client adds the icon):
 
-- **Conteo cruzado:** el conteo de cada faceta se calcula con todos los demás filtros y la búsqueda aplicados, **excepto el de la propia faceta**. Así, al marcar «active» se siguen viendo los conteos de «pending» e «inactive». Es un `GROUP BY` por faceta.
-- **Origen de las opciones:**
-  - Declaradas (`->multiSelect(['active' => 'Activo', …])`): aparecen todas, en el orden declarado y con `count: 0` si no hay filas.
-  - No declaradas: valores distintos presentes en la base de datos, ordenados por valor, con `label = value`.
-- Los valores seleccionados aparecen siempre, aunque su conteo sea 0.
-- En esta fase se excluyen los valores `NULL`.
-- Los conteos se pueden desactivar por columna (`->withCounts(false)`); entonces `count` no se envía.
+- **Cross counts:** each facet count is computed with all the other filters and the search applied, **except the facet's own filter**. This way, after checking "active" the counts of "pending" and "inactive" are still visible. It is one `GROUP BY` per facet.
+- **Source of the options:**
+  - Declared (`->multiSelect(['active' => 'Active', …])`): all of them appear, in the declared order and with `count: 0` when there are no rows.
+  - Not declared: distinct values present in the database, sorted by value, with `label = value`.
+- Selected values always appear, even if their count is 0.
+- In this phase `NULL` values are excluded.
+- Counts can be disabled per column (`->withCounts(false)`); then `count` is not sent.
 
-**`range`** → `{ "min": …, "max": … }` de la columna sobre la consulta base (sin filtros), para los límites del slider / range filter. Se pueden fijar a mano con `->range(min: 0, max: 5000)` y evitar la consulta.
+**`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `->range(min: 0, max: 5000)` to skip the query.
 
 ### 2.6 `config`
 
-Metadatos estáticos de la tabla para construir la UI: columnas (etiqueta, si se puede ordenar, variante de filtro, placeholder, unidad, si se puede ocultar, visibilidad por defecto), si hay búsqueda global, `per_page` por defecto y sus opciones, orden por defecto y nombres efectivos de los parámetros de la URL.
+Static table metadata to build the UI: columns (label, whether it is sortable, filter variant, placeholder, unit, whether it is hideable, default visibility), whether there is global search, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
 
-El adaptador del cliente traduce cada columna a la `meta` de las columnas (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) y a `enableSorting` / `enableColumnFilter` / `enableHiding`, de modo que la definición vive en un solo lugar: el servidor.
-
----
-
-## 3. Del estado de TanStack a la URL (lo hace `registry/shared`)
-
-Funciones puras de TypeScript compartidas entre React y Vue:
-
-- `stateToQuery(state, config) → Record<string, string | string[]>`: serializa, omitiendo los valores por defecto (página 1, `per_page` por defecto, sin orden, sin filtros, visibilidad por defecto) para que las URLs queden limpias. Los filtros con su operador implícito se escriben sin prefijo (`filter[status]=active,pending`).
-- `queryToState(query, config) → Partial<TableState>`: lo inverso. Solo se usa como respaldo, porque el estado oficial es `state` de la respuesta.
-
-Reglas que el cliente debe cumplir:
-
-- Al cambiar el orden, los filtros, la búsqueda o `per_page`, se vuelve a la página 1.
-- La búsqueda va con debounce (unos 300 ms).
-- Las navegaciones usan `preserveState: true`, `preserveScroll: true`, `replace: true` (salvo al cambiar de página, que puede añadir historial) y `only: [<prop>]`.
+The client adapter translates each column into the columns' `meta` (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) and into `enableSorting` / `enableColumnFilter` / `enableHiding`, so the definition lives in a single place: the server.
 
 ---
 
-## 4. Seguridad y rendimiento
+## 3. From the TanStack state to the URL (done by `registry/shared`)
 
-- Los identificadores de columna del contrato son nombres públicos que el servidor asocia a columnas reales, siempre calificadas (`users.status`), o a rutas de relaciones declaradas (`category.name`).
-- Ningún valor de la request se usa como identificador SQL; los valores van siempre como bindings.
-- `per_page` limitado a una lista cerrada; `sort` limitado por `maxSorts`; `search` limitado en longitud.
-- Coste por petición: 1 `COUNT` + 1 `SELECT` paginado + 1 `GROUP BY` por columna `select` / `multi-select` con conteos + 1 `MIN/MAX` por columna `range` sin límites fijos. Conviene indexar las columnas filtrables y ordenables, y las claves foráneas usadas por columnas de relaciones.
-- Número máximo de filtros por petición (por defecto 20) para acotar el tamaño de la consulta.
+Pure TypeScript functions shared between React and Vue:
+
+- `stateToQuery(state, config) → Record<string, string | string[]>`: serializes, leaving out default values (page 1, default `per_page`, no sort, no filters, default visibility) so URLs stay clean. Filters with their implicit operator are written without a prefix (`filter[status]=active,pending`).
+- `queryToState(query, config) → Partial<TableState>`: the inverse. Only used as a fallback, because the official state is the response's `state`.
+
+Rules the client must follow:
+
+- When the sort, the filters, the search or `per_page` change, it goes back to page 1.
+- The search is debounced (about 300 ms).
+- Visits use `preserveState: true`, `preserveScroll: true`, `replace: true` (except when changing pages, which may add history) and `only: [<prop>]`.
 
 ---
 
-## 5. Definición de tablas por modelo y relaciones
+## 4. Security and performance
 
-El contrato es el mismo para cualquier modelo (users, products, orders…); lo que cambia es la **definición de la tabla** en el backend. Hay dos formas equivalentes.
+- The contract's column identifiers are public names the server maps to real columns, always qualified (`users.status`), or to declared relation paths (`category.name`).
+- No request value is used as an SQL identifier; values always go as bindings.
+- `per_page` limited to a closed list; `sort` limited by `maxSorts`; `search` limited in length.
+- Cost per request: 1 `COUNT` + 1 paginated `SELECT` + 1 `GROUP BY` per `select` / `multi-select` column with counts + 1 `MIN/MAX` per `range` column without fixed bounds. Index the filterable and sortable columns, and the foreign keys used by relation columns.
+- Maximum number of filters per request (by default 20) to bound the query size.
 
-### 5.1 Clase por tabla (recomendada; la generará `make:datatable`)
+---
+
+## 5. Table definitions per model and relations
+
+The contract is the same for any model (users, products, orders…); what changes is the **table definition** in the backend. There are two equivalent forms.
+
+### 5.1 One class per table (recommended; generated by `make:datatable`)
 
 ```php
 // app/DataTables/ProductsTable.php
@@ -287,12 +287,12 @@ class ProductsTable extends DataTable
     public function columns(): array
     {
         return [
-            Column::make('name', 'Nombre')->sortable()->searchable()->hideable(false),
-            Column::make('price', 'Precio')->sortable()->range(unit: '$'),
-            Column::make('status', 'Estado')->multiSelect(['active' => 'Activo', 'draft' => 'Borrador']),
-            Column::make('category', 'Categoría')->from('category.name')->multiSelect()->sortable()->searchable(),
-            Column::make('featured', 'Destacado')->boolean(),
-            Column::make('created_at', 'Creado')->sortable()->dateRange()->hidden(),
+            Column::make('name', 'Name')->sortable()->searchable()->hideable(false),
+            Column::make('price', 'Price')->sortable()->range(unit: '$'),
+            Column::make('status', 'Status')->multiSelect(['active' => 'Active', 'draft' => 'Draft']),
+            Column::make('category', 'Category')->from('category.name')->multiSelect()->sortable()->searchable(),
+            Column::make('featured', 'Featured')->boolean(),
+            Column::make('created_at', 'Created')->sortable()->dateRange()->hidden(),
         ];
     }
 
@@ -306,20 +306,20 @@ class ProductsTable extends DataTable
 return Inertia::render('products/index', ['products' => fn () => ProductsTable::make()]);
 ```
 
-### 5.2 Forma rápida (casos simples)
+### 5.2 Quick form (simple cases)
 
 ```php
 DataTable::for(User::query())
     ->columns([
-        Column::make('name', 'Nombre')->sortable()->searchable(),
-        Column::make('role', 'Rol')->select(),
+        Column::make('name', 'Name')->sortable()->searchable(),
+        Column::make('role', 'Role')->select(),
     ])
     ->defaultSort('name');
 ```
 
-### 5.3 Tablas a partir de un modelo padre
+### 5.3 Tables from a parent model
 
-La consulta base puede ser cualquier `Builder` o relación de Eloquent. `make()` crea la tabla desde el contenedor, así que el constructor admite argumentos por nombre (y dependencias inyectadas):
+The base query can be any Eloquent `Builder` or relation. `make()` creates the table from the container, so the constructor accepts named arguments (and injected dependencies):
 
 ```php
 class UserProductsTable extends DataTable
@@ -337,39 +337,39 @@ class UserProductsTable extends DataTable
 UserProductsTable::make(user: $user);
 ```
 
-### 5.4 Columnas de relaciones (`belongsTo` / `hasOne`)
+### 5.4 Relation columns (`belongsTo` / `hasOne`)
 
-`->from('relacion.columna')` toma el valor de un modelo relacionado. El id público (`category`) es independiente de la ruta interna (`category.name`): el frontend no sabe que hay una relación.
+`->from('relation.column')` takes the value from a related model. The public id (`category`) is independent of the internal path (`category.name`): the frontend does not know there is a relation.
 
-| Operación | Cómo se resuelve |
+| Operation | How it is resolved |
 |---|---|
-| `data` | Se hace eager loading de la relación automáticamente; la fila lleva `"category": "Electrónica"` (aplanado bajo el id público) |
-| `sort` | Subconsulta correlacionada: `ORDER BY (SELECT name FROM categories WHERE categories.id = products.category_id)` |
-| `filter` | `whereHas('category', …)` con el operador correspondiente sobre la columna relacionada (`is.empty` también incluye los registros sin relación) |
-| `search` | `orWhereHas('category', …)` dentro del grupo de cada palabra |
-| `facets` | `GROUP BY` sobre el valor de la subconsulta; las opciones son los valores de la columna relacionada (por ejemplo, nombres de categoría) |
+| `data` | The relation is eager loaded automatically; the row carries `"category": "Electronics"` (flattened under the public id) |
+| `sort` | Correlated subquery: `ORDER BY (SELECT name FROM categories WHERE categories.id = products.category_id)` |
+| `filter` | `whereHas('category', …)` with the matching operator on the related column (`is.empty` also includes records without the relation) |
+| `search` | `orWhereHas('category', …)` inside each word's group |
+| `facets` | `GROUP BY` on the subquery value; the options are the related column's values (for example, category names) |
 
-Límites de esta fase:
+Limits of this phase:
 
-- Solo relaciones a uno (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`), con un nivel de profundidad (`category.name`; no `category.parent.name`). Declarar una columna sobre una relación a muchos lanza una `LogicException` al resolver la tabla, aunque solo se muestre.
-- Los valores de la faceta son los de la columna mostrada (`filter[category]=Electrónica`). Si hay valores repetidos (dos categorías con el mismo nombre), se agrupan.
-- Las relaciones a muchos (`hasMany`, `belongsToMany`, por ejemplo tags) quedan para una fase futura.
+- Only to-one relations (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`), one level deep (`category.name`; not `category.parent.name`). Declaring a column on a to-many relation throws a `LogicException` when the table is resolved, even if it is only displayed.
+- The facet values are the displayed column's values (`filter[category]=Electronics`). Repeated values (two categories with the same name) are grouped.
+- To-many relations (`hasMany`, `belongsToMany`, for example tags) are left for a future phase.
 
 ---
 
-## 6. ¿spatie/laravel-query-builder o implementación propia?
+## 6. spatie/laravel-query-builder or a custom implementation?
 
-**Recomendación: implementación propia**, con la misma convención de spatie en la URL.
+**Recommendation: custom implementation**, with spatie's URL convention.
 
-| | spatie/laravel-query-builder 7.3 | Propio |
+| | spatie/laravel-query-builder 7.3 | Custom |
 |---|---|---|
-| Parseo y lista blanca de `sort` / `filter` | ✅ Maduro | ~150 líneas, cubiertas por tests |
-| `per_page` con lista cerrada y página fuera de rango | ❌ Hay que hacerlo encima | ✅ |
-| Búsqueda global en varias columnas | ⚠️ Con un `AllowedFilter::callback` propio | ✅ |
-| Opciones con conteo cruzado y min/max | ❌ Hay que reconstruir el builder con una Request modificada por faceta | ✅ Diseñado para eso |
-| Estado normalizado en formato TanStack | ❌ | ✅ |
-| Valores no permitidos | Lanza `InvalidFilterQuery` / `InvalidSortQuery` (400), configurable a medias | Normaliza e informa en `state` |
-| Conceptos ajenos al caso (includes, fields, appends) | Sí | No |
-| Requisitos | PHP ^8.4, `spatie/laravel-package-tools` | Solo `illuminate/*` (PHP ^8.3, igual que Laravel 13) |
+| Parsing and allowlist of `sort` / `filter` | ✅ Mature | ~150 lines, covered by tests |
+| `per_page` with a closed list and out-of-range page | ❌ Has to be built on top | ✅ |
+| Global search across several columns | ⚠️ With a custom `AllowedFilter::callback` | ✅ |
+| Options with cross counts and min/max | ❌ The builder has to be rebuilt with a modified Request per facet | ✅ Designed for it |
+| Normalized state in TanStack format | ❌ | ✅ |
+| Disallowed values | Throws `InvalidFilterQuery` / `InvalidSortQuery` (400), only partly configurable | Normalizes and reports in `state` |
+| Concepts outside this use case (includes, fields, appends) | Yes | No |
+| Requirements | PHP ^8.4, `spatie/laravel-package-tools` | Only `illuminate/*` (PHP ^8.3, same as Laravel 13) |
 
-spatie solo resolvería la parte más pequeña (el parseo); facetas, paginación, búsqueda y forma de la respuesta habría que escribirlas igualmente, y encima pelearse con su manejo de errores. Al compartir convención de URL, se podría migrar a spatie más adelante sin tocar el frontend.
+spatie would only solve the smallest part (parsing); facets, pagination, search and the response shape would have to be written anyway, on top of fighting its error handling. Since the URL convention is shared, migrating to spatie later would be possible without touching the frontend.

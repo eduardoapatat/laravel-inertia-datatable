@@ -3,28 +3,28 @@
 [![tests](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/tests.yml/badge.svg)](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/tests.yml)
 [![starter kit](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/starter-kit.yml/badge.svg)](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/starter-kit.yml)
 
-DataTable reutilizable para **Laravel + Inertia + React**, basado en shadcn/ui y TanStack Table, con paginación, ordenamiento, filtros, búsqueda global y visibilidad de columnas **resueltos en el servidor**.
+Reusable DataTable for **Laravel + Inertia + React**, built on shadcn/ui and TanStack Table, with pagination, sorting, filters, global search and column visibility **resolved on the server**.
 
-> Versión 0.1: backend y UI de React. La versión para Vue está en desarrollo. Cambios en [`CHANGELOG.md`](CHANGELOG.md).
+> Version 0.1: backend and React UI. The Vue version is in progress. Changes in [`CHANGELOG.md`](CHANGELOG.md).
 
-## Qué contiene este repo
+## What this repo contains
 
-| Parte | Dónde | Cómo se instala |
+| Part | Where | How to install it |
 |---|---|---|
-| Paquete Composer (backend) | `src/`, `config/` | `composer require eduardoapatat/laravel-inertia-datatable` |
-| Registro shadcn (React) | `registry.json`, `registry/`, `r/` | `php artisan inertia-datatable:ui` o `pnpm dlx shadcn@latest add <url>` |
-| Skill de Claude Code | `skill/` | `pnpm dlx shadcn@latest add <url>` |
+| Composer package (backend) | `src/`, `config/` | `composer require eduardoapatat/laravel-inertia-datatable` |
+| shadcn registry (React) | `registry.json`, `registry/`, `r/` | `php artisan inertia-datatable:ui` or `pnpm dlx shadcn@latest add <url>` |
+| Claude Code skill | `skill/` | `pnpm dlx shadcn@latest add <url>` |
 
-El contrato entre frontend y backend está en [`docs/contract.md`](docs/contract.md).
+The contract between frontend and backend is in [`docs/contract.md`](docs/contract.md).
 
-## Instalación del backend
+## Backend installation
 
 ```bash
 composer require eduardoapatat/laravel-inertia-datatable
-php artisan vendor:publish --tag=inertia-datatable-config   # opcional
+php artisan vendor:publish --tag=inertia-datatable-config   # optional
 ```
 
-Requiere PHP 8.3+ y Laravel 12 o 13. También se puede instalar directamente desde GitHub (repositorio `vcs`):
+Requires PHP 8.3+ and Laravel 12 or 13. It can also be installed straight from GitHub (`vcs` repository):
 
 ```json
 "repositories": [
@@ -32,7 +32,7 @@ Requiere PHP 8.3+ y Laravel 12 o 13. También se puede instalar directamente des
 ]
 ```
 
-O desde una carpeta local (`path`), útil para desarrollo:
+Or from a local folder (`path`), useful for development:
 
 ```json
 "repositories": [
@@ -40,90 +40,90 @@ O desde una carpeta local (`path`), útil para desarrollo:
 ]
 ```
 
-Con estos repositorios: `composer require eduardoapatat/laravel-inertia-datatable:@dev`.
+With these repositories: `composer require eduardoapatat/laravel-inertia-datatable:@dev`.
 
-## Crear una tabla
+## Creating a table
 
 ```bash
-php artisan make:datatable ProductsTable                 # solo la clase (modelo deducido: App\Models\Product)
-php artisan make:datatable ProductsTable --react         # + componente components/data-tables/products-table.tsx
-php artisan make:datatable ProductsTable --page          # + componente + página pages/products/index.tsx
-php artisan make:datatable ProductsTable --react --install-ui   # instala también la UI genérica si falta
+php artisan make:datatable ProductsTable                 # only the class (guessed model: App\Models\Product)
+php artisan make:datatable ProductsTable --react         # + component components/data-tables/products-table.tsx
+php artisan make:datatable ProductsTable --page          # + component + page pages/products/index.tsx
+php artisan make:datatable ProductsTable --react --install-ui   # also installs the generic UI if missing
 php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
 ```
 
-Propone las columnas leyendo los casts del modelo y el esquema de la tabla: texto (buscable y ordenable), números, booleanos, fechas, enums (`multiSelect(Enum::class)`) y relaciones `belongsTo` (`category_id` → `from('category.name')`). Omite la clave primaria, los atributos `$hidden` y columnas sensibles (`password`, `remember_token`…).
+It proposes the columns from the model casts and the table schema: text (searchable and sortable), numbers, booleans, dates, enums (`multiSelect(Enum::class)`) and `belongsTo` relations (`category_id` → `from('category.name')`). It skips the primary key, `$hidden` attributes and sensitive columns (`password`, `remember_token`…).
 
-En React hay dos niveles: los componentes genéricos (`components/data-table/`, hook y libs) se instalan una vez por proyecto desde el registro, y cada tabla tiene su propio componente (`components/data-tables/<recurso>-table.tsx`) reutilizable en cualquier página. La clase PHP decide qué columnas se ven y en qué orden (también el de los filtros): las que el componente no declara se muestran con una celda por defecto según su tipo, y en el componente solo se declaran las columnas que se quieren personalizar (por ejemplo, una celda con un badge) o las que solo existen en el cliente (acciones o selección, al final salvo `meta: { position: 'start' }`).
+React has two levels: the generic components (`components/data-table/`, hook and libs) are installed once per project from the registry, and each table has its own component (`components/data-tables/<resource>-table.tsx`) reusable in any page. The PHP class decides which columns are shown and in which order (also the order of the filters): the columns the component does not declare are rendered with a default cell for their type, and the component only declares the columns it wants to customize (for example, a cell with a badge) or the ones that only exist on the client (actions or selection, at the end unless `meta: { position: 'start' }`).
 
-La disposición (buscador, filtros, Reset, menú de columnas y paginación) también se cambia en el componente de cada tabla, sin tocar los componentes compartidos: `DataTableToolbar` está hecho de piezas exportadas (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton`, `DataTableViewOptions`) que se pueden colocar en cualquier orden, y con `<DataTable pagination={false}>` la `DataTablePagination` va donde se quiera (por ejemplo, arriba). `--install-ui` ejecuta `shadcn add` con el gestor del lockfile y responde "no" a sobrescribir los `ui/` existentes; la URL del registro se configura en `inertia-datatable.registry_url` o con la variable `INERTIA_DATATABLE_REGISTRY_URL` (una URL o una carpeta local con los JSON compilados, por ejemplo para fijar la UI a una versión). La UI se instala aunque la tabla no llegue a crearse (modelo inexistente o clase ya existente). Si el modelo no existe, el comando lista los modelos disponibles.
+The layout (search, filters, Reset, column menu and pagination) is also changed in each table's component, without touching the shared components: `DataTableToolbar` is made of exported pieces (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton`, `DataTableViewOptions`) that can be placed in any order, and with `<DataTable pagination={false}>` the `DataTablePagination` goes wherever you want (for example, on top). `--install-ui` runs `shadcn add` with the lockfile's package manager and answers "no" to overwriting existing `ui/` files; the registry URL is set in `inertia-datatable.registry_url` or with the `INERTIA_DATATABLE_REGISTRY_URL` variable (a URL or a local folder with the compiled JSON, for example to pin the UI to a version). The UI is installed even when the table is not created (unknown model or existing class). When the model does not exist, the command lists the available models.
 
-### Instalar o actualizar la UI
-
-```bash
-php artisan inertia-datatable:ui            # instala la UI genérica si falta
-php artisan inertia-datatable:ui --update   # actualiza solo los archivos del DataTable (pide confirmación; --force para no preguntar)
-```
-
-La actualización usa el item `data-table-react-files`, que sobrescribe `components/data-table/*`, `components/ui/faceted.tsx`, el hook y `lib/data-table-*.ts`, sin tocar el resto de `components/ui/` del proyecto. Los cambios locales en esos archivos se pierden.
-
-Los stubs se pueden personalizar con `php artisan vendor:publish --tag=inertia-datatable-stubs`.
-
-## Instalación del frontend (React)
-
-En un proyecto con el starter kit de React de Laravel:
+### Installing or updating the UI
 
 ```bash
-php artisan inertia-datatable:ui            # o make:datatable … --install-ui
-php artisan inertia-datatable:ui --update   # trae la versión nueva de los archivos del DataTable
+php artisan inertia-datatable:ui            # installs the generic UI if missing
+php artisan inertia-datatable:ui --update   # updates only the DataTable files (asks for confirmation; --force to skip it)
 ```
 
-Instala, desde el registro de la misma versión que el paquete, `@tanstack/react-table` v9, el hook `useServerDataTable`, los componentes en `resources/js/components/data-table/` y las primitivas de shadcn que falten, respondiendo que no a sobrescribir los `ui/` que ya existen (el DataTable solo usa variantes que ya tiene el starter kit). A mano:
+The update uses the `data-table-react-files` item, which overwrites `components/data-table/*`, `components/ui/faceted.tsx`, the hook and `lib/data-table-*.ts`, without touching the rest of the project's `components/ui/`. Local changes to those files are lost.
+
+The stubs can be customized with `php artisan vendor:publish --tag=inertia-datatable-stubs`.
+
+## Frontend installation (React)
+
+In a project with Laravel's React starter kit:
+
+```bash
+php artisan inertia-datatable:ui            # or make:datatable … --install-ui
+php artisan inertia-datatable:ui --update   # brings the new version of the DataTable files
+```
+
+From the registry of the same version as the package, it installs `@tanstack/react-table` v9, the `useServerDataTable` hook, the components in `resources/js/components/data-table/` and the missing shadcn primitives, answering "no" to overwriting the existing `ui/` files (the DataTable only uses variants the starter kit already has). By hand:
 
 ```bash
 pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.1.0/r/data-table-react.json
 ```
 
-Para el uso en páginas, ver `make:datatable --react` arriba y la referencia de React de la skill (`skill/laravel-inertia-datatable/references/react.md`).
+For usage in pages, see `make:datatable --react` above and the skill's React reference (`skill/laravel-inertia-datatable/references/react.md`).
 
-## Skill de Claude Code
+## Claude Code skill
 
-Para que Claude Code sepa instalar el paquete y crear tablas en un proyecto:
+So Claude Code knows how to install the package and create tables in a project:
 
 ```bash
 pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.1.0/r/data-table-skill.json
 ```
 
-La deja en `.claude/skills/laravel-inertia-datatable/`.
+It is placed in `.claude/skills/laravel-inertia-datatable/`.
 
-## Desarrollo
+## Development
 
 ```bash
 composer install
 composer test           # Pest
 composer format         # Pint
 composer analyse        # Larastan
-composer check          # todo lo anterior (Pint en modo --test)
+composer check          # all of the above (Pint in --test mode)
 pnpm install
-pnpm run test           # tests del código compartido (Vitest)
-pnpm run check          # formato y lint (vite-plus)
+pnpm run test           # tests of the shared code (Vitest)
+pnpm run check          # format and lint (vite-plus)
 pnpm run types:check
-pnpm run registry:build # compila registry.json en r/
+pnpm run registry:build # compiles registry.json into r/
 ```
 
-Los tests usan SQLite en memoria; para otro motor se pasan las variables de Testbench, por ejemplo `DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5432 DB_DATABASE=testing DB_USERNAME=postgres DB_PASSWORD=password vendor/bin/pest`.
+Tests use in-memory SQLite; for another engine pass Testbench's variables, for example `DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5432 DB_DATABASE=testing DB_USERNAME=postgres DB_PASSWORD=password vendor/bin/pest`.
 
-El CI (`.github/workflows/`) corre:
+The CI (`.github/workflows/`) runs:
 
-- **tests**: Pest con PHP 8.3 a 8.5 y Laravel 12 y 13, MySQL 8.4 y Postgres 17, y el registro (formato, tests, tipos y que `r/` esté recompilado).
-- **starter kit**: crea un starter kit de React limpio, instala el paquete y la UI de este commit con `make:datatable --react --page --install-ui` (con npm y con pnpm) y pasa el `composer ci:check` del starter kit. También corre cada semana, porque el instalador usa `shadcn@latest`. Se puede ejecutar en local con `.github/scripts/starter-kit.sh npm /tmp/app`.
+- **tests**: Pest with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL 8.4 and Postgres 17, and the registry (format, tests, types and that `r/` is rebuilt).
+- **starter kit**: creates a clean React starter kit, installs the package and the UI of the commit with `make:datatable --react --page --install-ui` (with npm and with pnpm) and runs the starter kit's `composer ci:check`. It also runs every week, because the installer uses `shadcn@latest`. It can be run locally with `.github/scripts/starter-kit.sh npm /tmp/app`.
 
-## Publicar una versión
+## Releasing a version
 
-1. Mover lo de `## [Sin publicar]` de `CHANGELOG.md` a la nueva versión.
-2. Cambiar la versión en las URLs del registro del README y de la skill (`…/vX.Y.Z/r/…`) y recompilar `r/`.
-3. Commit, tag anotado `vX.Y.Z` y push del tag. Packagist la publica solo; `inertia-datatable:ui` instala la UI de ese tag.
+1. Move the `## [Unreleased]` entries of `CHANGELOG.md` to the new version.
+2. Change the version in the registry URLs of the README and the skill (`…/vX.Y.Z/r/…`) and rebuild `r/`.
+3. Commit, annotated tag `vX.Y.Z` and push the tag. Packagist publishes it by itself; `inertia-datatable:ui` installs the UI of that tag.
 
-## Créditos
+## Credits
 
-Parte del código de frontend incluye software de terceros con licencia MIT; ver [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+Part of the frontend code includes third-party MIT-licensed software; see [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).

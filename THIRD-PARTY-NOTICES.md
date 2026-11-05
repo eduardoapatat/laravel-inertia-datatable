@@ -1,6 +1,6 @@
-# Avisos de terceros
+# Third-party notices
 
-Parte del código de `registry/react/` (componentes de `components/data-table/`, `ui/faceted.tsx` y `lib/data-table-*.ts`) deriva de software publicado bajo la siguiente licencia:
+Part of the code in `registry/react/` (the `components/data-table/` components, `ui/faceted.tsx` and `lib/data-table-*.ts`) is derived from software published under the following license:
 
 ## MIT License
 
@@ -26,7 +26,7 @@ SOFTWARE.
 
 ---
 
-Los envoltorios de `cmdk` al final de `registry/react/ui/faceted.tsx` derivan de shadcn/ui, publicado bajo la siguiente licencia:
+The `cmdk` wrappers at the end of `registry/react/ui/faceted.tsx` are derived from shadcn/ui, published under the following license:
 
 ## MIT License
 

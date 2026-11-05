@@ -1,35 +1,35 @@
 # Changelog
 
-Todos los cambios relevantes de este paquete se documentan aquí. El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa [versionado semántico](https://semver.org/lang/es/). Mientras la versión sea 0.x, una versión menor (0.2, 0.3…) puede traer cambios incompatibles.
+All notable changes to this package are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [semantic versioning](https://semver.org/). While the version is 0.x, a minor version (0.2, 0.3…) may include breaking changes.
 
-## [Sin publicar]
+## [Unreleased]
 
 ## [0.1.0] - 2026-11-05
 
-Primera versión publicada: backend para Laravel y UI para React.
+First published version: Laravel backend and React UI.
 
-### Backend (paquete Composer)
+### Backend (Composer package)
 
-- Clases de tabla (`DataTable`) y forma rápida `DataTable::for($query)`, con columnas declarativas (`Column`): orden, búsqueda global, filtros `text`, `number`, `range`, `date`, `dateRange`, `boolean`, `select` y `multiSelect` (también con enums), columnas ocultas y no ocultables.
-- Contrato HTTP documentado en `docs/contract.md`: paginación, orden múltiple, filtros con operadores, búsqueda, visibilidad de columnas y prefijo por tabla para tener varias en la misma página. Los parámetros no válidos se ignoran y la respuesta devuelve el estado normalizado.
-- Facetas con conteos cruzados (cada filtro cuenta con los demás aplicados) y límites de los rangos.
-- Columnas de relaciones uno a uno (`belongsTo`, `hasOne`) para mostrar, filtrar, ordenar y buscar, y tablas hijas de un registro padre.
-- Orden estable: la clave primaria desempata siempre, en la dirección del primer criterio.
-- Funciona con SQLite, MySQL y Postgres.
-- `php artisan make:datatable`: deduce las columnas del modelo (casts, esquema, enums y relaciones) y, con `--react`/`--page`, genera el componente y la página de React. Lista los modelos disponibles si el indicado no existe.
-- `php artisan inertia-datatable:ui [--update]`: instala o actualiza la UI desde el registro de la misma versión del paquete, sin sobrescribir los `ui/` del proyecto. Se puede cambiar con `INERTIA_DATATABLE_REGISTRY_URL`.
+- Table classes (`DataTable`) and the quick form `DataTable::for($query)`, with declarative columns (`Column`): sorting, global search, `text`, `number`, `range`, `date`, `dateRange`, `boolean`, `select` and `multiSelect` filters (also with enums), hidden and non-hideable columns.
+- HTTP contract documented in `docs/contract.md`: pagination, multi-column sorting, filters with operators, search, column visibility and a per-table prefix to have several tables on one page. Invalid parameters are ignored and the response returns the normalized state.
+- Facets with cross counts (each filter counts with the others applied) and range bounds.
+- Columns from to-one relations (`belongsTo`, `hasOne`) to display, filter, sort and search, and child tables of a parent record.
+- Stable ordering: the primary key always breaks ties, in the direction of the first sort.
+- Works with SQLite, MySQL and Postgres.
+- `php artisan make:datatable`: guesses the columns from the model (casts, schema, enums and relations) and, with `--react`/`--page`, generates the React component and page. Lists the available models when the given one does not exist.
+- `php artisan inertia-datatable:ui [--update]`: installs or updates the UI from the registry of the same package version, without overwriting the project's `ui/` files. Can be changed with `INERTIA_DATATABLE_REGISTRY_URL`.
 
-### UI de React (registro shadcn)
+### React UI (shadcn registry)
 
-- Hook `useServerDataTable` sobre TanStack Table v9: el estado vive en la URL y cada cambio es una visita parcial de Inertia, con debounce en filtros de texto y búsqueda.
-- La clase PHP decide qué columnas se ven y en qué orden; el componente solo personaliza celdas o añade columnas propias (acciones, selección). Celdas por defecto según el tipo de filtro.
-- Toolbar con búsqueda, un filtro por columna (texto, número, rango, fechas, Sí/No y facetados con conteos), Reset y menú de columnas, y paginación con los tamaños que define el servidor.
-- Piezas exportadas (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton`, `DataTableViewOptions`, `DataTablePagination`) para cambiar la disposición en el componente de cada tabla.
+- `useServerDataTable` hook on top of TanStack Table v9: the state lives in the URL and every change is a partial Inertia visit, with debounced text filters and search.
+- The PHP class decides which columns are shown and in which order; the component only customizes cells or adds its own columns (actions, selection). Default cells by filter type.
+- Toolbar with search, one filter per column (text, number, range, dates, Yes/No and faceted with counts), Reset and column menu, and pagination with the page sizes defined by the server.
+- Exported pieces (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton`, `DataTableViewOptions`, `DataTablePagination`) to change the layout in each table's component.
 
-### Otros
+### Other
 
-- Skill de Claude Code (`data-table-skill`) para instalar el paquete y crear tablas.
-- CI: tests con PHP 8.3 a 8.5 y Laravel 12 y 13, MySQL y Postgres, registro recompilado, e instalación real en el starter kit de React con npm y pnpm (también cada semana).
+- Claude Code skill (`data-table-skill`) to install the package and create tables.
+- CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Sin publicar]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/releases/tag/v0.1.0
