@@ -105,12 +105,25 @@ it('adds the primary key as the last sort column so pages are stable', function 
     expect($rowsQuery)->toEndWith('order by "products"."price" asc, "products"."id" asc limit 10 offset 0');
 });
 
+it('breaks ties with the primary key in the direction of the first sort column', function () {
+    $first = Product::factory()->create(['price' => 50]);
+    $second = Product::factory()->create(['price' => 50]);
+    DB::enableQueryLog();
+
+    $response = getJson('/products?sort=-price')->assertOk();
+
+    $rowsQuery = collect(DB::getQueryLog())->pluck('query')->first(fn (string $sql) => str_contains($sql, 'limit'));
+    expect($rowsQuery)->toEndWith('order by "products"."price" desc, "products"."id" desc limit 10 offset 0')
+        ->and(array_column($response->json('data'), 'id'))->toBe([$second->id, $first->id]);
+});
+
 it('sorts by the value of a belongs-to relation', function () {
     seedCatalog();
 
     $response = getJson('/products?sort=-category');
 
-    $response->assertOk()->assertJsonPath('data.*.name', ['Silla', 'Lámpara', 'Mesa', 'Teclado']);
+    // Lámpara y Mesa empatan en Hogar: el desempate por id sigue la dirección del orden.
+    $response->assertOk()->assertJsonPath('data.*.name', ['Silla', 'Mesa', 'Lámpara', 'Teclado']);
 });
 
 it('filters rows with each variant and operator', function (string $query, array $expected) {

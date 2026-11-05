@@ -69,6 +69,7 @@ final class QueryApplier
 
     /**
      * Aplica el orden y, al final, la clave primaria como desempate para que la paginación sea estable.
+     * El desempate va en la dirección del primer criterio: con `-created_at`, lo último creado primero.
      *
      * @param  Builder<covariant Model>  $query
      * @param  list<SortItem>  $sorting
@@ -99,7 +100,7 @@ final class QueryApplier
         }
 
         if (! $isKeySorted) {
-            $query->orderBy($model->getQualifiedKeyName());
+            $query->orderBy($model->getQualifiedKeyName(), ($sorting[0] ?? null)?->desc ? 'desc' : 'asc');
         }
     }
 

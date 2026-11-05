@@ -49,7 +49,7 @@ Ejemplo completo:
 - Se usa `-created_at` (convención de spatie y JSON:API) en lugar de `created_at.desc`. La traducción desde el estado de TanStack la hace `registry/shared`.
 - Se descartan columnas que no son `sortable`, duplicados y lo que supere `maxSorts` (por defecto 3).
 - Sin orden válido → se aplica `defaultSort` de la tabla, si existe.
-- Siempre se añade la clave primaria como desempate final (si no está ya), para que la paginación sea estable.
+- Siempre se añade la clave primaria como desempate final (si no está ya), para que la paginación sea estable. Va en la dirección del primer criterio: `sort=-created_at` → `created_at desc, id desc`.
 - `state.sorting` refleja **solo el orden pedido explícitamente** (vacío si se usó el de por defecto); el de por defecto se informa en `config.default_sorting`. Así el cliente no escribe en la URL un orden que el usuario no eligió.
 
 ### 1.4 `filter[<col>]`
