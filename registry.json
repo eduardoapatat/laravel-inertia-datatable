@@ -16,7 +16,6 @@
             "registryDependencies": [
                 "button",
                 "calendar",
-                "command",
                 "direction",
                 "dropdown-menu",
                 "input",
