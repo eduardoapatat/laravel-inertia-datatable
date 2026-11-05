@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "../datatable-playground-react/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
