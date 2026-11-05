@@ -21,6 +21,7 @@ import { getMessage } from '@/lib/data-table-messages';
 
 import {
     getAriaSort,
+    getColumnClassName,
     getColumnPinningStyle,
     getColumnSizingStyle,
     getVisibleSelectedRows,
@@ -170,7 +171,13 @@ function DataTableHeadCell<TData extends RowData>({
                 <TableHead
                     aria-sort={ariaSort}
                     colSpan={header.colSpan}
-                    className={getCellClassName(pinned)}
+                    className={cn(
+                        getCellClassName(pinned),
+                        ...getColumnClassName(
+                            header.column.columnDef.meta,
+                            'header',
+                        ),
+                    )}
                     style={getColumnPinningStyle(header.column, pinned)}
                 >
                     {header.isPlaceholder ? null : (
@@ -297,7 +304,10 @@ function DataTableCellImpl<TData extends RowData>({
 }: DataTableCellProps<TData>) {
     return (
         <TableCell
-            className={getCellClassName(pinned)}
+            className={cn(
+                getCellClassName(pinned),
+                ...getColumnClassName(cell.column.columnDef.meta, 'cell'),
+            )}
             style={getColumnPinningStyle(cell.column, pinned)}
         >
             <FlexRender cell={cell} />

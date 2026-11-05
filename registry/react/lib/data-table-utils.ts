@@ -13,6 +13,7 @@ import type {
     ColumnFilterItem,
     ColumnSelectOption,
     ColumnVariantMeta,
+    DataTableColumnMeta,
     FilterOperator,
     FilterOperatorOption,
     FilterVariant,
@@ -158,17 +159,34 @@ export function getColumnPinningStyle<TData extends RowData>(
                 ? `var(${getColumnVar(column.id, 'offset')})`
                 : undefined,
         position: isPinned ? 'sticky' : 'relative',
-        width: `var(${getColumnVar(column.id, 'size')})`,
+        // The width is the `w-(--cell-size)` class of the cell, so the Tailwind
+        // classes of `meta.className` can replace it (an inline width cannot).
+        ['--cell-size' as string]: `var(${getColumnVar(column.id, 'size')})`,
         zIndex: isPinned ? 20 : undefined,
     };
+}
+
+/**
+ * Width class and the `meta` classes of a column, for its header or its cells
+ * (to combine with `cn`, which lets a `w-*` of the page replace the default).
+ */
+export function getColumnClassName(
+    meta: DataTableColumnMeta | undefined,
+    part: 'header' | 'cell',
+): string[] {
+    return [
+        'w-(--cell-size)',
+        meta?.className ?? '',
+        (part === 'header' ? meta?.headerClassName : meta?.cellClassName) ?? '',
+    ].filter(Boolean);
 }
 
 export function getColumnSizingStyle<TData extends RowData>(
     table: Table<DataTableFeatures, TData>,
 ): React.CSSProperties {
-    const style: Record<string, string> = {
-        minWidth: `${table.getTotalSize()}px`,
-    };
+    // No minWidth: with `table-fixed` the browser already widens the table to
+    // the sum of its columns, also when Tailwind classes change their width.
+    const style: Record<string, string> = {};
 
     for (const header of table.getFlatHeaders()) {
         style[getColumnVar(header.column.id, 'size')] = `${header.getSize()}px`;

@@ -94,6 +94,15 @@ export type DataTableColumnMeta = {
      */
     position?: 'start' | 'end';
     display?: ColumnDisplay;
+    /**
+     * Tailwind classes of the header and the cells, for example a responsive
+     * width (`w-40 md:w-80`, over `size`) or `text-right`.
+     */
+    className?: string;
+    /** Classes of the header only. */
+    headerClassName?: string;
+    /** Classes of the cells only. */
+    cellClassName?: string;
 } & ColumnVariantMeta;
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];
