@@ -192,6 +192,7 @@ Inertia convierte el objeto con `toArray()` (es `Arrayable`). Usar un closure ev
       { "id": "price", "label": "Precio", "sortable": true, "variant": "range", "placeholder": null, "unit": "$", "hideable": true, "visible": true }
     ],
     "searchable": true,
+    "per_page": 10,
     "per_page_options": [10, 20, 30, 50],
     "default_sorting": [ { "id": "created_at", "desc": true } ],
     "query": {
@@ -237,7 +238,7 @@ Datos que el cliente no puede calcular por sí mismo en modo servidor (sustituye
 
 ### 2.6 `config`
 
-Metadatos estáticos de la tabla para construir la UI: columnas (etiqueta, si se puede ordenar, variante de filtro, placeholder, unidad, si se puede ocultar, visibilidad por defecto), si hay búsqueda global, opciones de `per_page`, orden por defecto y nombres efectivos de los parámetros de la URL.
+Metadatos estáticos de la tabla para construir la UI: columnas (etiqueta, si se puede ordenar, variante de filtro, placeholder, unidad, si se puede ocultar, visibilidad por defecto), si hay búsqueda global, `per_page` por defecto y sus opciones, orden por defecto y nombres efectivos de los parámetros de la URL.
 
 El adaptador del cliente traduce cada columna a la `meta` de tablecn (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) y a `enableSorting` / `enableColumnFilter` / `enableHiding`, de modo que la definición vive en un solo lugar: el servidor.
 
