@@ -14,7 +14,9 @@ use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra
 {
-    use LazilyRefreshDatabase;
+    use LazilyRefreshDatabase {
+        migrateFreshUsing as defaultMigrateFreshUsing;
+    }
 
     protected function getPackageProviders($app): array
     {
@@ -29,9 +31,20 @@ abstract class TestCase extends Orchestra
         $app['config']->set('database.default', env('DB_CONNECTION', 'testing'));
     }
 
-    protected function defineDatabaseMigrations(): void
+    /**
+     * Las migraciones de prueba van en el migrate:fresh de LazilyRefreshDatabase. Con
+     * loadMigrationsFrom(), Testbench hace rollback tras cada test con la transacción del
+     * test abierta, y en Postgres el DROP se queda esperando ese bloqueo.
+     *
+     * @return array<string, mixed>
+     */
+    protected function migrateFreshUsing(): array
     {
-        $this->loadMigrationsFrom(__DIR__.'/Fixtures/migrations');
+        return [
+            ...$this->defaultMigrateFreshUsing(),
+            '--path' => __DIR__.'/Fixtures/migrations',
+            '--realpath' => true,
+        ];
     }
 
     /**
