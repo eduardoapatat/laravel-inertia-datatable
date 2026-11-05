@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import { getNumberAffix, type NumberAffix } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -273,11 +274,10 @@ function DataTableToolbarFilter<TData extends RowData>({
                     type="number"
                     inputMode="numeric"
                     placeholder={placeholder}
-                    unit={
-                        columnMeta.variant === 'number'
-                            ? columnMeta.unit
-                            : undefined
-                    }
+                    affix={getNumberAffix(
+                        columnMeta,
+                        column.table.options.meta?.locale,
+                    )}
                     className="w-30"
                 />
             );
@@ -324,13 +324,14 @@ interface DataTableFilterInputProps<
     TData extends RowData,
 > extends React.ComponentProps<'input'> {
     column: Column<DataTableFeatures, TData>;
-    unit?: string;
+    /** Unit or currency symbol next to the value (`getNumberAffix`). */
+    affix?: NumberAffix;
 }
 
 function DataTableFilterInput<TData extends RowData>({
     column,
     type = 'text',
-    unit,
+    affix,
     className,
     ...props
 }: DataTableFilterInputProps<TData>) {
@@ -348,14 +349,14 @@ function DataTableFilterInput<TData extends RowData>({
                         column.setFilterValue(event.target.value || undefined),
                 };
 
-                if (!unit)
+                if (!affix)
                     return <Input {...inputProps} className={className} />;
 
                 return (
                     <InputGroup className={className}>
                         <InputGroupInput {...inputProps} />
-                        <InputGroupAddon align="inline-end">
-                            <InputGroupText>{unit}</InputGroupText>
+                        <InputGroupAddon align={affix.align}>
+                            <InputGroupText>{affix.text}</InputGroupText>
                         </InputGroupAddon>
                     </InputGroup>
                 );

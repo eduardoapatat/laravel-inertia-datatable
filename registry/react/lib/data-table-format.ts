@@ -73,6 +73,51 @@ export function formatNumber(
     }
 }
 
+export interface NumberAffix {
+    text: string;
+    align: 'inline-start' | 'inline-end';
+}
+
+/**
+ * What goes next to the number inputs of a filter: the unit of plain numbers
+ * (`->unit('kg')`) at the end, or the symbol of the currency (`->money('CLP')`)
+ * on the side the locale puts it (`$` before in es-CL, `€` after in de-DE).
+ * Percentages and Intl units have none: the input takes the raw value.
+ */
+export function getNumberAffix(
+    meta: DataTableColumnMeta | undefined,
+    locale?: string,
+): NumberAffix | undefined {
+    const format =
+        meta?.display?.type === 'number' ? meta.display.format : undefined;
+
+    if (format?.style === 'currency' && format.currency) {
+        try {
+            const parts = new Intl.NumberFormat(locale, {
+                style: 'currency',
+                currency: format.currency,
+                currencyDisplay: format.currencyDisplay,
+            }).formatToParts(1);
+            const symbol = parts.findIndex((part) => part.type === 'currency');
+            const integer = parts.findIndex((part) => part.type === 'integer');
+            const text = parts[symbol]?.value;
+
+            return text
+                ? {
+                      text,
+                      align: symbol < integer ? 'inline-start' : 'inline-end',
+                  }
+                : undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    const unit = format?.style === undefined ? getUnit(meta) : undefined;
+
+    return unit ? { text: unit, align: 'inline-end' } : undefined;
+}
+
 /**
  * Date with a preset or Intl options. Dates without time (`2026-01-15`, or
  * midnight UTC as Laravel serializes `date` casts) are formatted in UTC so they

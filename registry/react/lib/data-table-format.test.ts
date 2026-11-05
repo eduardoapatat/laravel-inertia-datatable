@@ -5,6 +5,7 @@ import {
     formatCellValue,
     formatDateValue,
     formatNumber,
+    getNumberAffix,
     isDateOnly,
     isSafeUrl,
     truncate,
@@ -159,6 +160,51 @@ describe('truncate and isSafeUrl', () => {
         expect(isSafeUrl('https://example.com')).toBe(true);
         expect(isSafeUrl('javascript:alert(1)')).toBe(false);
         expect(isSafeUrl('not a url')).toBe(false);
+    });
+});
+
+describe('getNumberAffix', () => {
+    const money = (currency: string) => ({
+        variant: 'number' as const,
+        display: {
+            type: 'number' as const,
+            format: { style: 'currency' as const, currency },
+        },
+    });
+
+    it('puts the currency symbol on the side of the locale', () => {
+        expect(getNumberAffix(money('CLP'), 'es-CL')).toEqual({
+            text: '$',
+            align: 'inline-start',
+        });
+        expect(getNumberAffix(money('EUR'), 'de-DE')).toEqual({
+            text: '€',
+            align: 'inline-end',
+        });
+    });
+
+    it('puts the unit of plain numbers at the end', () => {
+        expect(
+            getNumberAffix(
+                { display: { type: 'number', unit: 'kg' } },
+                'en-US',
+            ),
+        ).toEqual({ text: 'kg', align: 'inline-end' });
+        expect(getNumberAffix({ variant: 'number', unit: 'u.' })).toEqual({
+            text: 'u.',
+            align: 'inline-end',
+        });
+    });
+
+    it('has none for percentages or columns without a unit', () => {
+        expect(
+            getNumberAffix({
+                variant: 'number',
+                unit: '%',
+                display: { type: 'number', format: { style: 'percent' } },
+            }),
+        ).toBeUndefined();
+        expect(getNumberAffix({ display: { type: 'number' } })).toBeUndefined();
     });
 });
 
