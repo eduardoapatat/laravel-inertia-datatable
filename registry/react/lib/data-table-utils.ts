@@ -1,6 +1,7 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
 import type {
+    Cell,
     Column,
     ColumnFilter,
     RowData,
@@ -173,12 +174,20 @@ export function getColumnPinningStyle<TData extends RowData>(
 export function getColumnClassName(
     meta: DataTableColumnMeta | undefined,
     part: 'header' | 'cell',
+    cell?: Cell<DataTableFeatures, RowData>,
 ): string[] {
-    return [
-        'w-(--cell-size)',
-        meta?.className ?? '',
-        (part === 'header' ? meta?.headerClassName : meta?.cellClassName) ?? '',
-    ].filter(Boolean);
+    const own =
+        part === 'header'
+            ? meta?.headerClassName
+            : typeof meta?.cellClassName === 'function'
+              ? cell
+                  ? meta.cellClassName(cell)
+                  : undefined
+              : meta?.cellClassName;
+
+    return ['w-(--cell-size)', meta?.className, own].filter(
+        (item): item is string => typeof item === 'string' && item !== '',
+    );
 }
 
 export function getColumnSizingStyle<TData extends RowData>(

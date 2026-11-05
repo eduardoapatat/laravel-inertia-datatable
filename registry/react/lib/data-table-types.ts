@@ -1,6 +1,7 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
 import type {
+    Cell,
     ColumnFilter,
     ColumnSort,
     Row,
@@ -84,6 +85,10 @@ export type DatePreset = Extract<
     string
 >;
 
+export type DataTableCellClassName = (
+    cell: Cell<DataTableFeatures, RowData>,
+) => string | false | null | undefined;
+
 export type DataTableColumnMeta = {
     label?: string;
     icon?: React.ComponentType<React.ComponentProps<'svg'>>;
@@ -101,8 +106,12 @@ export type DataTableColumnMeta = {
     className?: string;
     /** Classes of the header only. */
     headerClassName?: string;
-    /** Classes of the cells only. */
-    cellClassName?: string;
+    /**
+     * Classes of the cells only, or a function of each cell for classes that
+     * depend on its value: `(cell) => Number(cell.getValue()) < 100 && 'text-red-600'`
+     * (`cell.row.original` is the row).
+     */
+    cellClassName?: string | DataTableCellClassName;
 } & ColumnVariantMeta;
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];

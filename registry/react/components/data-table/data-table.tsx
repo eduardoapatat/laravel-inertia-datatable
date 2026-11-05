@@ -339,7 +339,11 @@ function DataTableCellImpl<TData extends RowData>({
         <TableCell
             className={cn(
                 getCellClassName(pinned),
-                ...getColumnClassName(cell.column.columnDef.meta, 'cell'),
+                ...getColumnClassName(
+                    cell.column.columnDef.meta,
+                    'cell',
+                    cell as Cell<DataTableFeatures, RowData>,
+                ),
             )}
             style={getColumnPinningStyle(cell.column, pinned)}
         >

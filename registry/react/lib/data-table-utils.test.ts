@@ -21,4 +21,24 @@ describe('getColumnClassName', () => {
             getColumnClassName({ cellClassName: 'font-mono' }, 'cell'),
         ).toEqual(['w-(--cell-size)', 'font-mono']);
     });
+
+    it('calls cellClassName with the cell when it is a function', () => {
+        const meta = {
+            cellClassName: (cell: { getValue: () => unknown }) =>
+                Number(cell.getValue()) < 100 && 'text-red-600',
+        };
+        const cell = (value: number) =>
+            ({ getValue: () => value }) as unknown as Parameters<
+                typeof getColumnClassName
+            >[2];
+
+        expect(getColumnClassName(meta, 'cell', cell(50))).toEqual([
+            'w-(--cell-size)',
+            'text-red-600',
+        ]);
+        expect(getColumnClassName(meta, 'cell', cell(500))).toEqual([
+            'w-(--cell-size)',
+        ]);
+        expect(getColumnClassName(meta, 'header')).toEqual(['w-(--cell-size)']);
+    });
 });
