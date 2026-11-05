@@ -1,0 +1,126 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry.json",
+    "name": "laravel-inertia-datatable",
+    "homepage": "https://github.com/eduardoapatat/laravel-inertia-datatable",
+    "items": [
+        {
+            "name": "data-table-react",
+            "type": "registry:block",
+            "title": "Data Table (React + Inertia)",
+            "description": "DataTable de shadcn/TanStack Table v9 con paginación, orden, filtros, búsqueda y visibilidad resueltos en el servidor por eduardoapatat/laravel-inertia-datatable.",
+            "dependencies": [
+                "@tanstack/react-table@^9.3.1",
+                "radix-ui",
+                "cmdk"
+            ],
+            "registryDependencies": [
+                "button",
+                "calendar",
+                "command",
+                "direction",
+                "dropdown-menu",
+                "input",
+                "input-group",
+                "label",
+                "popover",
+                "select",
+                "separator",
+                "skeleton",
+                "slider",
+                "table"
+            ],
+            "files": [
+                {
+                    "path": "registry/shared/lib/data-table-server.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-server.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-features.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-features.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-filters.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filters.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-format.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-format.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-types.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-types.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-utils.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-utils.ts"
+                },
+                {
+                    "path": "registry/react/hooks/use-server-data-table.ts",
+                    "type": "registry:hook",
+                    "target": "~/resources/js/hooks/use-server-data-table.ts"
+                },
+                {
+                    "path": "registry/react/ui/faceted.tsx",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-column-header.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-column-header.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-date-filter.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-date-filter.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-faceted-filter.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-faceted-filter.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-pagination.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-pagination.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-range-filter.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-range-filter.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-skeleton.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-skeleton.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-slider-filter.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-slider-filter.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-toolbar.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-toolbar.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-view-options.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-view-options.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table.tsx"
+                }
+            ]
+        }
+    ]
+}
