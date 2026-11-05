@@ -173,3 +173,35 @@ it('lists the available models when the model does not exist', function () {
         File::delete([app_path('Models/Customer.php'), app_path('Models/NotAModel.php')]);
     }
 });
+
+it('installs the data table UI even when the model does not exist', function () {
+    File::put(base_path('pnpm-lock.yaml'), '');
+    Process::fake(function () {
+        File::ensureDirectoryExists(resource_path('js/hooks'));
+        File::put(resource_path('js/hooks/use-server-data-table.ts'), '');
+
+        return Process::result();
+    });
+
+    artisan('make:datatable', ['name' => 'InvoicesTable', '--install-ui' => true])
+        ->expectsOutputToContain('does not exist')
+        ->assertFailed();
+
+    Process::assertRanTimes(fn ($process) => $process->command[0] === 'pnpm', 1);
+    expect(File::exists(app_path('DataTables/InvoicesTable.php')))->toBeFalse();
+});
+
+it('installs the data table UI even when the table already exists', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class])->assertSuccessful();
+    Process::fake(function () {
+        File::ensureDirectoryExists(resource_path('js/hooks'));
+        File::put(resource_path('js/hooks/use-server-data-table.ts'), '');
+
+        return Process::result();
+    });
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--install-ui' => true])
+        ->expectsOutputToContain('already exists');
+
+    Process::assertRanTimes(fn ($process) => in_array('add', $process->command, true), 1);
+});

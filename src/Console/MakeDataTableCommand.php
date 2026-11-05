@@ -33,15 +33,15 @@ class MakeDataTableCommand extends GeneratorCommand
     public function handle(): bool|int|null
     {
         $model = $this->modelClass();
+        $result = $model === null ? false : parent::handle();
 
-        if ($model === null) {
-            return self::FAILURE;
-        }
+        if ($model === null || $result === false) {
+            // La UI no depende de la tabla: con --install-ui se instala aunque la clase no se cree.
+            if ($this->option('install-ui')) {
+                $this->ensureUiIsInstalled($this->laravel->make(UiInstaller::class));
+            }
 
-        $result = parent::handle();
-
-        if ($result === false) {
-            return false;
+            return $model === null ? self::FAILURE : false;
         }
 
         $wantsReact = $this->option('react') || $this->option('page');
