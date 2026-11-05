@@ -4,6 +4,7 @@
 - Page structure
 - Columns and cells
 - Toolbar, pagination and loading state
+- Layout: reorder the pieces
 - Custom meta (icons, labels)
 - Several tables on one page
 - Files installed by the registry
@@ -72,10 +73,41 @@ Match the layout conventions of the app (breadcrumbs, wrappers, Wayfinder route 
 
 ## Toolbar, pagination and loading state
 
-- `<DataTableToolbar table={table} />` renders the global search (when the server allows it) and one control per filterable column: text/number inputs, faceted filters with counts, range slider, date pickers, Yes/No for booleans, plus Reset and the column visibility menu. Props: `searchPlaceholder`, `searchable` (override), `children` (extra buttons on the right).
-- Pagination is part of `<DataTable>`; page sizes come from the server.
+- `<DataTableToolbar table={table} />` renders the global search (when the server allows it) and one control per filterable column: text/number inputs, faceted filters with counts, range slider, date pickers, Yes/No for booleans, plus Reset and the column visibility menu. Props: `searchPlaceholder`, `searchable` (override), `children` (extra buttons on the right). For another arrangement, see the next section.
+- Pagination is part of `<DataTable>` (below the table; `pagination={false}` to place it yourself); page sizes come from the server.
 - `isLoading` is true while a visit is in flight; use it for a subtle opacity or a spinner, never to unmount the table (that would lose input focus).
 - Text filters and the search are debounced (300 ms, `debounceMs` option); paging, sorting and visibility navigate immediately.
+
+## Layout: reorder the pieces
+
+The toolbar and the pagination are made of exported pieces. To change the layout, compose them in the per-table component instead of editing `components/data-table/*`:
+
+| Piece | Import from | Notes |
+|---|---|---|
+| `DataTableSearch` | `data-table-toolbar` | Hidden when the PHP class has no `searchable()` column (force with `searchable`); `placeholder`, `className`. |
+| `DataTableFilters` | `data-table-toolbar` | One control per filterable column; `columns={['status', 'price']}` shows only those, in that order. Renders no wrapper. |
+| `DataTableFilter` | `data-table-toolbar` | A single filter: `column="status"`. |
+| `DataTableResetButton` | `data-table-toolbar` | Only visible while a filter or the search is active. |
+| `DataTableViewOptions` | `data-table-view-options` | Column visibility menu; `align`. |
+| `DataTablePagination` | `data-table-pagination` | Use with `<DataTable pagination={false}>`. |
+
+```tsx
+// Pagination on top, View menu first, two filters, and the status filter apart on the right.
+<DataTable table={table} pagination={false}>
+    <DataTablePagination table={table} />
+    <div className="flex flex-wrap items-center gap-2">
+        <DataTableViewOptions table={table} />
+        <DataTableSearch table={table} />
+        <DataTableFilters table={table} columns={['created_at', 'name']} />
+        <DataTableResetButton table={table} />
+        <div className="ml-auto">
+            <DataTableFilter table={table} column="status" />
+        </div>
+    </div>
+</DataTable>
+```
+
+Children of `<DataTable>` render above the table; anything else (titles, tabs, buttons) can sit between the pieces.
 
 ## Custom meta (icons, labels)
 

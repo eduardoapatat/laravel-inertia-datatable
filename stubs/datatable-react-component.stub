@@ -53,6 +53,10 @@ export function {{ component }}({
             aria-label="{{ title }}"
             className={cn(isLoading && 'opacity-60', className)}
         >
+            {/* To reorder the layout, replace the toolbar with its pieces:
+                DataTableSearch, DataTableFilters, DataTableFilter,
+                DataTableResetButton, DataTableViewOptions and, with
+                pagination={false}, DataTablePagination. */}
             <DataTableToolbar table={table} />
         </DataTable>
     );

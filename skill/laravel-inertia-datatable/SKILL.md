@@ -86,6 +86,7 @@ Write feature tests in the app's test style (see `references/testing.md`): autho
 - **Only to-one relations** (`belongsTo`, `hasOne`) can be columns; a `hasMany` column throws a `LogicException` on purpose. Use a parent-model table instead (`references/backend.md`).
 - **Filter/sort/search only work on declared columns.** Anything not declared with the matching capability is ignored by design (allow-list), not an error.
 - **Rows only contain visible columns.** Type row fields as optional in TypeScript and handle `undefined` in cells.
+- **Layout is composed in JSX.** To move the search, filters, Reset, View menu or pagination, replace `<DataTableToolbar>` with its exported pieces in the per-table component (`references/react.md`, "Layout"); never edit `components/data-table/*` for that.
 - **Columns and their order live in PHP.** Add, remove or reorder columns in `columns()`; do not mirror them in the React component unless a cell needs custom rendering.
 - **Several tables on one page** need `name()` (query parameter prefix) and distinct prop names.
 - **Case-insensitive matching of non-ASCII letters** (`Á`/`á`) does not work on SQLite; it does on MySQL/PostgreSQL.
