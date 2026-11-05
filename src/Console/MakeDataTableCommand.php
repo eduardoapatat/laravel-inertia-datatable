@@ -6,10 +6,8 @@ namespace EduardoApatat\InertiaDataTable\Console;
 
 use EduardoApatat\InertiaDataTable\Column;
 use EduardoApatat\InertiaDataTable\DataTable;
-use Generator;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
@@ -56,7 +54,7 @@ class MakeDataTableCommand extends GeneratorCommand
             $this->writeReactPage($model);
         }
 
-        if (($wantsReact || $this->option('install-ui')) && ! $this->ensureUiIsInstalled()) {
+        if (($wantsReact || $this->option('install-ui')) && ! $this->ensureUiIsInstalled($this->laravel->make(UiInstaller::class))) {
             return self::FAILURE;
         }
 
@@ -278,87 +276,6 @@ PHP;
         return implode("\n", $imports);
     }
 
-    /**
-     * Los componentes genéricos (DataTable, toolbar, filtros, hook) se instalan una vez por
-     * proyecto desde el registro; los comparten todas las tablas.
-     */
-    private function ensureUiIsInstalled(): bool
-    {
-        if ($this->isUiInstalled()) {
-            return true;
-        }
-
-        $command = [...$this->packageRunner(), 'shadcn@latest', 'add', $this->registryItemUrl('data-table-react'), '-y'];
-
-        if (! $this->option('install-ui')) {
-            $this->components->warn('The data table UI is not installed yet. Run: '.implode(' ', $command).' (or use --install-ui)');
-
-            return true;
-        }
-
-        $this->components->info('Installing the data table UI: '.implode(' ', $command));
-
-        // Responde "no" a cada pregunta de sobrescribir un componente ui/ existente. Las
-        // respuestas se entregan de una en una: de golpe, la CLI solo lee la primera.
-        $result = Process::path($this->laravel->basePath())
-            ->input($this->declineEveryPrompt())
-            ->timeout(600)
-            ->run($command, function (string $type, string $output): void {
-                $this->output->write($output);
-            });
-
-        if ($result->failed() || ! $this->isUiInstalled()) {
-            $this->components->error('The data table UI could not be installed. Run the command above manually.');
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * El hook solo existe si el item del registro está instalado. Lo cambia la instalación.
-     *
-     * @phpstan-impure
-     */
-    private function isUiInstalled(): bool
-    {
-        return $this->files->exists($this->laravel->resourcePath('js/hooks/use-server-data-table.ts'));
-    }
-
-    /**
-     * @return Generator<int, string>
-     */
-    private function declineEveryPrompt(): Generator
-    {
-        while (true) {
-            yield "n\n";
-        }
-    }
-
-    /**
-     * Ejecutor de paquetes según el lockfile del proyecto.
-     *
-     * @return list<string>
-     */
-    private function packageRunner(): array
-    {
-        return match (true) {
-            $this->files->exists($this->laravel->basePath('pnpm-lock.yaml')) => ['pnpm', 'dlx'],
-            $this->files->exists($this->laravel->basePath('bun.lock')), $this->files->exists($this->laravel->basePath('bun.lockb')) => ['bunx'],
-            $this->files->exists($this->laravel->basePath('yarn.lock')) => ['yarn', 'dlx'],
-            default => ['npx'],
-        };
-    }
-
-    private function registryItemUrl(string $item): string
-    {
-        /** @var string $base */
-        $base = config('inertia-datatable.registry_url');
-
-        return rtrim($base, '/')."/{$item}.json";
-    }
-
     private function reactColumn(GuessedColumn $column): string
     {
         $cell = match ($column->kind) {
@@ -376,6 +293,35 @@ PHP;
         ),
 {$cell}    }),
 TSX;
+    }
+
+    /**
+     * Los componentes genéricos (DataTable, toolbar, filtros, hook) se instalan una vez por
+     * proyecto desde el registro; los comparten todas las tablas.
+     */
+    private function ensureUiIsInstalled(UiInstaller $installer): bool
+    {
+        if ($installer->isInstalled()) {
+            return true;
+        }
+
+        $command = $installer->installCommand();
+
+        if (! $this->option('install-ui')) {
+            $this->components->warn('The data table UI is not installed yet. Run: '.implode(' ', $command).' (or use --install-ui)');
+
+            return true;
+        }
+
+        $this->components->info('Installing the data table UI: '.implode(' ', $command));
+
+        if (! $installer->run($command, fn (string $type, string $output) => $this->output->write($output))) {
+            $this->components->error('The data table UI could not be installed. Run the command above manually.');
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
