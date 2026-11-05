@@ -121,6 +121,34 @@
                     "target": "~/resources/js/components/data-table/data-table.tsx"
                 }
             ]
+        },
+        {
+            "name": "data-table-skill",
+            "type": "registry:item",
+            "title": "Claude Code skill: laravel-inertia-datatable",
+            "description": "Skill de Claude Code que guía la instalación del paquete y la creación de tablas server-side (make:datatable, controlador, página React y tests).",
+            "files": [
+                {
+                    "path": "skill/laravel-inertia-datatable/SKILL.md",
+                    "type": "registry:file",
+                    "target": "~/.claude/skills/laravel-inertia-datatable/SKILL.md"
+                },
+                {
+                    "path": "skill/laravel-inertia-datatable/references/backend.md",
+                    "type": "registry:file",
+                    "target": "~/.claude/skills/laravel-inertia-datatable/references/backend.md"
+                },
+                {
+                    "path": "skill/laravel-inertia-datatable/references/react.md",
+                    "type": "registry:file",
+                    "target": "~/.claude/skills/laravel-inertia-datatable/references/react.md"
+                },
+                {
+                    "path": "skill/laravel-inertia-datatable/references/testing.md",
+                    "type": "registry:file",
+                    "target": "~/.claude/skills/laravel-inertia-datatable/references/testing.md"
+                }
+            ]
         }
     ]
 }
