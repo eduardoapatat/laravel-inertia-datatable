@@ -109,7 +109,7 @@ function DataTableDateFilterContent<TData extends RowData>({
         : formatDate(selectedDates[0]);
 
     const label = (
-        <span className="flex items-center gap-2">
+        <span className="flex min-w-0 items-center gap-2">
             <span>{title}</span>
             {hasValue && (
                 <>
@@ -117,7 +117,13 @@ function DataTableDateFilterContent<TData extends RowData>({
                         orientation="vertical"
                         className="mx-0.5 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
                     />
-                    <span>{dateText}</span>
+                    {/* Long ranges are cut on small screens; the title shows them whole. */}
+                    <span
+                        title={dateText}
+                        className="max-w-32 truncate sm:max-w-none"
+                    >
+                        {dateText}
+                    </span>
                 </>
             )}
         </span>
