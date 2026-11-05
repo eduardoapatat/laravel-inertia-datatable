@@ -10,17 +10,18 @@
 
 ## Page structure
 
-`make:datatable --react` generates the per-table component (`components/data-tables/<resource>-table.tsx`) with this same structure, so most of the time you only adjust labels and cells there. Everything below also applies when writing it by hand.
+`make:datatable --react` generates the per-table component (`components/data-tables/<resource>-table.tsx`) with this same structure. Everything below also applies when writing it by hand.
 
-Two levels: the shared UI (`components/data-table/*`, `hooks/use-server-data-table.ts`, `lib/data-table-*.ts`) is installed once per project; each table gets its own component with its row type and columns, and pages just render it.
+Two levels: the shared UI (`components/data-table/*`, `hooks/use-server-data-table.ts`, `lib/data-table-*.ts`) is installed once per project; each table gets its own component with its row type and its customized columns, and pages just render it.
+
+**The PHP table class is the source of truth for the columns**: which ones are shown, their order (also in the toolbar filters), labels, sorting, filters and visibility. To add, remove or reorder a column, change `columns()` in PHP; the component does not need to change. The `columns` array in React only customizes columns (same `id`) or adds client-only ones (actions, selection).
 
 ```tsx
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '@/components/data-table/data-table';
-import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header';
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
-import { getOptionLabel, useServerDataTable } from '@/hooks/use-server-data-table';
+import { useServerDataTable } from '@/hooks/use-server-data-table';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type { ServerDataTable } from '@/lib/data-table-server';
 
@@ -33,16 +34,15 @@ type Product = {
 
 const columnHelper = createColumnHelper<DataTableFeatures, Product>();
 
-// Module level: TanStack needs a stable columns reference.
+// Module level: TanStack needs a stable columns reference. Only customized
+// columns go here; the rest come from the PHP class with default cells.
 const columns = columnHelper.columns([
     columnHelper.accessor('name', {
-        id: 'name',
-        header: ({ column }) => <DataTableColumnHeader column={column} label="Name" />,
+        cell: ({ cell }) => <strong>{cell.getValue()}</strong>,
     }),
-    columnHelper.accessor('status', {
-        id: 'status',
-        header: ({ column }) => <DataTableColumnHeader column={column} label="Status" />,
-        cell: ({ cell, column }) => getOptionLabel(column.columnDef.meta, cell.getValue()),
+    columnHelper.display({
+        id: 'actions',
+        cell: ({ row }) => <Link href={`/products/${row.original.id}`}>Edit</Link>,
     }),
 ]);
 
@@ -64,9 +64,11 @@ Match the layout conventions of the app (breadcrumbs, wrappers, Wayfinder route 
 
 ## Columns and cells
 
-- Every column `id` must equal the backend column id; that is how sorting, filters, labels and options get connected. Columns without a backend counterpart (actions, row selection) are left alone.
+- Every backend column is rendered, in the order of `columns()` in PHP, even if the component does not declare it: header with the server label and a default cell by filter variant — dates with `formatDate` (browser locale), booleans as Yes/No (also `1`/`0`), select/multi-select as option labels, numbers with their unit, anything else as text.
+- To customize a column, declare it with the backend column id (`columnHelper.accessor('status', { cell })`). Missing `header` or `cell` fall back to the defaults, so declaring only `cell` is enough.
+- Client-only columns (no backend id: actions, row selection) go after the backend columns; add `meta: { position: 'start' }` to put one first (for example a selection checkbox).
 - You do not set `enableSorting`, `enableColumnFilter`, `enableHiding` or filter `meta` yourself: the hook fills them from the server config (label, variant, placeholder, unit, options with counts, range bounds).
-- Cells: `getOptionLabel(column.columnDef.meta, value)` turns enum/option values into their labels; `formatDate(value)` from `@/lib/data-table-format` formats dates with the browser locale; booleans need an explicit cell (`value ? 'Yes' : 'No'`) or they render nothing.
+- In custom cells, `getOptionLabel(column.columnDef.meta, value)` turns enum/option values into their labels and `formatDate(value)` from `@/lib/data-table-format` formats dates.
 
 ## Toolbar, pagination and loading state
 
@@ -81,8 +83,6 @@ Page meta wins over server meta, so you can decorate options while keeping serve
 
 ```tsx
 columnHelper.accessor('status', {
-    id: 'status',
-    header: ...,
     meta: {
         variant: 'multi-select',
         options: [
@@ -100,6 +100,7 @@ Call the hook once per table with its own prop and give each backend table a `na
 ## Files installed by the registry
 
 - `hooks/use-server-data-table.ts` — the hook and `getOptionLabel`.
+- `components/data-table/data-table-default-column.tsx` — default header and cell for columns the component does not customize.
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
 - `lib/data-table-{features,filters,types,utils,format}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
 

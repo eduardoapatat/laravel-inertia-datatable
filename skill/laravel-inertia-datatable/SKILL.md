@@ -49,7 +49,7 @@ php artisan make:datatable ProductsTable --react --install-ui
 
 - The model is guessed from the class name (`ProductsTable` → `App\Models\Product`); pass `--model=...` otherwise (a full class name works for models outside `app/Models`).
 - Columns are proposed from the model casts and the DB schema: strings (searchable, sortable), numbers, booleans, dates, backed enums (`multiSelect(Enum::class)`) and `belongsTo` relations (`category_id` → `from('category.name')`). Primary key, `$hidden` and sensitive columns are skipped.
-- `--react` also writes `resources/js/components/data-tables/products-table.tsx`: a per-table component (row type, columns, hook, toolbar) used as `<ProductsTable products={products} />` in any page. `--page` additionally writes `resources/js/pages/products/index.tsx`, which only renders that component. Prefer `--react` when the page has more than the table (headers, tabs, several tables) and write the page by hand.
+- `--react` also writes `resources/js/components/data-tables/products-table.tsx`: a per-table component (row type, hook, toolbar) used as `<ProductsTable products={products} />` in any page. It declares no columns: the PHP class decides which columns are shown and in which order, and the component only customizes cells or adds client-only columns (`references/react.md`). `--page` additionally writes `resources/js/pages/products/index.tsx`, which only renders that component. Prefer `--react` when the page has more than the table (headers, tabs, several tables) and write the page by hand.
 - `--install-ui` installs the shared UI (`components/data-table/*`, hook, libs) when the project does not have it yet, declining to overwrite existing `ui/` files; without it the command only prints the install command. You can skip step 2's frontend install when using this flag. The UI is installed even when the table class is not created (unknown model or existing class). When the model does not exist, the command lists the available models: pick one with `--model`.
 - `--empty` skips the column guessing.
 
@@ -86,6 +86,7 @@ Write feature tests in the app's test style (see `references/testing.md`): autho
 - **Only to-one relations** (`belongsTo`, `hasOne`) can be columns; a `hasMany` column throws a `LogicException` on purpose. Use a parent-model table instead (`references/backend.md`).
 - **Filter/sort/search only work on declared columns.** Anything not declared with the matching capability is ignored by design (allow-list), not an error.
 - **Rows only contain visible columns.** Type row fields as optional in TypeScript and handle `undefined` in cells.
+- **Columns and their order live in PHP.** Add, remove or reorder columns in `columns()`; do not mirror them in the React component unless a cell needs custom rendering.
 - **Several tables on one page** need `name()` (query parameter prefix) and distinct prop names.
 - **Case-insensitive matching of non-ASCII letters** (`Á`/`á`) does not work on SQLite; it does on MySQL/PostgreSQL.
 
