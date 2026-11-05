@@ -57,8 +57,8 @@ export type ColumnVariantMeta =
       }[keyof ColumnVariantOptions];
 
 /**
- * Meta de la tabla: datos del servidor que necesitan los componentes
- * (paginación y toolbar) sin que cada página tenga que pasarlos.
+ * Table meta: server data the components need (pagination and toolbar)
+ * without every page having to pass it.
  */
 export interface DataTableTableMeta {
     pageSizeOptions?: number[];
@@ -70,8 +70,8 @@ export type DataTableColumnMeta = {
     icon?: React.ComponentType<React.ComponentProps<'svg'>>;
     placeholder?: string;
     /**
-     * Posición de una columna que no existe en la clase de la tabla (p. ej.
-     * selección o acciones): al final salvo que se indique `'start'`.
+     * Position of a column that does not exist in the table class (e.g.
+     * selection or actions): at the end unless `'start'` is given.
      */
     position?: 'start' | 'end';
 } & ColumnVariantMeta;

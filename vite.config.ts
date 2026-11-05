@@ -5,8 +5,8 @@ export default defineConfig({
         include: ['registry/**/*.test.ts'],
     },
     lint: {
-        // El código React se revisa con tipos en el playground, donde están
-        // instaladas sus dependencias (shadcn, TanStack, Inertia).
+        // The React code is type-checked by the starter kit CI job, where its
+        // dependencies (shadcn, TanStack, Inertia) are installed.
         ignorePatterns: [
             'vendor/**',
             'node_modules/**',

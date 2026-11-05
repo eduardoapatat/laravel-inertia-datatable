@@ -56,24 +56,24 @@ interface LocalTableState {
 }
 
 export interface UseServerDataTableOptions<TData extends RowData> {
-    /** Prop de Inertia con la respuesta del paquete laravel-inertia-datatable. */
+    /** Inertia prop with the response of the laravel-inertia-datatable package. */
     table: ServerDataTable<TData>;
-    /** Nombre de esa prop: las visitas recargan solo esta prop (`only`). */
+    /** Name of that prop: visits only reload this prop (`only`). */
     prop: string;
     /**
-     * Columnas de TanStack que personalizan las de la clase de la tabla (mismo
-     * id) o que solo existen en el cliente. El orden, las columnas que falten y
-     * su `meta` los decide el servidor.
+     * TanStack columns that customize the ones of the table class (same id) or
+     * that only exist on the client. The server decides the order, the missing
+     * columns and their `meta`.
      */
     columns: DataTableColumns<TData>;
-    /** Espera tras escribir un filtro o la búsqueda antes de pedir al servidor. */
+    /** Delay after typing in a filter or the search before requesting the server. */
     debounceMs?: number;
     getRowId?: TableOptions<DataTableFeatures, TData>['getRowId'];
 }
 
 /**
- * Tabla de TanStack en modo servidor: el estado vive en la URL y cada cambio
- * es una visita parcial de Inertia que devuelve la página ya procesada.
+ * TanStack table in server mode: the state lives in the URL and every change
+ * is a partial Inertia visit that returns the already processed page.
  */
 export function useServerDataTable<TData extends RowData>({
     table: serverTable,
@@ -96,9 +96,9 @@ export function useServerDataTable<TData extends RowData>({
         next: LocalTableState;
     } | null>(null);
 
-    // Cada respuesta trae el estado normalizado: es la fuente de verdad. Si el
-    // usuario siguió escribiendo después de la petición, se conservan sus
-    // filtros y su búsqueda para no pisar lo que está tecleando.
+    // Every response brings the normalized state: it is the source of truth. If
+    // the user kept typing after the request, their filters and search are kept
+    // so what they are typing is not overwritten.
     if (syncedServerState !== serverState) {
         setSyncedServerState(serverState);
         const fromServer = toLocalState(serverState);
@@ -147,8 +147,8 @@ export function useServerDataTable<TData extends RowData>({
     }
 
     /**
-     * Aplica un cambio sobre el último estado del mismo evento: varios setters
-     * seguidos (por ejemplo, el botón Reset) no deben pisarse entre sí.
+     * Applies a change on top of the latest state of the same event: several
+     * setters in a row (for example, the Reset button) must not overwrite each other.
      */
     function update(
         change: (current: LocalTableState) => LocalTableState,
@@ -238,7 +238,7 @@ export function useServerDataTable<TData extends RowData>({
             searchable: config.searchable,
         },
         rowCount: meta.total,
-        // Sin filas el servidor informa 1 página, no 0.
+        // Without rows the server reports 1 page, not 0.
         pageCount: meta.last_page,
         state,
         onPaginationChange,
@@ -279,7 +279,7 @@ function toQueryState(state: LocalTableState, config: ServerTableConfig) {
 
         const item = normalizeColumnFilter(filter, variant);
 
-        // Fechas relativas a hoy: todavía no las soporta el servidor.
+        // Dates relative to today: the server does not support them yet.
         if (item.operator === 'isRelativeToToday') {
             continue;
         }
@@ -303,10 +303,10 @@ function toQueryState(state: LocalTableState, config: ServerTableConfig) {
 }
 
 /**
- * Ordena las columnas como la clase de la tabla, crea las que el componente no
- * declara y completa cada una con lo que declara el servidor: etiqueta, variante de filtro, opciones con conteo,
- * límites del rango y capacidades. La `meta` que declare la página (por
- * ejemplo, iconos) tiene prioridad.
+ * Orders the columns like the table class, creates the ones the component does
+ * not declare and fills each one with what the server declares: label, filter
+ * variant, options with counts, range bounds and capabilities. The `meta`
+ * declared by the page (for example, icons) takes precedence.
  */
 function withServerMeta<TData extends RowData>(
     columns: DataTableColumns<TData>,
@@ -337,8 +337,8 @@ function withServerMeta<TData extends RowData>(
 }
 
 /**
- * Columna de la clase de la tabla que el componente no declara: lee el valor
- * por id, que es como el servidor arma cada fila.
+ * Column of the table class that the component does not declare: reads the
+ * value by id, which is how the server builds each row.
  */
 function defaultColumn<TData extends RowData>(
     id: string,
@@ -350,8 +350,8 @@ function defaultColumn<TData extends RowData>(
 }
 
 /**
- * Cabecera y celda por defecto para lo que no personalice el componente:
- * basta con declarar `cell` para cambiar solo cómo se ve el valor.
+ * Default header and cell for whatever the component does not customize:
+ * declaring `cell` is enough to change only how the value looks.
  */
 function withDefaults<TData extends RowData>(
     column: DataTableColumn<TData>,
@@ -430,8 +430,8 @@ function serverMeta(
 }
 
 /**
- * Las opciones siempre llevan el conteo del servidor, aunque la página las
- * redeclare (por ejemplo, para añadir iconos).
+ * Options always carry the server count, even when the page redeclares them
+ * (for example, to add icons).
  */
 function mergedOptions(
     facet: ServerFacetOption[] | ServerRangeFacet | undefined,

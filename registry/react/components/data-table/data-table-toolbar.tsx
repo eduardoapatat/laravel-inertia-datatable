@@ -35,16 +35,16 @@ interface DataTableToolbarProps<
     TData extends RowData,
 > extends React.ComponentProps<'div'> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
-    /** Muestra la búsqueda global; por defecto, si el servidor la permite. */
+    /** Shows the global search; by default, when the server allows it. */
     searchable?: boolean;
     searchPlaceholder?: string;
 }
 
 /**
- * Disposición por defecto: búsqueda, filtros y Reset a la izquierda; `children`
- * y el menú de columnas a la derecha. Para otro orden, compón las piezas
+ * Default layout: search, filters and Reset on the left; `children` and the
+ * column menu on the right. For another order, compose the pieces
  * (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`,
- * `DataTableResetButton`, `DataTableViewOptions`) en tu propio contenedor.
+ * `DataTableResetButton`, `DataTableViewOptions`) in your own container.
  */
 export function DataTableToolbar<TData extends RowData>({
     table,
@@ -84,13 +84,13 @@ interface DataTableSearchProps<
     TData extends RowData,
 > extends React.ComponentProps<'input'> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
-    /** Muestra la búsqueda global; por defecto, si el servidor la permite. */
+    /** Shows the global search; by default, when the server allows it. */
     searchable?: boolean;
 }
 
 /**
- * Búsqueda global (`?search=`). No se muestra si la clase de la tabla no
- * declara columnas `searchable()`, salvo que se fuerce con `searchable`.
+ * Global search (`?search=`). Hidden when the table class declares no
+ * `searchable()` column, unless forced with `searchable`.
  */
 export function DataTableSearch<TData extends RowData>({
     table,
@@ -124,13 +124,13 @@ export function DataTableSearch<TData extends RowData>({
 
 interface DataTableFiltersProps<TData extends RowData> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
-    /** Ids de las columnas a mostrar, en este orden; por defecto, todas. */
+    /** Ids of the columns to show, in this order; all of them by default. */
     columns?: string[];
 }
 
 /**
- * Un control por cada columna filtrable, en el orden de la tabla o en el de
- * `columns`. Sin envoltorio: se colocan dentro del contenedor del padre.
+ * One control per filterable column, in the table order or in the order of
+ * `columns`. No wrapper: they are laid out inside the parent container.
  */
 export function DataTableFilters<TData extends RowData>({
     table,
@@ -156,12 +156,12 @@ export function DataTableFilters<TData extends RowData>({
 
 interface DataTableFilterProps<TData extends RowData> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
-    /** Id de la columna en la clase de la tabla. */
+    /** Id of the column in the table class. */
     column: string;
 }
 
 /**
- * El filtro de una sola columna, para colocarlo aparte del resto.
+ * The filter of a single column, to place it apart from the rest.
  */
 export function DataTableFilter<TData extends RowData>({
     table,
@@ -181,7 +181,7 @@ interface DataTableResetButtonProps<
 }
 
 /**
- * Limpia los filtros y la búsqueda; solo aparece cuando hay alguno activo.
+ * Clears the filters and the search; only shown while one of them is active.
  */
 export function DataTableResetButton<TData extends RowData>({
     table,

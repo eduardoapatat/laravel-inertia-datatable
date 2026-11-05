@@ -663,9 +663,9 @@ export {
 // Copyright (c) 2023 shadcn. SPDX-License-Identifier: MIT
 
 /*
- * Envoltorios de cmdk con los estilos de shadcn (components/ui/command). Van
- * aquí para no instalar ui/command, cuyo CommandDialog exige una versión de
- * ui/dialog que el proyecto puede no tener.
+ * cmdk wrappers with the shadcn styles (components/ui/command). They live here
+ * so ui/command is not installed: its CommandDialog needs a version of
+ * ui/dialog the project may not have.
  */
 
 function Command({

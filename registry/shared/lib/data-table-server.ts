@@ -1,9 +1,9 @@
 /**
- * Contrato entre el DataTable y el paquete eduardoapatat/laravel-inertia-datatable.
+ * Contract between the DataTable and the eduardoapatat/laravel-inertia-datatable package.
  *
- * TypeScript puro, sin dependencias de React, Vue ni Inertia: tipos de la
- * respuesta del servidor y conversión del estado de la tabla a query string.
- * Ver docs/contract.md del paquete.
+ * Plain TypeScript, without React, Vue or Inertia dependencies: types of the
+ * server response and conversion of the table state to a query string.
+ * See docs/contract.md in the package.
  */
 
 export type FilterVariant =
@@ -93,7 +93,7 @@ export interface ServerTableState {
 }
 
 /**
- * Respuesta del paquete: la prop de Inertia (o el JSON) de una tabla.
+ * Package response: the Inertia prop (or the JSON) of a table.
  */
 export interface ServerDataTable<TData> {
     data: TData[];
@@ -111,7 +111,7 @@ export interface ServerDataTable<TData> {
 }
 
 /**
- * Estado de la tabla que se quiere llevar a la URL.
+ * Table state to put in the URL.
  */
 export interface TableQueryState {
     pageIndex: number;
@@ -158,7 +158,7 @@ const LIST_OPERATORS = new Set<FilterOperator>([
 const VALUELESS_OPERATORS = new Set<FilterOperator>(['isEmpty', 'isNotEmpty']);
 
 /**
- * Nombres que el servidor acepta como operador (forma de URL y clave).
+ * Names the server accepts as an operator (URL form and key).
  */
 const OPERATOR_NAMES = Object.entries(FILTER_OPERATOR_URL_NAMES).flatMap(
     ([key, urlName]) => [key.toLowerCase(), urlName],
@@ -174,8 +174,8 @@ export function serializeSorting(sorting: ServerSort[]): string {
 }
 
 /**
- * Valor de `filter[<col>]` con la sintaxis `[<operador>.]<valor>`.
- * Devuelve `null` si el filtro no tiene valor (no debe ir en la URL).
+ * Value of `filter[<col>]` with the `[<operator>.]<value>` syntax.
+ * Returns `null` when the filter has no value (it must not go in the URL).
  */
 export function serializeFilter(filter: ServerFilter): string | null {
     const urlName = FILTER_OPERATOR_URL_NAMES[filter.operator];
@@ -200,8 +200,8 @@ export function serializeFilter(filter: ServerFilter): string | null {
 }
 
 /**
- * Pares `[clave, valor]` del query string para el estado dado. Omite lo que
- * coincide con el valor por defecto para que las URLs queden limpias.
+ * Query string `[key, value]` pairs for the given state. Leaves out whatever
+ * matches the default so URLs stay clean.
  */
 export function stateToQuery(
     state: TableQueryState,
@@ -243,8 +243,8 @@ export function stateToQuery(
 }
 
 /**
- * URL con el estado de la tabla, conservando los parámetros que no son suyos
- * (otras tablas de la página, filtros propios de la pantalla…).
+ * URL with the table state, keeping the parameters that are not its own
+ * (other tables on the page, the screen's own filters…).
  */
 export function buildTableUrl(
     href: string,
@@ -263,19 +263,18 @@ export function buildTableUrl(
 }
 
 export interface ArrangeColumnsOptions<T> {
-    /** Id de la columna del cliente, si lo tiene. */
+    /** Id of the client column, if it has one. */
     getId: (column: T) => string | undefined;
-    /** Columnas solo de cliente que van al principio (p. ej. la de selección). */
+    /** Client-only columns that go first (e.g. the selection column). */
     isLeading: (column: T) => boolean;
-    /** Columna final para un id del servidor; recibe la del cliente si existe. */
+    /** Final column for a server id; receives the client one if it exists. */
     resolve: (id: string, column: T | undefined) => T;
 }
 
 /**
- * La clase de la tabla decide qué columnas hay y en qué orden: cada columna del
- * servidor aparece en su orden, usando la del cliente con el mismo id si existe.
- * Las columnas que solo existen en el cliente van al final, salvo las marcadas
- * como iniciales.
+ * The table class decides which columns exist and in which order: every server
+ * column appears in its order, using the client column with the same id if it
+ * exists. Client-only columns go at the end, except the ones marked as leading.
  */
 export function arrangeColumns<T>(
     clientColumns: readonly T[],
@@ -377,8 +376,8 @@ function serializeSingle(value: string | string[]): string | null {
 }
 
 /**
- * Lista separada por comas; entre comillas los valores con coma, comillas o
- * espacios en los extremos, duplicando las comillas internas.
+ * Comma-separated list; values with commas, quotes or surrounding spaces are
+ * quoted, doubling the inner quotes.
  */
 function joinList(values: string[]): string {
     return values
@@ -399,7 +398,7 @@ function startsWithOperatorName(raw: string): boolean {
 }
 
 /**
- * Corchetes y comas se dejan legibles: son válidos en un query string.
+ * Brackets and commas are kept readable: they are valid in a query string.
  */
 function encodeKey(key: string): string {
     return encodeURIComponent(key)

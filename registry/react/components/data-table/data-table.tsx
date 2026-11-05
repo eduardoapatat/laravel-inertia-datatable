@@ -41,8 +41,8 @@ interface DataTableProps<
     table: ReactTable<DataTableFeatures, TData, unknown>;
     actionBar?: React.ReactNode;
     /**
-     * Pinta la paginación debajo de la tabla. Con `false`, coloca
-     * `<DataTablePagination table={table} />` donde quieras (p. ej. arriba).
+     * Renders the pagination below the table. With `false`, place
+     * `<DataTablePagination table={table} />` wherever you want (e.g. on top).
      */
     pagination?: boolean;
 }

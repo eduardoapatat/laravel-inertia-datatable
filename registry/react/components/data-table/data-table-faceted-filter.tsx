@@ -75,7 +75,7 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
     columnFilterValue,
 }: DataTableFacetedFilterContentProps<TData, TValue>) {
     const dir = useDirection();
-    // Los filtros booleanos guardan un único valor ('true' / 'false').
+    // Boolean filters store a single value ('true' / 'false').
     const isScalar = column?.columnDef.meta?.variant === 'boolean';
     const selectedValues = Array.isArray(columnFilterValue)
         ? columnFilterValue.filter(

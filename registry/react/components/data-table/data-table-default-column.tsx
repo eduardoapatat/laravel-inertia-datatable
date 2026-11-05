@@ -10,8 +10,8 @@ import { formatDate } from '@/lib/data-table-format';
 import type { DataTableColumnMeta } from '@/lib/data-table-types';
 
 /**
- * Cabecera de una columna que no personaliza el componente: la etiqueta que
- * declara la clase de la tabla, con orden y ocultar si la columna lo permite.
+ * Header of a column the component does not customize: the label declared by
+ * the table class, with sorting and hiding when the column allows them.
  */
 export function DataTableDefaultHeader<TData extends RowData, TValue>({
     column,
@@ -27,8 +27,8 @@ export function DataTableDefaultHeader<TData extends RowData, TValue>({
 }
 
 /**
- * Celda de una columna que no personaliza el componente, formateada según el
- * filtro que declara la clase de la tabla.
+ * Cell of a column the component does not customize, formatted according to
+ * the filter declared by the table class.
  */
 export function DataTableDefaultCell<TData extends RowData, TValue>({
     cell,
@@ -58,7 +58,7 @@ export function formatCellValue(
                 ? formatDate(value)
                 : toText(value);
         case 'boolean':
-            // Algunas bases (SQLite, MySQL) devuelven 1/0 en lugar de true/false.
+            // Some databases (SQLite, MySQL) return 1/0 instead of true/false.
             return value === true || value === 1 || value === '1'
                 ? 'Yes'
                 : 'No';
@@ -92,8 +92,8 @@ function toText(value: unknown): string {
 }
 
 /**
- * Etiqueta de una opción (select / multi-select) tal como la declara el
- * servidor, para mostrar `Administrador` en lugar de `admin` en una celda.
+ * Label of an option (select / multi-select) as declared by the server, to
+ * show `Administrator` instead of `admin` in a cell.
  */
 export function getOptionLabel(
     meta: DataTableColumnMeta | undefined,
