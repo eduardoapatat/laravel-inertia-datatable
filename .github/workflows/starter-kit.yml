@@ -1,7 +1,7 @@
 name: starter kit
 
-# Instala el paquete en un starter kit de React limpio. Corre también cada semana porque
-# el instalador usa shadcn@latest y el starter kit cambia sin que cambie este repo.
+# Installs the package in a clean React starter kit. It also runs every week because the
+# installer uses shadcn@latest and the starter kit changes without this repo changing.
 on:
     push:
         branches: [main]
