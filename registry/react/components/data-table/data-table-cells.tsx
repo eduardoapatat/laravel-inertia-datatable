@@ -21,6 +21,7 @@ import type {
     ColumnSelectOption,
     DataTableColumnMeta,
 } from '@/lib/data-table-types';
+import { cn } from '@/lib/utils';
 
 type DataTableCellProps<TData extends RowData, TValue> = CellContext<
     DataTableFeatures,
@@ -108,7 +109,10 @@ export function DataTableTextCell<TData extends RowData, TValue>(
 }
 
 /**
- * Number, currency or percentage with Intl and the table locale.
+ * Number, currency or percentage with Intl and the table locale, right-aligned
+ * in a box that starts where the header label starts (like tablecn): figures
+ * line up without touching the next column. `meta.numberClassName` changes the
+ * box (`min-w-28` for long amounts).
  */
 export function DataTableNumberCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
@@ -116,7 +120,13 @@ export function DataTableNumberCell<TData extends RowData, TValue>(
     const { meta, locale } = cellSetup(props);
 
     return (
-        <span className="tabular-nums">
+        <span
+            data-slot="data-table-number"
+            className={cn(
+                'inline-block min-w-20 text-right tabular-nums',
+                meta?.numberClassName,
+            )}
+        >
             {formatCellValue(
                 meta?.display?.type === 'number'
                     ? meta

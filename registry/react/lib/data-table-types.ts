@@ -112,6 +112,11 @@ export type DataTableColumnMeta = {
      * (`cell.row.original` is the row).
      */
     cellClassName?: string | DataTableCellClassName;
+    /**
+     * Classes of the right-aligned box of number cells (`min-w-20` by
+     * default), for example `min-w-28` for long amounts.
+     */
+    numberClassName?: string;
 } & ColumnVariantMeta;
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];
