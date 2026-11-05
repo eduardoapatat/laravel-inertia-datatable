@@ -11,12 +11,12 @@ use InertiaDataTable\Enums\FilterVariant;
 use InertiaDataTable\FilterItem;
 
 /**
- * Interpreta un parámetro `filter[<col>]=[<operador>.]<valor>`.
+ * Parses a `filter[<col>]=[<operator>.]<value>` parameter.
  */
 final class FilterParser
 {
     /**
-     * Máximo de segmentos separados por punto que puede tener un operador (`not.is.empty`).
+     * Maximum number of dot-separated segments of an operator (`not.is.empty`).
      */
     private const int MAX_OPERATOR_PARTS = 3;
 
@@ -66,8 +66,8 @@ final class FilterParser
     }
 
     /**
-     * Separa el operador del valor. Si el prefijo no es un operador de la variante,
-     * todo el parámetro es el valor y se usa el operador implícito.
+     * Splits the operator from the value. If the prefix is not an operator of the variant,
+     * the whole parameter is the value and the implicit operator is used.
      *
      * @return array{FilterOperator, string}
      */
@@ -82,7 +82,7 @@ final class FilterParser
                 continue;
             }
 
-            // "eq" a secas no es un operador sin valor: se toma como valor literal.
+            // A bare "eq" is not a value-less operator: it is taken as a literal value.
             if ($count === count($parts) && ! $operator->isValueless()) {
                 continue;
             }
@@ -172,8 +172,8 @@ final class FilterParser
     }
 
     /**
-     * Lista separada por comas; un elemento entre comillas dobles puede contener comas,
-     * y `""` dentro de comillas es una comilla literal (igual que el frontend).
+     * Comma-separated list; an item in double quotes can contain commas,
+     * and `""` inside quotes is a literal quote (same as the frontend).
      *
      * @return list<string>
      */

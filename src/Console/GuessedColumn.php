@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace InertiaDataTable\Console;
 
 /**
- * Columna propuesta por `make:datatable` a partir del modelo y su esquema.
+ * Column proposed by `make:datatable` from the model and its schema.
  */
 final readonly class GuessedColumn
 {
     /**
-     * @param  list<string>  $calls  Llamadas encadenadas tras `Column::make()`, por ejemplo `sortable()`.
-     * @param  'string'|'number'|'boolean'|'date'|'option'  $kind  Tipo para la página React.
+     * @param  list<string>  $calls  Calls chained after `Column::make()`, for example `sortable()`.
+     * @param  'string'|'number'|'boolean'|'date'|'option'  $kind  Type for the React page.
      */
     public function __construct(
         public string $id,

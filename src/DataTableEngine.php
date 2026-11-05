@@ -12,7 +12,7 @@ use InertiaDataTable\Query\QueryApplier;
 use InertiaDataTable\Query\RelationResolver;
 
 /**
- * Resuelve una tabla para una request y produce la respuesta del contrato (docs/contract.md).
+ * Resolves a table for a request and builds the contract response (docs/contract.md).
  *
  * @phpstan-type DataTableResponse array{
  *     data: list<array<string, mixed>>,
@@ -112,7 +112,7 @@ final class DataTableEngine
     }
 
     /**
-     * Falla en cuanto se declara una columna de una relación a muchos, aunque solo se muestre.
+     * Fails as soon as a column of a to-many relation is declared, even if it is only displayed.
      */
     private function ensureRelationsAreToOne(TableDefinition $definition): void
     {

@@ -14,7 +14,7 @@ use InertiaDataTable\Concerns\ResolvesDataTable;
 use JsonSerializable;
 
 /**
- * Forma rápida de declarar una tabla: `DataTable::for(User::query())->columns([...])`.
+ * Quick way to declare a table: `DataTable::for(User::query())->columns([...])`.
  *
  * @implements Arrayable<string, mixed>
  */

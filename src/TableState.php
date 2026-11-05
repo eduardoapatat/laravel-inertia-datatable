@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace InertiaDataTable;
 
 /**
- * Estado de la tabla pedido en la request, ya normalizado.
+ * Table state requested in the request, already normalized.
  */
 final readonly class TableState
 {
     /**
-     * @param  list<SortItem>  $sorting  Orden pedido explícitamente (vacío si no hay).
+     * @param  list<SortItem>  $sorting  Sorting explicitly requested (empty when there is none).
      * @param  list<FilterItem>  $filters
      * @param  list<string>  $visibleColumns
      */
@@ -24,7 +24,7 @@ final readonly class TableState
     ) {}
 
     /**
-     * Filtros de todas las columnas salvo una (para los conteos cruzados).
+     * Filters of every column except one (for the cross counts).
      *
      * @return list<FilterItem>
      */

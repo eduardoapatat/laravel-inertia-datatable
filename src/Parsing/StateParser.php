@@ -10,7 +10,7 @@ use InertiaDataTable\TableDefinition;
 use InertiaDataTable\TableState;
 
 /**
- * Convierte el query string en un `TableState` normalizado según la definición de la tabla.
+ * Turns the query string into a `TableState` normalized against the table definition.
  */
 final class StateParser
 {

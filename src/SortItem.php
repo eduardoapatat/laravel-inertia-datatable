@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace InertiaDataTable;
 
 /**
- * Elemento de `SortingState` de TanStack.
+ * An item of TanStack's `SortingState`.
  */
 final readonly class SortItem
 {

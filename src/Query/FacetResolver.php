@@ -13,8 +13,8 @@ use InertiaDataTable\TableDefinition;
 use InertiaDataTable\TableState;
 
 /**
- * Calcula lo que TanStack no puede calcular en modo servidor: opciones con conteo
- * (select / multi-select) y límites de los rangos numéricos.
+ * Computes what TanStack cannot compute in server mode: options with counts
+ * (select / multi-select) and numeric range bounds.
  */
 final class FacetResolver
 {
@@ -44,7 +44,7 @@ final class FacetResolver
     }
 
     /**
-     * Conteo cruzado: con todos los filtros y la búsqueda, salvo los de la propia columna.
+     * Cross count: with every filter and the search applied, except the column's own filters.
      *
      * @return list<array{value: string, label: string, count?: int}>
      */
@@ -62,7 +62,7 @@ final class FacetResolver
 
         $labels = $declared ?? array_combine(array_keys($counts), array_map(strval(...), array_keys($counts)));
 
-        // Los valores seleccionados se muestran siempre, aunque ya no tengan filas.
+        // Selected values are always listed, even when they no longer have rows.
         foreach ($state->filtersFor($column->id()) as $filter) {
             foreach ((array) $filter->value as $value) {
                 if ($value !== '' && ! array_key_exists($value, $labels)) {
@@ -112,7 +112,7 @@ final class FacetResolver
     }
 
     /**
-     * Límites sobre la consulta base (sin filtros), salvo los fijados en la columna.
+     * Bounds over the base query (without filters), unless the column fixes them.
      *
      * @return array{min: int|float|null, max: int|float|null}
      */
@@ -137,7 +137,7 @@ final class FacetResolver
     }
 
     /**
-     * Consulta escalar que expone el valor de la columna como `facet_value`.
+     * Scalar query exposing the column value as `facet_value`.
      *
      * @param  Builder<covariant Model>  $query
      */

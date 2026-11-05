@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace InertiaDataTable\Enums;
 
 /**
- * Operadores de filtro del contrato (mismas claves que usa el DataTable del frontend).
+ * Filter operators of the contract (same keys as the frontend DataTable).
  *
- * El valor del enum es la clave que viaja en `state.columnFilters[].operator`;
- * `urlName()` es el nombre que se usa en el query string.
+ * The enum value is the key sent in `state.columnFilters[].operator`;
+ * `urlName()` is the name used in the query string.
  */
 enum FilterOperator: string
 {
@@ -46,7 +46,7 @@ enum FilterOperator: string
     }
 
     /**
-     * Busca un operador por su nombre de URL o por su clave, sin distinguir mayúsculas.
+     * Finds an operator by its URL name or its key, case-insensitively.
      */
     public static function fromName(string $name): ?self
     {
@@ -62,7 +62,7 @@ enum FilterOperator: string
     }
 
     /**
-     * Operadores que no llevan valor.
+     * Operators without a value.
      */
     public function isValueless(): bool
     {
@@ -70,7 +70,7 @@ enum FilterOperator: string
     }
 
     /**
-     * Operadores cuyo valor es una lista separada por comas.
+     * Operators whose value is a comma-separated list.
      */
     public function isList(): bool
     {
@@ -78,7 +78,7 @@ enum FilterOperator: string
     }
 
     /**
-     * Operador positivo del que este es la negación, si lo es.
+     * Positive operator this one negates, if it is a negation.
      */
     public function negationOf(): ?self
     {

@@ -6,11 +6,11 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Nombres de los parámetros del query string
+    | Query string parameter names
     |--------------------------------------------------------------------------
     |
-    | Nombres base de los parámetros del contrato (docs/contract.md). Si una
-    | tabla tiene nombre, se usan con prefijo: "users_page", "users_sort"…
+    | Base names of the contract parameters (docs/contract.md). When a table
+    | has a name they are prefixed: "users_page", "users_sort"…
     |
     */
 
@@ -25,7 +25,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Valores por defecto de cada tabla
+    | Defaults for every table
     |--------------------------------------------------------------------------
     */
 
@@ -41,13 +41,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Registro shadcn del frontend
+    | Frontend shadcn registry
     |--------------------------------------------------------------------------
     |
-    | Base de los items del registro que usan `make:datatable --install-ui` e
-    | `inertia-datatable:ui`. Con null se usa el de la misma versión que el
-    | paquete instalado (`…/v0.1.0/r`, o `…/main/r` en versiones de desarrollo).
-    | También puede ser otra URL o una carpeta local con los JSON compilados.
+    | Base of the registry items used by `make:datatable --install-ui` and
+    | `inertia-datatable:ui`. With null, the registry of the installed package
+    | version is used (`…/v0.1.0/r`, or `…/main/r` for development versions).
+    | It can also be another URL or a local folder with the compiled JSON.
     |
     */
 

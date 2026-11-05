@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use InvalidArgumentException;
 
 /**
- * Definición completa y validada de una tabla, independiente de cómo se declaró
- * (clase `DataTable` o `TableBuilder`).
+ * Complete, validated definition of a table, regardless of how it was declared
+ * (`DataTable` class or `TableBuilder`).
  */
 final readonly class TableDefinition
 {
@@ -92,7 +92,7 @@ final readonly class TableDefinition
     }
 
     /**
-     * Nombre efectivo de un parámetro del query string (con prefijo si la tabla tiene nombre).
+     * Effective name of a query string parameter (prefixed when the table has a name).
      */
     public function queryKey(string $parameter): string
     {

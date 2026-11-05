@@ -13,12 +13,12 @@ use ReflectionNamedType;
 use Throwable;
 
 /**
- * Propone las columnas de una tabla leyendo los casts del modelo y el esquema de la base de datos.
+ * Proposes the columns of a table from the model casts and the database schema.
  */
 final class ColumnGuesser
 {
     /**
-     * Columnas que nunca se proponen aunque no estén en `$hidden`.
+     * Columns that are never proposed, even when they are not in `$hidden`.
      */
     private const array EXCLUDED = [
         'password', 'remember_token', 'updated_at', 'deleted_at',
@@ -27,7 +27,7 @@ final class ColumnGuesser
     ];
 
     /**
-     * Atributos preferidos para mostrar un modelo relacionado.
+     * Preferred attributes to display a related model.
      */
     private const array DISPLAY_ATTRIBUTES = ['name', 'title', 'label', 'email'];
 
@@ -61,8 +61,8 @@ final class ColumnGuesser
     }
 
     /**
-     * La columna que identifica la fila (name, title… o el primer texto propio)
-     * va primero y no se puede ocultar.
+     * The column that identifies the row (name, title… or the first own text column)
+     * goes first and cannot be hidden.
      *
      * @param  list<GuessedColumn>  $columns
      * @return list<GuessedColumn>
@@ -106,7 +106,7 @@ final class ColumnGuesser
     }
 
     /**
-     * `category_id` → `Column::make('category')->from('category.name')` si existe la relación `category()`.
+     * `category_id` → `Column::make('category')->from('category.name')` when the `category()` relation exists.
      */
     private function guessRelation(Model $model, string $foreignKey, bool $nullable): ?GuessedColumn
     {

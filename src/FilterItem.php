@@ -8,7 +8,7 @@ use InertiaDataTable\Enums\FilterOperator;
 use InertiaDataTable\Enums\FilterVariant;
 
 /**
- * Filtro normalizado (forma `ColumnFilterItem` del frontend).
+ * Normalized filter (the frontend `ColumnFilterItem` shape).
  */
 final readonly class FilterItem
 {

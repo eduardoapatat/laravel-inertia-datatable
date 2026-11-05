@@ -7,8 +7,8 @@ namespace InertiaDataTable\Console;
 use Composer\InstalledVersions;
 
 /**
- * Registro shadcn de la misma versión que el paquete instalado, para que la UI que se instala
- * o actualiza coincida siempre con el backend: `v0.1.0` → `…/v0.1.0/r`; `dev-*` → `…/main/r`.
+ * shadcn registry of the same version as the installed package, so the UI that gets installed
+ * or updated always matches the backend: `v0.1.0` → `…/v0.1.0/r`; `dev-*` → `…/main/r`.
  */
 final class RegistryUrl
 {

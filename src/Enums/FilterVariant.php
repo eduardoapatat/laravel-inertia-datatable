@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace InertiaDataTable\Enums;
 
 /**
- * Variantes de filtro del contrato (mismas que usa el DataTable del frontend).
+ * Filter variants of the contract (same as the frontend DataTable).
  */
 enum FilterVariant: string
 {
@@ -19,7 +19,7 @@ enum FilterVariant: string
     case MultiSelect = 'multi-select';
 
     /**
-     * Operador que se aplica cuando el parámetro no indica ninguno.
+     * Operator applied when the parameter does not specify one.
      */
     public function implicitOperator(): FilterOperator
     {
@@ -32,7 +32,7 @@ enum FilterVariant: string
     }
 
     /**
-     * Operadores admitidos por la variante.
+     * Operators allowed for the variant.
      *
      * @return list<FilterOperator>
      */
@@ -76,7 +76,7 @@ enum FilterVariant: string
     }
 
     /**
-     * Variantes cuyas opciones (y conteos) calcula el servidor.
+     * Variants whose options (and counts) the server computes.
      */
     public function hasOptions(): bool
     {

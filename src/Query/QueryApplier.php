@@ -14,7 +14,7 @@ use InertiaDataTable\SortItem;
 use InertiaDataTable\TableDefinition;
 
 /**
- * Aplica filtros, búsqueda global y orden de una tabla a una consulta Eloquent.
+ * Applies the filters, global search and sorting of a table to an Eloquent query.
  */
 final class QueryApplier
 {
@@ -38,7 +38,7 @@ final class QueryApplier
     }
 
     /**
-     * Cada palabra debe aparecer en alguna columna buscable.
+     * Every word must appear in some searchable column.
      *
      * @param  Builder<covariant Model>  $query
      */
@@ -68,8 +68,8 @@ final class QueryApplier
     }
 
     /**
-     * Aplica el orden y, al final, la clave primaria como desempate para que la paginación sea estable.
-     * El desempate va en la dirección del primer criterio: con `-created_at`, lo último creado primero.
+     * Applies the sorting and, last, the primary key as a tiebreaker so pagination is stable.
+     * The tiebreaker follows the direction of the first sort: with `-created_at`, newest first.
      *
      * @param  Builder<covariant Model>  $query
      * @param  list<SortItem>  $sorting
@@ -93,7 +93,7 @@ final class QueryApplier
                 continue;
             }
 
-            // Un orden por defecto puede usar un atributo que no es columna de la tabla.
+            // A default sort may use an attribute that is not a column of the table.
             $attribute = $column?->attribute() ?? $item->id;
             $query->orderBy($model->qualifyColumn($attribute), $direction);
             $isKeySorted = $isKeySorted || $attribute === $model->getKeyName();
@@ -136,7 +136,7 @@ final class QueryApplier
         } elseif ($operator === FilterOperator::IsNotEmpty) {
             $this->whereNotEmpty($query, $sqlColumn, $filter->variant);
         } elseif ($positive !== null) {
-            // Las negaciones incluyen los NULL: "no es X" también vale para lo que no tiene valor.
+            // Negations include NULL: "is not X" also matches rows without a value.
             $query->where(fn (Builder $where) => $where
                 ->whereNot(fn (Builder $not) => $this->wherePredicate($not, $sqlColumn, $positive, $filter))
                 ->orWhereNull($sqlColumn));
@@ -225,7 +225,7 @@ final class QueryApplier
     }
 
     /**
-     * `LIKE %valor%` sin distinguir mayúsculas y con los comodines del usuario escapados.
+     * Case-insensitive `LIKE %value%` with the user's wildcards escaped.
      *
      * @param  Builder<covariant Model>  $query
      */
@@ -236,7 +236,7 @@ final class QueryApplier
 
         match ($query->getModel()->getConnection()->getDriverName()) {
             'pgsql' => $query->whereRaw("{$wrapped}::text ilike ?", [$pattern]),
-            // SQLite y SQL Server no tienen carácter de escape por defecto en LIKE.
+            // SQLite and SQL Server have no default escape character in LIKE.
             'sqlite', 'sqlsrv' => $query->whereRaw("{$wrapped} like ? escape '\\'", [$pattern]),
             default => $query->whereLike($column, $pattern),
         };

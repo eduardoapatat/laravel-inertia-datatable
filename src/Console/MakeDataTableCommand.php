@@ -36,7 +36,7 @@ class MakeDataTableCommand extends GeneratorCommand
         $result = $model === null ? false : parent::handle();
 
         if ($model === null || $result === false) {
-            // La UI no depende de la tabla: con --install-ui se instala aunque la clase no se cree.
+            // The UI does not depend on the table: --install-ui installs it even if the class is not created.
             if ($this->option('install-ui')) {
                 $this->ensureUiIsInstalled($this->laravel->make(UiInstaller::class));
             }
@@ -120,7 +120,7 @@ class MakeDataTableCommand extends GeneratorCommand
     }
 
     /**
-     * Modelo indicado con `--model` o deducido del nombre: `ProductsTable` → `Product`.
+     * Model given with `--model` or guessed from the name: `ProductsTable` → `Product`.
      *
      * @return class-string<Model>|null
      */
@@ -129,7 +129,7 @@ class MakeDataTableCommand extends GeneratorCommand
         /** @var string|null $option */
         $option = $this->option('model');
         $name = $option ?? Str::singular(Str::beforeLast(class_basename($this->getNameInput()), 'Table'));
-        // Una clase completa (modelos fuera de app/Models) se usa tal cual.
+        // A fully qualified class (models outside app/Models) is used as is.
         $model = class_exists($name) ? ltrim($name, '\\') : $this->qualifyModel($name);
 
         if (! class_exists($model) || ! is_subclass_of($model, Model::class)) {
@@ -148,7 +148,7 @@ class MakeDataTableCommand extends GeneratorCommand
     }
 
     /**
-     * Modelos Eloquent de `app/Models` (o `app/`), por nombre corto.
+     * Eloquent models in `app/Models` (or `app/`), by short name.
      *
      * @return list<string>
      */
@@ -201,8 +201,8 @@ PHP;
     }
 
     /**
-     * Componente de la tabla (tipo de la fila, hook y DataTable), reutilizable en cualquier página.
-     * Las columnas y su orden los decide la clase de la tabla.
+     * Table component (row type, hook and DataTable), reusable in any page.
+     * The table class decides the columns and their order.
      *
      * @param  class-string<Model>  $model
      */
@@ -239,7 +239,7 @@ PHP;
     }
 
     /**
-     * Página de Inertia que solo renderiza el componente de la tabla.
+     * Inertia page that only renders the table component.
      *
      * @param  class-string<Model>  $model
      */
@@ -272,8 +272,8 @@ PHP;
     }
 
     /**
-     * Los componentes genéricos (DataTable, toolbar, filtros, hook) se instalan una vez por
-     * proyecto desde el registro; los comparten todas las tablas.
+     * The generic components (DataTable, toolbar, filters, hook) are installed once per
+     * project from the registry; all tables share them.
      */
     private function ensureUiIsInstalled(UiInstaller $installer): bool
     {
@@ -340,7 +340,7 @@ PHP;
     }
 
     /**
-     * Stub publicado en la aplicación (`stubs/`) o el del paquete.
+     * Stub published in the application (`stubs/`) or the package one.
      */
     private function resolveStubPath(string $stub): string
     {

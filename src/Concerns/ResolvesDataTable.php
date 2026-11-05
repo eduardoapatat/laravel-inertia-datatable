@@ -10,7 +10,7 @@ use InertiaDataTable\DataTableEngine;
 use InertiaDataTable\TableDefinition;
 
 /**
- * Hace que una tabla funcione como prop de Inertia (Arrayable) y como respuesta JSON (Responsable).
+ * Lets a table work as an Inertia prop (Arrayable) and as a JSON response (Responsable).
  *
  * @phpstan-import-type DataTableResponse from DataTableEngine
  */
@@ -32,8 +32,8 @@ trait ResolvesDataTable
      */
     public function toArray(): array
     {
-        // Arrayable::toArray() no admite inyección: se resuelve el motor desde el contenedor
-        // para que una aplicación o un test puedan reemplazarlo.
+        // Arrayable::toArray() cannot receive injected arguments: the engine is resolved from
+        // the container so an application or a test can replace it.
         return app(DataTableEngine::class)->resolve($this->toDefinition(), $this->request ?? request());
     }
 

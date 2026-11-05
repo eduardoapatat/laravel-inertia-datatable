@@ -10,8 +10,8 @@ use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
 /**
- * Columna de un DataTable: id público, origen del valor y capacidades
- * (ordenar, filtrar, buscar, ocultar).
+ * A DataTable column: public id, source of the value and capabilities
+ * (sort, filter, search, hide).
  */
 final class Column
 {
@@ -58,7 +58,7 @@ final class Column
     }
 
     /**
-     * Toma el valor de otra columna o de una relación a uno: `from('category.name')`.
+     * Takes the value from another column or from a to-one relation: `from('category.name')`.
      */
     public function from(string $path): self
     {
@@ -93,7 +93,7 @@ final class Column
     }
 
     /**
-     * Oculta la columna por defecto (el usuario puede mostrarla).
+     * Hides the column by default (the user can show it).
      */
     public function hidden(bool $hidden = true): self
     {
@@ -124,7 +124,7 @@ final class Column
     }
 
     /**
-     * Filtro de rango numérico. Sin `min`/`max` se calculan con la consulta base.
+     * Numeric range filter. Without `min`/`max` they are computed from the base query.
      */
     public function range(int|float|null $min = null, int|float|null $max = null, ?string $unit = null): self
     {
@@ -171,7 +171,7 @@ final class Column
     }
 
     /**
-     * Activa o desactiva los conteos de las opciones (select / multi-select).
+     * Enables or disables the option counts (select / multi-select).
      */
     public function withCounts(bool $withCounts = true): self
     {
@@ -273,7 +273,7 @@ final class Column
     }
 
     /**
-     * Acepta una lista de valores, un mapa valor => etiqueta o un enum respaldado.
+     * Accepts a list of values, a value => label map or a backed enum.
      *
      * @param  array<array-key, string|int>|class-string<BackedEnum>|null  $options
      * @return array<string, string>|null

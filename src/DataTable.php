@@ -14,7 +14,7 @@ use JsonSerializable;
 use ReflectionMethod;
 
 /**
- * Tabla definida como clase (una por modelo o pantalla):
+ * Table defined as a class (one per model or screen):
  *
  *     class ProductsTable extends DataTable
  *     {
@@ -31,8 +31,8 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     use ResolvesDataTable;
 
     /**
-     * Crea la tabla desde el contenedor: el constructor admite inyección de dependencias
-     * y argumentos por nombre, por ejemplo `UserProductsTable::make(user: $user)`.
+     * Creates the table from the container: the constructor supports dependency injection
+     * and named arguments, for example `UserProductsTable::make(user: $user)`.
      */
     public static function make(mixed ...$parameters): static
     {
@@ -40,7 +40,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
-     * Forma rápida, sin clase: `DataTable::for(User::query())->columns([...])`.
+     * Quick form, without a class: `DataTable::for(User::query())->columns([...])`.
      *
      * @param  Builder<covariant Model>|Relation<covariant Model, covariant Model, mixed>  $query
      */
@@ -60,7 +60,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     abstract public function columns(): array;
 
     /**
-     * Orden por defecto con la sintaxis del contrato: `-created_at,name`.
+     * Default sort with the contract syntax: `-created_at,name`.
      */
     public function defaultSort(): ?string
     {
@@ -82,7 +82,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
-     * Nombre de la tabla; prefija sus parámetros cuando hay varias en una página.
+     * Name of the table; prefixes its parameters when a page has several tables.
      */
     public function name(): ?string
     {
@@ -90,7 +90,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
-     * Claves que se incluyen en cada fila aunque no sean columnas visibles.
+     * Keys included in every row even when they are not visible columns.
      *
      * @return list<string>|null
      */
@@ -100,7 +100,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
-     * Sobrescríbelo para dar forma a cada fila; las claves de columnas ocultas se quitan después.
+     * Override it to shape each row; the keys of hidden columns are removed afterwards.
      *
      * @return array<string, mixed>
      */

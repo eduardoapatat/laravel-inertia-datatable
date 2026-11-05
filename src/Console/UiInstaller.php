@@ -11,7 +11,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Process;
 
 /**
- * Instala o actualiza la UI genérica del DataTable desde el registro shadcn.
+ * Installs or updates the generic DataTable UI from the shadcn registry.
  */
 final class UiInstaller
 {
@@ -21,7 +21,7 @@ final class UiInstaller
     ) {}
 
     /**
-     * El hook solo existe si la UI está instalada. Lo cambian la instalación y la actualización.
+     * The hook only exists when the UI is installed. Installing and updating change it.
      *
      * @phpstan-impure
      */
@@ -31,7 +31,7 @@ final class UiInstaller
     }
 
     /**
-     * Primera instalación: incluye las primitivas de shadcn que falten, sin sobrescribir las existentes.
+     * First install: includes the missing shadcn primitives without overwriting the existing ones.
      *
      * @return list<string>
      */
@@ -41,7 +41,7 @@ final class UiInstaller
     }
 
     /**
-     * Actualización: sobrescribe solo los archivos propios del DataTable, nunca los ui/ de shadcn.
+     * Update: overwrites only the DataTable's own files, never the shadcn ui/ ones.
      *
      * @return list<string>
      */
@@ -56,8 +56,8 @@ final class UiInstaller
      */
     public function run(array $command, Closure $output): bool
     {
-        // Responde "no" a cada pregunta de sobrescribir un componente ui/ existente. Las
-        // respuestas se entregan de una en una: de golpe, la CLI solo lee la primera.
+        // Answers "no" to every prompt to overwrite an existing ui/ component. The answers are
+        // fed one at a time: all at once, the CLI only reads the first one.
         $result = Process::path($this->app->basePath())
             ->input($this->declineEveryPrompt())
             ->timeout(600)
@@ -77,7 +77,7 @@ final class UiInstaller
     }
 
     /**
-     * Ejecutor de paquetes según el lockfile del proyecto.
+     * Package runner of the project's lockfile.
      *
      * @return list<string>
      */

@@ -15,7 +15,7 @@ use InertiaDataTable\Column;
 use LogicException;
 
 /**
- * Resuelve las columnas que toman su valor de una relación a uno (`category.name`).
+ * Resolves the columns that take their value from a to-one relation (`category.name`).
  */
 final class RelationResolver
 {
@@ -44,7 +44,7 @@ final class RelationResolver
     }
 
     /**
-     * Subconsulta correlacionada que devuelve el valor relacionado de cada fila del padre.
+     * Correlated subquery returning the related value for each parent row.
      *
      * @param  Builder<covariant Model>  $parent
      * @return Builder<covariant Model>
@@ -53,8 +53,8 @@ final class RelationResolver
     {
         $relation = $this->relation($parent->getModel(), $column);
 
-        // Columna sin calificar: dentro de la subconsulta se resuelve contra la tabla
-        // relacionada, también cuando Laravel le pone alias (relaciones consigo misma).
+        // Unqualified column: inside the subquery it resolves against the related table,
+        // also when Laravel aliases it (self-referencing relations).
         return $relation
             ->getRelationExistenceQuery($relation->getRelated()->newQuery(), $parent->getModel()->newQuery(), [$column->attribute()])
             ->limit(1);
