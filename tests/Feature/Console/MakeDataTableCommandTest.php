@@ -8,6 +8,7 @@ use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Category;
 use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Process;
 
 use function Pest\Laravel\artisan;
 
@@ -91,6 +92,51 @@ it('creates a page that renders the component with the page option', function ()
         ->toContain('export default function ProductsIndex({ products }: Props) {')
         ->toContain('<ProductsTable products={products} />')
         ->toContain("href: '/products',");
+});
+
+it('shows the install command when the data table UI is missing', function () {
+    Process::fake();
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--react' => true])
+        ->expectsOutputToContain('npx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json -y')
+        ->assertSuccessful();
+
+    Process::assertNothingRan();
+});
+
+it('installs the data table UI with the package runner of the lockfile', function () {
+    File::put(base_path('pnpm-lock.yaml'), '');
+    Process::fake(function () {
+        File::ensureDirectoryExists(resource_path('js/hooks'));
+        File::put(resource_path('js/hooks/use-server-data-table.ts'), '');
+
+        return Process::result();
+    });
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--install-ui' => true])->assertSuccessful();
+
+    Process::assertRan(fn ($process) => $process->command === [
+        'pnpm', 'dlx', 'shadcn@latest', 'add',
+        'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-react.json', '-y',
+    ]);
+});
+
+it('fails when the data table UI is still missing after installing it', function () {
+    Process::fake();
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--install-ui' => true])
+        ->expectsOutputToContain('could not be installed')
+        ->assertFailed();
+});
+
+it('does not install the data table UI when the project already has it', function () {
+    File::ensureDirectoryExists(resource_path('js/hooks'));
+    File::put(resource_path('js/hooks/use-server-data-table.ts'), '');
+    Process::fake();
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--install-ui' => true])->assertSuccessful();
+
+    Process::assertNothingRan();
 });
 
 it('creates a table without columns with the empty option', function () {

@@ -39,4 +39,16 @@ return [
 
     'max_search_length' => 100,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Registro shadcn del frontend
+    |--------------------------------------------------------------------------
+    |
+    | Base de los items del registro que usa `make:datatable --install-ui`.
+    | Para desarrollar el paquete se puede apuntar a un servidor local.
+    |
+    */
+
+    'registry_url' => 'https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r',
+
 ];
