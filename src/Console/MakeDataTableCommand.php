@@ -228,7 +228,7 @@ PHP;
                         $column->nullable ? ' | null' : '',
                     ))->implode("\n"),
                     $names['prop'],
-                    ($columns[0] ?? null)?->id ?? 'name',
+                    $columns[0]->id ?? 'name',
                     $names['component'],
                     $names['title'],
                 ],
