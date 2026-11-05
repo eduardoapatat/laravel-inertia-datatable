@@ -69,6 +69,11 @@ export type DataTableColumnMeta = {
     label?: string;
     icon?: React.ComponentType<React.ComponentProps<'svg'>>;
     placeholder?: string;
+    /**
+     * Posición de una columna que no existe en la clase de la tabla (p. ej.
+     * selección o acciones): al final salvo que se indique `'start'`.
+     */
+    position?: 'start' | 'end';
 } & ColumnVariantMeta;
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];

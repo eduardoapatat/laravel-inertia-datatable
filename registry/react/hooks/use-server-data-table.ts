@@ -17,6 +17,7 @@ import {
     type DataTableFeatures,
 } from '@/lib/data-table-features';
 import {
+    arrangeColumns,
     buildTableUrl,
     type ServerColumnConfig,
     type ServerDataTable,
@@ -292,9 +293,10 @@ function toQueryState(state: LocalTableState, config: ServerTableConfig) {
 }
 
 /**
- * Completa cada columna con lo que declara el servidor: etiqueta, variante de
- * filtro, opciones con conteo, límites del rango y capacidades. La `meta` que
- * declare la página (por ejemplo, iconos) tiene prioridad.
+ * Ordena las columnas como la clase de la tabla y completa cada una con lo que
+ * declara el servidor: etiqueta, variante de filtro, opciones con conteo,
+ * límites del rango y capacidades. La `meta` que declare la página (por
+ * ejemplo, iconos) tiene prioridad.
  */
 function withServerMeta<TData extends RowData>(
     columns: DataTableColumns<TData>,
@@ -302,30 +304,48 @@ function withServerMeta<TData extends RowData>(
     facets: ServerDataTable<TData>['facets'],
 ): DataTableColumns<TData> {
     const byId = new Map(config.columns.map((column) => [column.id, column]));
+    const declared = new Set(columns.map(getColumnId));
 
-    return columns.map((column): DataTableColumn<TData> => {
-        const id = getColumnId(column);
-        const server = id === undefined ? undefined : byId.get(id);
+    return arrangeColumns(
+        columns,
+        config.columns
+            .map((column) => column.id)
+            .filter((id) => declared.has(id)),
+        {
+            getId: getColumnId,
+            isLeading: (column) =>
+                (column.meta as DataTableColumnMeta | undefined)?.position ===
+                'start',
+            resolve: (id, column) => {
+                const server = byId.get(id);
 
-        if (!server || id === undefined) {
-            return column;
-        }
+                return column && server
+                    ? withColumnMeta(column, server, facets[id])
+                    : (column as DataTableColumn<TData>);
+            },
+        },
+    );
+}
 
-        const userMeta = column.meta as DataTableColumnMeta | undefined;
+function withColumnMeta<TData extends RowData>(
+    column: DataTableColumn<TData>,
+    server: ServerColumnConfig,
+    facet: ServerFacetOption[] | ServerRangeFacet | undefined,
+): DataTableColumn<TData> {
+    const userMeta = column.meta as DataTableColumnMeta | undefined;
 
-        return {
-            ...column,
-            meta: {
-                ...serverMeta(server, facets[id], userMeta),
-                ...userMeta,
-                ...mergedOptions(facets[id], userMeta),
-            } as DataTableColumnMeta,
-            enableSorting: column.enableSorting ?? server.sortable,
-            enableColumnFilter:
-                column.enableColumnFilter ?? server.variant !== null,
-            enableHiding: column.enableHiding ?? server.hideable,
-        };
-    });
+    return {
+        ...column,
+        meta: {
+            ...serverMeta(server, facet, userMeta),
+            ...userMeta,
+            ...mergedOptions(facet, userMeta),
+        } as DataTableColumnMeta,
+        enableSorting: column.enableSorting ?? server.sortable,
+        enableColumnFilter:
+            column.enableColumnFilter ?? server.variant !== null,
+        enableHiding: column.enableHiding ?? server.hideable,
+    };
 }
 
 function serverMeta(

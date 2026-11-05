@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test';
 import {
+    arrangeColumns,
     buildTableUrl,
     serializeFilter,
     serializeSorting,
@@ -291,5 +292,49 @@ describe('buildTableUrl', () => {
         expect(
             buildTableUrl('https://app.test/products?page=2', [], config.query),
         ).toBe('/products');
+    });
+});
+
+describe('arrangeColumns', () => {
+    type Column = { id?: string; start?: boolean; custom?: boolean };
+
+    const options = {
+        getId: (column: Column) => column.id,
+        isLeading: (column: Column) => column.start === true,
+        resolve: (id: string, column: Column | undefined) => column ?? { id },
+    };
+
+    it('follows the order of the server and creates the missing columns', () => {
+        const client: Column[] = [{ id: 'email', custom: true }];
+
+        expect(
+            arrangeColumns(client, ['name', 'email', 'role'], options),
+        ).toEqual([
+            { id: 'name' },
+            { id: 'email', custom: true },
+            { id: 'role' },
+        ]);
+    });
+
+    it('places the client only columns at the end unless they are leading', () => {
+        const client: Column[] = [
+            { id: 'actions' },
+            { id: 'select', start: true },
+            { id: 'name', custom: true },
+        ];
+
+        expect(arrangeColumns(client, ['email', 'name'], options)).toEqual([
+            { id: 'select', start: true },
+            { id: 'email' },
+            { id: 'name', custom: true },
+            { id: 'actions' },
+        ]);
+    });
+
+    it('keeps the columns without id', () => {
+        expect(arrangeColumns([{}], ['name'], options)).toEqual([
+            { id: 'name' },
+            {},
+        ]);
     });
 });

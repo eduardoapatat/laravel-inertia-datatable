@@ -262,6 +262,50 @@ export function buildTableUrl(
     return `${url.pathname}${query === '' ? '' : `?${query}`}${url.hash}`;
 }
 
+export interface ArrangeColumnsOptions<T> {
+    /** Id de la columna del cliente, si lo tiene. */
+    getId: (column: T) => string | undefined;
+    /** Columnas solo de cliente que van al principio (p. ej. la de selección). */
+    isLeading: (column: T) => boolean;
+    /** Columna final para un id del servidor; recibe la del cliente si existe. */
+    resolve: (id: string, column: T | undefined) => T;
+}
+
+/**
+ * La clase de la tabla decide qué columnas hay y en qué orden: cada columna del
+ * servidor aparece en su orden, usando la del cliente con el mismo id si existe.
+ * Las columnas que solo existen en el cliente van al final, salvo las marcadas
+ * como iniciales.
+ */
+export function arrangeColumns<T>(
+    clientColumns: readonly T[],
+    serverIds: readonly string[],
+    { getId, isLeading, resolve }: ArrangeColumnsOptions<T>,
+): T[] {
+    const server = new Set(serverIds);
+    const byId = new Map<string, T>();
+    const leading: T[] = [];
+    const trailing: T[] = [];
+
+    for (const column of clientColumns) {
+        const id = getId(column);
+
+        if (id !== undefined && server.has(id)) {
+            byId.set(id, column);
+        } else if (isLeading(column)) {
+            leading.push(column);
+        } else {
+            trailing.push(column);
+        }
+    }
+
+    return [
+        ...leading,
+        ...serverIds.map((id) => resolve(id, byId.get(id))),
+        ...trailing,
+    ];
+}
+
 export function isTableQueryKey(key: string, keys: ServerQueryKeys): boolean {
     return (
         key === keys.page ||
