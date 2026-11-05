@@ -6,6 +6,7 @@ namespace InertiaDataTable;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use InertiaDataTable\Enums\DatePreset;
 use InertiaDataTable\Parsing\StateParser;
 use InertiaDataTable\Query\ColumnValidator;
 use InertiaDataTable\Query\FacetResolver;
@@ -110,7 +111,8 @@ final class DataTableEngine
             'config' => [
                 'columns' => array_values(array_map(fn (Column $column): array => $column->toConfig(), $definition->columns)),
                 'searchable' => $definition->isSearchable(),
-                'locale' => config('inertia-datatable.locale'),
+                'locale' => $this->locale($definition),
+                'date_format' => $this->dateFormat(),
                 'per_page' => $definition->perPage,
                 'per_page_options' => $definition->perPageOptions,
                 'default_sorting' => array_map(fn (SortItem $item): array => $item->toArray(), $definition->defaultSort),
@@ -124,6 +126,25 @@ final class DataTableEngine
                 ],
             ],
         ];
+    }
+
+    /**
+     * Locale to format numbers and dates: the table one, the configured one or
+     * the app locale; `browser` leaves it to each browser (null).
+     */
+    private function locale(TableDefinition $definition): ?string
+    {
+        $locale = $definition->locale ?? config('inertia-datatable.locale') ?? app()->getLocale();
+
+        return $locale === 'browser' ? null : str_replace('_', '-', (string) $locale);
+    }
+
+    /**
+     * Date format of the date columns without `->dateFormat()`.
+     */
+    private function dateFormat(): string
+    {
+        return DatePreset::ensure((string) config('inertia-datatable.date_format', 'long'), 'The inertia-datatable.date_format')->value;
     }
 
     /**

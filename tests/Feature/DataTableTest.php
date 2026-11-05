@@ -279,7 +279,8 @@ it('describes columns, options and query parameters in config', function () {
             'placeholder' => 'Buscar nombre…', 'unit' => null, 'hideable' => false, 'visible' => true,
             'display' => null,
         ])
-        ->assertJsonPath('config.locale', null)
+        ->assertJsonPath('config.locale', 'en')
+        ->assertJsonPath('config.date_format', 'long')
         ->assertJsonPath('config.searchable', true)
         ->assertJsonPath('config.per_page', 10)
         ->assertJsonPath('config.per_page_options', [10, 20, 30, 50])

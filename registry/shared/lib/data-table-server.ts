@@ -100,8 +100,10 @@ export interface ServerQueryKeys {
 export interface ServerTableConfig {
     columns: ServerColumnConfig[];
     searchable: boolean;
-    /** Locale to format numbers and dates; null uses the browser's. */
+    /** Locale to format numbers and dates (table, config or app); null uses the browser's. */
     locale?: string | null;
+    /** Preset of the date columns without their own format. */
+    date_format?: 'short' | 'medium' | 'long' | 'datetime' | 'relative';
     per_page: number;
     per_page_options: number[];
     default_sorting: ServerSort[];

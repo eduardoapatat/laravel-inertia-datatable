@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace InertiaDataTable\Concerns;
 
+use InertiaDataTable\Enums\DatePreset;
 use InvalidArgumentException;
 
 /**
@@ -14,16 +15,21 @@ use InvalidArgumentException;
  */
 trait HasDisplay
 {
-    private const DATE_PRESETS = ['short', 'medium', 'long', 'datetime', 'relative'];
-
     /** @var array<string, mixed>|null */
     private ?array $display = null;
 
     /**
-     * Amount in a currency (ISO 4217 code): `money('CLP')` → `$1.234`.
+     * Amount in a currency (ISO 4217 code): `money('CLP')` → `$1.234`. Without
+     * a currency, the one of `inertia-datatable.currency`.
      */
-    public function money(string $currency, ?int $decimals = null): static
+    public function money(?string $currency = null, ?int $decimals = null): static
     {
+        $currency ??= config('inertia-datatable.currency');
+
+        if (! is_string($currency)) {
+            throw new InvalidArgumentException('Pass a currency to money() or set inertia-datatable.currency.');
+        }
+
         if (preg_match('/^[A-Z]{3}$/', $currency) !== 1) {
             throw new InvalidArgumentException("The currency [{$currency}] must be an ISO 4217 code, such as USD or CLP.");
         }
@@ -58,17 +64,20 @@ trait HasDisplay
     }
 
     /**
-     * A preset (`short`, `medium`, `long`, `datetime`, `relative`) or Intl.DateTimeFormat options.
+     * A preset (`short`, `medium`, `long`, `datetime`, `relative`) or Intl.DateTimeFormat
+     * options. Without a format, the one of `inertia-datatable.date_format`.
      *
-     * @param  string|array<string, mixed>  $format
+     * @param  string|array<string, mixed>|null  $format
      */
-    public function dateFormat(string|array $format = 'medium'): static
+    public function dateFormat(string|array|null $format = null): static
     {
-        if (is_string($format) && ! in_array($format, self::DATE_PRESETS, true)) {
-            throw new InvalidArgumentException(sprintf('The date format [%s] is not one of: %s.', $format, implode(', ', self::DATE_PRESETS)));
+        $format ??= (string) config('inertia-datatable.date_format', 'long');
+
+        if (is_string($format)) {
+            DatePreset::ensure($format, 'The date format');
         }
 
-        $this->display = ['type' => 'date', 'format' => $format === [] ? 'medium' : $format];
+        $this->display = ['type' => 'date', 'format' => $format === [] ? 'long' : $format];
 
         return $this;
     }

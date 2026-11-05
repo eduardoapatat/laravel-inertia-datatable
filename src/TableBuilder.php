@@ -40,6 +40,8 @@ final class TableBuilder implements Arrayable, JsonSerializable, Responsable
     /** @var (Closure(Model): array<string, mixed>)|null */
     private ?Closure $transformer = null;
 
+    private ?string $locale = null;
+
     /**
      * @param  Builder<covariant Model>|Relation<covariant Model, covariant Model, mixed>  $query
      */
@@ -97,6 +99,16 @@ final class TableBuilder implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
+     * Locale to format numbers and dates of this table (`'en-US'`, `'browser'`).
+     */
+    public function locale(string $locale): self
+    {
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    /**
      * @param  Closure(Model): array<string, mixed>  $transformer
      */
     public function transform(Closure $transformer): self
@@ -120,6 +132,7 @@ final class TableBuilder implements Arrayable, JsonSerializable, Responsable
             name: $this->name,
             alwaysInclude: $this->alwaysInclude,
             transformer: $this->transformer,
+            locale: $this->locale,
         );
     }
 }

@@ -90,6 +90,15 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
+     * Locale to format numbers and dates of this table (`'en-US'`, `'browser'`);
+     * null uses `inertia-datatable.locale` or the app locale.
+     */
+    public function locale(): ?string
+    {
+        return null;
+    }
+
+    /**
      * Keys included in every row even when they are not visible columns.
      *
      * @return list<string>|null
@@ -122,6 +131,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
             name: $this->name(),
             alwaysInclude: $this->alwaysInclude(),
             transformer: $overridesTransform ? $this->transform(...) : null,
+            locale: $this->locale(),
         );
     }
 }

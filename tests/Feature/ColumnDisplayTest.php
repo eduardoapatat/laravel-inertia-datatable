@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use InertiaDataTable\Column;
 use InertiaDataTable\DataTable;
+use InertiaDataTable\TableBuilder;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
 
 function displayOf(Column $column): mixed
@@ -35,7 +37,7 @@ it('adds up the number methods', function () {
 });
 
 it('formats dates with a preset or Intl options', function () {
-    expect(displayOf(Column::make('released_on')->dateFormat()))->toBe(['type' => 'date', 'format' => 'medium'])
+    expect(displayOf(Column::make('released_on')->dateFormat()))->toBe(['type' => 'date', 'format' => 'long'])
         ->and(displayOf(Column::make('created_at')->dateFormat('relative')))->toBe(['type' => 'date', 'format' => 'relative'])
         ->and(displayOf(Column::make('created_at')->dateFormat(['month' => 'short', 'year' => 'numeric'])))
         ->toBe(['type' => 'date', 'format' => ['month' => 'short', 'year' => 'numeric']]);
@@ -69,6 +71,64 @@ it('rejects invalid formats', function (Closure $build, string $message) {
     'date preset' => [fn () => Column::make('created_at')->dateFormat('full'), 'The date format [full] is not one of: short, medium, long, datetime, relative.'],
     'limit' => [fn () => Column::make('notes')->limit(0), 'The text limit must be at least 1 character.'],
 ]);
+
+it('uses the configured currency and date format as defaults', function () {
+    config()->set('inertia-datatable.currency', 'MXN');
+    config()->set('inertia-datatable.date_format', 'short');
+
+    expect(displayOf(Column::make('price')->money()))->toBe(['type' => 'number', 'format' => ['style' => 'currency', 'currency' => 'MXN']])
+        ->and(displayOf(Column::make('price')->money('EUR')))->toBe(['type' => 'number', 'format' => ['style' => 'currency', 'currency' => 'EUR']])
+        ->and(displayOf(Column::make('released_on')->dateFormat()))->toBe(['type' => 'date', 'format' => 'short']);
+});
+
+it('asks for a currency when there is no default', function () {
+    Column::make('price')->money();
+})->throws(InvalidArgumentException::class, 'Pass a currency to money() or set inertia-datatable.currency.');
+
+it('resolves the locale from the table, the config or the app', function () {
+    $resolve = fn (?TableBuilder $table = null): mixed => ($table ?? DataTable::for(Product::query())->columns([Column::make('name', 'Name')]))
+        ->withRequest(Request::create('/'))
+        ->toArray()['config']['locale'];
+
+    app()->setLocale('es_MX');
+    expect($resolve())->toBe('es-MX');
+
+    config()->set('inertia-datatable.locale', 'en-GB');
+    expect($resolve())->toBe('en-GB')
+        ->and($resolve(DataTable::for(Product::query())->columns([Column::make('name', 'Name')])->locale('pt-BR')))->toBe('pt-BR')
+        ->and($resolve(DataTable::for(Product::query())->columns([Column::make('name', 'Name')])->locale('browser')))->toBeNull();
+
+    config()->set('inertia-datatable.locale', 'browser');
+    expect($resolve())->toBeNull();
+});
+
+it('takes the locale of a table class', function () {
+    $table = new class extends DataTable
+    {
+        public function query(): Builder
+        {
+            return Product::query();
+        }
+
+        public function columns(): array
+        {
+            return [Column::make('name', 'Name')];
+        }
+
+        public function locale(): ?string
+        {
+            return 'fr-CA';
+        }
+    };
+
+    expect($table->withRequest(Request::create('/'))->toArray()['config']['locale'])->toBe('fr-CA');
+});
+
+it('rejects an unknown default date format', function () {
+    config()->set('inertia-datatable.date_format', 'full');
+
+    DataTable::for(Product::query())->columns([Column::make('name', 'Name')])->withRequest(Request::create('/'))->toArray();
+})->throws(InvalidArgumentException::class, 'The inertia-datatable.date_format [full] is not one of: short, medium, long, datetime, relative.');
 
 it('sends the display and the locale in the response config', function () {
     config()->set('inertia-datatable.locale', 'es-CL');

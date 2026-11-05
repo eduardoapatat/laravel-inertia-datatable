@@ -41,16 +41,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Display locale
+    | Language and formats
     |--------------------------------------------------------------------------
     |
-    | Locale used by the UI to format numbers, currencies and dates (for
-    | example "es-CL": 1.234,50 and "5 de noviembre de 2026"). With null,
-    | each browser uses its own.
+    | locale: formats numbers, currencies and dates (for example "es-MX":
+    | 1,234.50 and "5 de noviembre de 2026"). With null, the app locale
+    | (app()->getLocale(), from APP_LOCALE); "browser" leaves it to each
+    | browser. A table can override it with locale(); the React hook too.
+    |
+    | currency: ISO 4217 code used by ->money() without a currency.
+    |
+    | date_format: preset of ->dateFormat() without a format and of the date
+    | columns without one: short, medium, long, datetime or relative.
+    |
+    | The UI texts follow the app language; publish them to translate or
+    | change them: php artisan vendor:publish --tag=inertia-datatable-lang
     |
     */
 
     'locale' => null,
+
+    'currency' => null,
+
+    'date_format' => 'long',
 
     /*
     |--------------------------------------------------------------------------

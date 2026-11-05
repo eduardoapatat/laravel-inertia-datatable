@@ -49,6 +49,7 @@ final readonly class TableDefinition
         public ?string $name = null,
         ?array $alwaysInclude = null,
         public ?Closure $transformer = null,
+        public ?string $locale = null,
     ) {
         $this->query = $query instanceof Relation ? $query->getQuery() : $query;
 
