@@ -69,6 +69,16 @@ const { table, isLoading } = useServerDataTable({ table: users, prop: 'users', c
 </DataTable>
 ```
 
+## Skill de Claude Code
+
+Para que Claude Code sepa instalar el paquete y crear tablas en un proyecto:
+
+```bash
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/main/r/data-table-skill.json
+```
+
+La deja en `.claude/skills/laravel-inertia-datatable/`.
+
 ## Desarrollo
 
 ```bash
