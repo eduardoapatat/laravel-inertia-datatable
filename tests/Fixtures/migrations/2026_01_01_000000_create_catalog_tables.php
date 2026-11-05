@@ -38,5 +38,15 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('readings', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->decimal('amount', 10, 2);
+            $table->decimal('total', 10, 2);
+            $table->float('ratio');
+            $table->boolean('active');
+            $table->boolean('verified');
+        });
     }
 };

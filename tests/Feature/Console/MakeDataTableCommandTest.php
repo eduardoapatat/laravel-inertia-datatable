@@ -10,6 +10,7 @@ use InertiaDataTable\Console\RegistryUrl;
 use InertiaDataTable\Tests\Fixtures\Models\Account;
 use InertiaDataTable\Tests\Fixtures\Models\Category;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
+use InertiaDataTable\Tests\Fixtures\Models\Reading;
 
 use function Pest\Laravel\artisan;
 
@@ -81,6 +82,17 @@ it('creates a reusable React component with the react option', function () {
         ->toContain('export function ProductsTable({')
         ->toContain("prop = 'products',")
         ->and(File::exists(resource_path('js/pages/products/index.tsx')))->toBeFalse();
+});
+
+it('types the React row as the values arrive in the JSON', function () {
+    artisan('make:datatable', ['name' => 'ReadingsTable', '--model' => Reading::class, '--react' => true])->assertSuccessful();
+
+    expect(File::get(resource_path('js/components/data-tables/readings-table.tsx')))
+        ->toContain('    amount?: string;')
+        ->toContain('    total?: number | string;')
+        ->toContain('    ratio?: number;')
+        ->toContain('    active?: boolean | number;')
+        ->toContain('    verified?: boolean;');
 });
 
 it('creates a page that renders the component with the page option', function () {

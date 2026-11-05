@@ -96,9 +96,15 @@ final class ColumnGuesser
         }
 
         return match (true) {
-            in_array($castType, ['bool', 'boolean'], true) || $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, ['boolean()'], 'boolean', $nullable),
+            in_array($castType, ['bool', 'boolean'], true) => new GuessedColumn($name, $label, ['boolean()'], 'boolean', $nullable),
+            // Without a cast, SQLite and MySQL return 1/0.
+            $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, ['boolean()'], 'boolean-or-number', $nullable),
             in_array($castType, ['date', 'datetime', 'immutable_date', 'immutable_datetime', 'timestamp'], true) || $this->isDateType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'dateRange()'], 'date', $nullable),
-            in_array($castType, ['decimal', 'float', 'double', 'real'], true) || $this->isDecimalType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'range()'], 'number', $nullable),
+            // The decimal cast serializes as a string to keep the precision.
+            $castType === 'decimal' => new GuessedColumn($name, $label, ['sortable()', 'range()'], 'decimal', $nullable),
+            in_array($castType, ['float', 'double', 'real'], true) || $this->isFloatType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'range()'], 'number', $nullable),
+            // Without a cast, MySQL and PostgreSQL return DECIMAL/NUMERIC as a string; SQLite as a number.
+            $this->isDecimalType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'range()'], 'number-or-string', $nullable),
             in_array($castType, ['int', 'integer'], true) || $this->isIntegerType($typeName) => new GuessedColumn($name, $label, ['sortable()', 'number()'], 'number', $nullable),
             $this->isStringType($typeName) => new GuessedColumn($name, $label, $this->isLongText($typeName) ? ['searchable()', 'text()'] : ['sortable()', 'searchable()', 'text()'], 'string', $nullable),
             default => null,
@@ -159,7 +165,12 @@ final class ColumnGuesser
 
     private function isDecimalType(string $typeName): bool
     {
-        return in_array($typeName, ['decimal', 'numeric', 'float', 'double', 'real', 'float4', 'float8', 'money'], true);
+        return in_array($typeName, ['decimal', 'numeric', 'money'], true);
+    }
+
+    private function isFloatType(string $typeName): bool
+    {
+        return in_array($typeName, ['float', 'double', 'real', 'float4', 'float8'], true);
     }
 
     private function isIntegerType(string $typeName): bool

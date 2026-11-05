@@ -222,7 +222,9 @@ PHP;
                         $column->id,
                         match ($column->kind) {
                             'number' => 'number',
+                            'number-or-string' => 'number | string',
                             'boolean' => 'boolean',
+                            'boolean-or-number' => 'boolean | number',
                             default => 'string',
                         },
                         $column->nullable ? ' | null' : '',

@@ -11,7 +11,7 @@ final readonly class GuessedColumn
 {
     /**
      * @param  list<string>  $calls  Calls chained after `Column::make()`, for example `sortable()`.
-     * @param  'string'|'number'|'boolean'|'date'|'option'  $kind  Type for the React page.
+     * @param  'string'|'number'|'decimal'|'number-or-string'|'boolean'|'boolean-or-number'|'date'|'option'  $kind  Type of the value in the JSON, for the React component.
      */
     public function __construct(
         public string $id,
