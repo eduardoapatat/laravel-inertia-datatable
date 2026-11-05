@@ -92,6 +92,7 @@ Write feature tests in the app's test style (see `references/testing.md`): autho
 - **Rows only contain visible columns.** Type row fields as optional in TypeScript and handle `undefined` in cells.
 - **Layout is composed in JSX.** To move the search, filters, Reset, View menu or pagination, replace `<DataTableToolbar>` with its exported pieces in the per-table component (`references/react.md`, "Layout"); never edit `components/data-table/*` for that.
 - **Columns and their order live in PHP.** Add, remove or reorder columns in `columns()`; do not mirror them in the React component unless a cell needs custom rendering.
+- **Formats are declared on the column.** Currency, decimals, percentages, dates, cut texts, links, Yes/No labels and badges go in PHP (`->money('CLP')`, `->dateFormat('long')`…); do not reformat them by hand in React. To render a value differently, write a custom `cell` that reuses the type cells of `components/data-table/data-table-cells.tsx` (`references/react.md`).
 - **Several tables on one page** need `name()` (query parameter prefix) and distinct prop names.
 - **Encoded URLs** (`filter%5Bstatus%5D=a%2Cb`) come from Inertia (`$request->fullUrl()`), not from the package; for readable URLs add `urlResolver()` to `HandleInertiaRequests` (`references/react.md`, "Readable URLs").
 - **Case-insensitive matching of non-ASCII letters** (`Á`/`á`) does not work on SQLite; it does on MySQL/PostgreSQL.

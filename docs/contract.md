@@ -186,12 +186,13 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
   },
   "config": {
     "columns": [
-      { "id": "name", "label": "Name", "sortable": true, "variant": null, "placeholder": null, "hideable": false, "visible": true },
+      { "id": "name", "label": "Name", "sortable": true, "variant": null, "placeholder": null, "hideable": false, "visible": true, "display": null },
       { "id": "email", "label": "Email", "sortable": true, "variant": "text", "placeholder": "Search email…", "hideable": true, "visible": true },
       { "id": "status", "label": "Status", "sortable": false, "variant": "multi-select", "placeholder": null, "hideable": true, "visible": true },
-      { "id": "price", "label": "Price", "sortable": true, "variant": "range", "placeholder": null, "unit": "$", "hideable": true, "visible": true }
+      { "id": "price", "label": "Price", "sortable": true, "variant": "range", "placeholder": null, "unit": "$", "hideable": true, "visible": true, "display": { "type": "number", "format": { "style": "currency", "currency": "USD" } } }
     ],
     "searchable": true,
+    "locale": "es-CL",
     "per_page": 10,
     "per_page_options": [10, 20, 30, 50],
     "default_sorting": [ { "id": "created_at", "desc": true } ],
@@ -238,7 +239,18 @@ Data the client cannot compute by itself in server mode (they replace TanStack's
 
 ### 2.6 `config`
 
-Static table metadata to build the UI: columns (label, whether it is sortable, filter variant, placeholder, unit, whether it is hideable, default visibility), whether there is global search, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
+Static table metadata to build the UI: columns (label, whether it is sortable, filter variant, placeholder, unit, whether it is hideable, default visibility, display), whether there is global search, the display locale, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
+
+`display` says how the cells of a column are shown, independently of its filter. Rows keep the raw value and the client formats it with Intl and `locale` (`null`: the browser's):
+
+| `display` | Declared with | Cell |
+|---|---|---|
+| `null` | — | Deduced from the filter variant (dates, Yes/No, option labels, number with unit, text) |
+| `{ "type": "number", "format": { "style": "currency", "currency": "CLP" } }` | `money()`, `decimals()`, `percent()`, `numberFormat()` | `format` = Intl.NumberFormat options |
+| `{ "type": "date", "format": "long" }` | `dateFormat()` | `short`, `medium`, `long`, `datetime`, `relative` or Intl.DateTimeFormat options; dates without time are formatted in UTC |
+| `{ "type": "text", "limit": 60, "link": "url" }` | `limit()`, `url()`, `email()` | Cut text; link only for http/https URLs |
+| `{ "type": "boolean", "labels": { "true": "Sí", "false": "No" } }` | `booleanLabels()` | Labels of true/false (also `1`/`0`) |
+| `{ "type": "option", "badge": true }` | `badge()` | Option labels as badges |
 
 The client adapter translates each column into the columns' `meta` (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) and into `enableSorting` / `enableColumnFilter` / `enableHiding`, so the definition lives in a single place: the server.
 

@@ -58,6 +58,26 @@ React has two levels: the generic components (`components/data-table/`, hook and
 
 The layout (search, filters, Reset, column menu and pagination) is also changed in each table's component, without touching the shared components: `DataTableToolbar` is made of exported pieces (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton`, `DataTableViewOptions`) that can be placed in any order, and with `<DataTable pagination={false}>` the `DataTablePagination` goes wherever you want (for example, on top). `--install-ui` runs `shadcn add` with the lockfile's package manager and answers "no" to overwriting existing `ui/` files; the registry URL is set in `inertia-datatable.registry_url` or with the `INERTIA_DATATABLE_REGISTRY_URL` variable (a URL or a local folder with the compiled JSON, for example to pin the UI to a version). The UI is installed even when the table is not created (unknown model or existing class). When the model does not exist, the command lists the available models.
 
+### Formatting cells
+
+The row always carries the raw value; how it looks is declared on the column and formatted in the browser with Intl:
+
+```php
+Column::make('price', 'Price')->sortable()->range()->money('CLP'),
+Column::make('weight', 'Weight')->number('kg')->decimals(1),
+Column::make('discount', 'Discount')->percent(),
+Column::make('published_at', 'Published')->dateRange()->dateFormat('long'),  // short | medium | long | datetime | relative
+Column::make('notes', 'Notes')->text()->limit(60),
+Column::make('website', 'Web')->url(),
+Column::make('featured', 'Featured')->boolean()->booleanLabels('Sí', 'No'),
+Column::make('status', 'Status')->multiSelect(ProductStatus::class)->badge(),
+Column::make('views', 'Views')->numberFormat(['notation' => 'compact']),   // any Intl option
+```
+
+- The locale is `inertia-datatable.locale` (for example `es-CL`: `$1.234`, "5 de noviembre de 2026"); with `null`, each browser uses its own.
+- Dates without time (Laravel `date` casts) never move to the previous day.
+- In the React component you can set or override the format (`meta: { display: … }`), add icons per option (`meta.options`, shown in the filter and in the cells) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. See the skill's React reference.
+
 ### Column validation
 
 With `APP_DEBUG=true`, every request checks that the declared columns exist, so a typo or a missing migration fails on the first load with a clear message instead of a SQL error when someone sorts or filters:

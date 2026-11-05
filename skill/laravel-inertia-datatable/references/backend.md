@@ -78,6 +78,22 @@ Both are `Arrayable` (Inertia prop) and `Responsable` (return them from a route 
 
 A column without a filter method is not filterable; a column without `sortable()` is not sortable.
 
+Display methods only change how cells look (the row keeps the raw value; the UI formats with Intl and `config('inertia-datatable.locale')`, or the browser locale when null). They are independent of the filter methods, and a method of another type replaces the previous one:
+
+| Method | Cell |
+|---|---|
+| `money('CLP', decimals: 0)` | Currency (ISO 4217 code) |
+| `decimals(2)` | Fixed decimals; adds up with `money()` / `percent()` |
+| `percent()` | Ratio as a percentage (`0.25` → `25 %`) |
+| `numberFormat(['notation' => 'compact'])` | Any Intl.NumberFormat option |
+| `dateFormat('long')` | `short`, `medium`, `long`, `datetime`, `relative` ("3 days ago") or Intl.DateTimeFormat options; dates without time never move a day |
+| `limit(60)` | Cuts the text, full text in the tooltip |
+| `url()` / `email()` | Link (only http/https URLs) / mailto |
+| `booleanLabels('Sí', 'No')` | Labels of booleans |
+| `badge()` | Option labels as badges (with the icons of the React `meta.options`) |
+
+`make:datatable` proposes `decimals(N)` for `decimal:N` casts; it never guesses a currency.
+
 ## Relations, enums and options
 
 ```php

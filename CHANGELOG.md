@@ -4,6 +4,17 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Cell formatting declared on the column and applied with Intl: `money()`, `decimals()`, `percent()`, `numberFormat()`, `dateFormat()` (`short`, `medium`, `long`, `datetime`, `relative`), `limit()`, `url()`, `email()`, `booleanLabels()` and `badge()`. It travels in `config.columns[].display`, can be overridden in the React `meta.display`, and uses `inertia-datatable.locale` (or the browser locale).
+- Type cells exported from `components/data-table/data-table-cells.tsx` (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently in a custom `cell` while keeping its format.
+- Icons of the React `meta.options` are shown in the cells, not only in the filter.
+- `make:datatable` proposes `decimals(N)` for `decimal:N` casts.
+
+### Fixed
+
+- Dates without time (Laravel `date` casts) no longer show the previous day west of Greenwich.
+
 ## [0.2.0] - 2026-11-05
 
 ### Added

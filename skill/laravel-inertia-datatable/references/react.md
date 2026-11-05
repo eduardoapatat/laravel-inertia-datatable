@@ -65,24 +65,40 @@ Match the layout conventions of the app (breadcrumbs, wrappers, Wayfinder route 
 
 ## Columns and cells
 
-- Every backend column is rendered, in the order of `columns()` in PHP, even if the component does not declare it: header with the server label and a default cell by filter variant — dates with `formatDate` (browser locale), booleans as Yes/No (also `1`/`0`), select/multi-select as option labels, numbers with their unit, anything else as text.
+- Every backend column is rendered, in the order of `columns()` in PHP, even if the component does not declare it: header with the server label and a default cell that follows the column display declared in PHP (`->money('CLP')`, `->dateFormat('long')`, `->limit(60)`, `->badge()`…, see `backend.md`) or, without it, the filter variant — dates (long), booleans as Yes/No (also `1`/`0`), select/multi-select as option labels, numbers with their unit, anything else as text. Numbers and dates use the table locale (`config('inertia-datatable.locale')`, or the browser's).
 - To customize a column, declare it with the backend column id (`columnHelper.accessor('status', { cell })`). Missing `header` or `cell` fall back to the defaults, so declaring only `cell` is enough.
 - Client-only columns (no backend id: actions, row selection) go after the backend columns; add `meta: { position: 'start' }` to put one first (for example a selection checkbox).
 - You do not set `enableSorting`, `enableColumnFilter`, `enableHiding` or filter `meta` yourself: the hook fills them from the server config (label, variant, placeholder, unit, options with counts, range bounds).
-- In custom cells, reuse the default formatting instead of showing raw values:
-  - `getOptionLabel(column.columnDef.meta, value)` (from `@/components/data-table/data-table-default-column`) turns enum/option values into their labels (`active` → `Active`).
-  - `formatCellValue(column.columnDef.meta, value)` (same file) formats any value like the default cell.
-  - `formatDate(value)` (from `@/lib/data-table-format`) formats dates.
+- The page can set or override the format in `meta.display` (same shape as the server `display`; with the same type, only the declared keys change): `meta: { display: { type: 'number', format: { style: 'percent' } } }`.
+- Icons per option go in `meta.options` (labels and counts still come from the server); they show in the faceted filter and in the cells:
 
 ```tsx
-import { getOptionLabel } from '@/components/data-table/data-table-default-column';
-
 columnHelper.accessor('status', {
-    cell: ({ cell, column }) => (
-        <Badge>{getOptionLabel(column.columnDef.meta, cell.getValue())}</Badge>
+    meta: {
+        variant: 'multi-select',
+        options: [
+            { value: 'active', label: 'Active', icon: CircleCheck },
+            { value: 'draft', label: 'Draft', icon: CircleDashed },
+        ],
+    },
+}),
+```
+
+- To render a value differently (color by threshold, extra icons, other fields of the row), write a custom `cell` and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell`. They take the cell context:
+
+```tsx
+import { DataTableNumberCell } from '@/components/data-table/data-table-cells';
+
+columnHelper.accessor('price', {
+    cell: (context) => (
+        <span className={cn(Number(context.cell.getValue()) < 100 && 'text-red-600')}>
+            <DataTableNumberCell {...context} />
+        </span>
     ),
 }),
 ```
+
+- For plain strings, `formatCellValue(meta, value, locale?)`, `getOptionLabel(meta, value)` and `getOption(meta, value)` are exported from `@/components/data-table/data-table-default-column` (and `@/lib/data-table-format`). `row.original` gives the other visible fields of the row.
 
 ## Toolbar, pagination and loading state
 
