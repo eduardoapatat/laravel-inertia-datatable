@@ -102,7 +102,7 @@ it('adds the primary key as the last sort column so pages are stable', function 
     getJson('/products?sort=price')->assertOk();
 
     $rowsQuery = collect(DB::getQueryLog())->pluck('query')->first(fn (string $sql) => str_contains($sql, 'limit'));
-    expect($rowsQuery)->toEndWith('order by "products"."price" asc, "products"."id" asc limit 10 offset 0');
+    expect($rowsQuery)->toEndWith(orderByPriceAndId('asc'));
 });
 
 it('breaks ties with the primary key in the direction of the first sort column', function () {
@@ -113,7 +113,7 @@ it('breaks ties with the primary key in the direction of the first sort column',
     $response = getJson('/products?sort=-price')->assertOk();
 
     $rowsQuery = collect(DB::getQueryLog())->pluck('query')->first(fn (string $sql) => str_contains($sql, 'limit'));
-    expect($rowsQuery)->toEndWith('order by "products"."price" desc, "products"."id" desc limit 10 offset 0')
+    expect($rowsQuery)->toEndWith(orderByPriceAndId('desc'))
         ->and(array_column($response->json('data'), 'id'))->toBe([$second->id, $first->id]);
 });
 
@@ -304,3 +304,13 @@ it('shapes each row with the transform method and removes hidden column keys', f
 
     $response->assertOk()->assertJsonPath('data.0', ['id' => $product->id, 'name' => 'Lámpara', 'url' => "/products/{$product->id}"]);
 });
+
+/**
+ * Final de la consulta de filas con las comillas de la conexión actual (SQLite, MySQL o Postgres).
+ */
+function orderByPriceAndId(string $direction): string
+{
+    $grammar = DB::connection()->getQueryGrammar();
+
+    return "order by {$grammar->wrap('products.price')} {$direction}, {$grammar->wrap('products.id')} {$direction} limit 10 offset 0";
+}
