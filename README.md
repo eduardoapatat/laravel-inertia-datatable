@@ -70,13 +70,15 @@ Column::make('published_at', 'Published')->dateRange()->dateFormat('long'),  // 
 Column::make('notes', 'Notes')->text()->limit(60),
 Column::make('website', 'Web')->url(),
 Column::make('featured', 'Featured')->boolean()->booleanLabels('Sí', 'No'),
-Column::make('status', 'Status')->multiSelect(ProductStatus::class)->badge(),
+Column::make('status', 'Status')->multiSelect(ProductStatus::class)->badge(),  // shadcn Badge, outline
+Column::make('stage', 'Stage')->select(Stage::class)->badge('secondary', ['lost' => 'destructive']),
 Column::make('views', 'Views')->numberFormat(['notation' => 'compact']),   // any Intl option
 ```
 
 - Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`.
 - Dates without time (Laravel `date` casts) never move to the previous day.
-- In the React component you can set or override the format (`meta: { display: … }`), add icons per option (`meta.options`, shown in the filter and in the cells) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. See the skill's React reference.
+- `badge()` uses the project's shadcn `Badge` with any variant of its `badge.tsx` (`outline` by default), for the column and per value.
+- In the React component you can set or override the format (`meta: { display: … }`), add icons per option (`meta.options`, shown in the filter and in the cells) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. Option cells take `badge` (props of the same Badge per value) or `renderOption` (anything else, such as a colored dot), and `DataTableOptionBadge` is exported for fully custom cells. See the skill's React reference.
 
 ### Language and formats
 

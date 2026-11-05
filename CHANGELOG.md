@@ -4,6 +4,15 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `badge()` takes the variant of the column and of some values: `badge('secondary', ['archived' => 'destructive'])`, with any variant of the project's `badge.tsx` (`outline` by default). They travel in `display.variant` and `display.variants`.
+- `DataTableOptionCell` accepts `badge` (props of the same Badge per value) and `renderOption` (draw each value with anything else), and `DataTableOptionBadge` is exported for fully custom cells.
+
+### Changed
+
+- The UI uses the project's shadcn components instead of Tailwind imitations: `Badge` in the option cells and in the selected values of the filters, `Checkbox` in the filter options, `Separator` in the calendar footer and `Label` in the pagination and the range filter. The `data-table-react` item now depends on `badge` and `checkbox`.
+
 ## [0.4.1] - 2026-11-05
 
 ### Changed

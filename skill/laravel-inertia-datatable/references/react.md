@@ -99,6 +99,44 @@ columnHelper.accessor('price', {
 }),
 ```
 
+- Option cells (select / multi-select) can be customized without rewriting them; the cell still splits multiple values, skips empty ones and keeps the PHP labels and the `meta.options` icons:
+
+```tsx
+import {
+    DataTableOptionBadge,
+    DataTableOptionCell,
+} from '@/components/data-table/data-table-cells';
+
+// Same shadcn Badge, other variant or classes per value (over the PHP `->badge()` variants)
+columnHelper.accessor('status', {
+    cell: (context) => (
+        <DataTableOptionCell
+            {...context}
+            badge={(option) => ({
+                variant: option?.value === 'archived' ? 'destructive' : 'secondary',
+            })}
+        />
+    ),
+}),
+
+// Anything else than a badge
+columnHelper.accessor('category', {
+    cell: (context) => (
+        <DataTableOptionCell
+            {...context}
+            renderOption={(option, value) => (
+                <span className="inline-flex items-center gap-1.5">
+                    <span className={cn('size-2 rounded-full', COLORS[String(value)])} />
+                    {option?.label ?? value}
+                </span>
+            )}
+        />
+    ),
+}),
+```
+
+- `DataTableOptionBadge` (`option`, `value` and any `Badge` prop) is the badge of `->badge()`, for fully custom cells: `<DataTableOptionBadge option={getOption(meta, value)} value={value} variant="secondary" />`. Never draw a badge by hand with Tailwind classes; use the project's `components/ui/badge.tsx`.
+
 - For plain strings, `formatCellValue(meta, value, getFormatContext(table))` (locale, default date format and Yes/No texts of the table), `getOptionLabel(meta, value)` and `getOption(meta, value)` are exported from `@/components/data-table/data-table-default-column` (and `@/lib/data-table-format`). `row.original` gives the other visible fields of the row.
 
 ## Toolbar, pagination and loading state

@@ -90,7 +90,7 @@ Display methods only change how cells look (the row keeps the raw value; the UI 
 | `limit(60)` | Cuts the text, full text in the tooltip |
 | `url()` / `email()` | Link (only http/https URLs) / mailto |
 | `booleanLabels('Sí', 'No')` | Labels of booleans |
-| `badge()` | Option labels as badges (with the icons of the React `meta.options`) |
+| `badge()` / `badge('secondary', ['archived' => 'destructive'])` | Option labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels |
 
 `make:datatable` proposes `decimals(N)` for `decimal:N` casts; it never guesses a currency.
 
