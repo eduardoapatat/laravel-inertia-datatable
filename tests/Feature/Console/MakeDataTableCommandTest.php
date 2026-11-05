@@ -157,7 +157,7 @@ it('fails when the model does not exist', function () {
 });
 
 it('lists the available models when the model does not exist', function () {
-    // El esqueleto de Testbench no autocarga App\: el modelo se escribe y se carga a mano.
+    // The Testbench skeleton does not autoload App\: the model is written and loaded by hand.
     File::ensureDirectoryExists(app_path('Models'));
     File::put(app_path('Models/Customer.php'), "<?php\n\nnamespace App\\Models;\n\nclass Customer extends \\Illuminate\\Database\\Eloquent\\Model {}\n");
     File::put(app_path('Models/NotAModel.php'), "<?php\n\nnamespace App\\Models;\n\nclass NotAModel {}\n");

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-arch('no deja llamadas de depuración')
+arch('does not leave debugging calls')
     ->expect(['dd', 'dump', 'ray', 'var_dump', 'die'])
     ->not->toBeUsed();
 
-arch('usa tipos estrictos en src')
+arch('uses strict types in src')
     ->expect('InertiaDataTable')
     ->toUseStrictTypes();

@@ -12,7 +12,7 @@ use function Pest\Laravel\assertDatabaseCount;
 use function Pest\Laravel\getJson;
 
 /**
- * Catálogo pequeño con un valor distinto en cada columna filtrable.
+ * Small catalog with a different value in each filterable column.
  */
 function seedCatalog(): void
 {
@@ -120,10 +120,10 @@ it('breaks ties with the primary key in the direction of the first sort column',
 it('sorts by the value of a belongs-to relation', function () {
     seedCatalog();
 
-    // Sin Teclado, que no tiene categoría: cada motor ubica los NULL a su manera.
+    // Without Teclado, which has no category: each engine places NULL its own way.
     $response = getJson('/products?sort=-category&filter[category]=not.is.empty');
 
-    // Lámpara y Mesa empatan en Hogar: el desempate por id sigue la dirección del orden.
+    // Lámpara and Mesa tie on Hogar: the id tiebreaker follows the sort direction.
     $response->assertOk()->assertJsonPath('data.*.name', ['Silla', 'Mesa', 'Lámpara']);
 });
 
@@ -307,7 +307,7 @@ it('shapes each row with the transform method and removes hidden column keys', f
 });
 
 /**
- * Final de la consulta de filas con las comillas de la conexión actual (SQLite, MySQL o Postgres).
+ * End of the rows query with the quoting of the current connection (SQLite, MySQL or Postgres).
  */
 function orderByPriceAndId(string $direction): string
 {
@@ -317,7 +317,7 @@ function orderByPriceAndId(string $direction): string
 }
 
 /**
- * Id real del producto: en Postgres las secuencias no vuelven atrás entre tests.
+ * Real id of the product: Postgres sequences do not go back between tests.
  */
 function productId(string $name): int
 {

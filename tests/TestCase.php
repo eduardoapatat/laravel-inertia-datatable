@@ -27,14 +27,14 @@ abstract class TestCase extends Orchestra
 
     protected function defineEnvironment($app): void
     {
-        // SQLite en memoria por defecto; el CI pasa DB_CONNECTION=mysql|pgsql y los DB_* de Testbench.
+        // In-memory SQLite by default; CI passes DB_CONNECTION=mysql|pgsql and Testbench's DB_* variables.
         $app['config']->set('database.default', env('DB_CONNECTION', 'testing'));
     }
 
     /**
-     * Las migraciones de prueba van en el migrate:fresh de LazilyRefreshDatabase. Con
-     * loadMigrationsFrom(), Testbench hace rollback tras cada test con la transacción del
-     * test abierta, y en Postgres el DROP se queda esperando ese bloqueo.
+     * The test migrations go in the migrate:fresh of LazilyRefreshDatabase. With
+     * loadMigrationsFrom(), Testbench rolls back after every test while the test transaction
+     * is still open, and on Postgres the DROP waits for that lock forever.
      *
      * @return array<string, mixed>
      */
