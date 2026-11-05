@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import { getNumberAffix, type NumberAffix } from '@/lib/data-table-format';
+import { getFilterUnit } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -274,10 +274,7 @@ function DataTableToolbarFilter<TData extends RowData>({
                     type="number"
                     inputMode="numeric"
                     placeholder={placeholder}
-                    affix={getNumberAffix(
-                        columnMeta,
-                        column.table.options.meta?.locale,
-                    )}
+                    unit={getFilterUnit(columnMeta)}
                     className="w-30"
                 />
             );
@@ -324,14 +321,14 @@ interface DataTableFilterInputProps<
     TData extends RowData,
 > extends React.ComponentProps<'input'> {
     column: Column<DataTableFeatures, TData>;
-    /** Unit or currency symbol next to the value (`getNumberAffix`). */
-    affix?: NumberAffix;
+    /** Unit or currency code after the value (`getFilterUnit`). */
+    unit?: string;
 }
 
 function DataTableFilterInput<TData extends RowData>({
     column,
     type = 'text',
-    affix,
+    unit,
     className,
     ...props
 }: DataTableFilterInputProps<TData>) {
@@ -349,14 +346,14 @@ function DataTableFilterInput<TData extends RowData>({
                         column.setFilterValue(event.target.value || undefined),
                 };
 
-                if (!affix)
+                if (!unit)
                     return <Input {...inputProps} className={className} />;
 
                 return (
                     <InputGroup className={className}>
                         <InputGroupInput {...inputProps} />
-                        <InputGroupAddon align={affix.align}>
-                            <InputGroupText>{affix.text}</InputGroupText>
+                        <InputGroupAddon align="inline-end">
+                            <InputGroupText>{unit}</InputGroupText>
                         </InputGroupAddon>
                     </InputGroup>
                 );

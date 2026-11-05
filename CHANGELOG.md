@@ -17,7 +17,7 @@ Migration:
 | `Column::make('name')->text('Search…')` | `Column::text('name')->filter('Search…')` |
 | `Column::make('notes')->limit(60)` | `Column::text('notes')->limit(60)` |
 | `Column::make('stock')->number('u.')` | `Column::number('stock')->unit('u.')->filter()` |
-| `Column::make('price')->range(0, 100, '$')->money('USD')` | `Column::number('price')->money('USD')->range(0, 100)` (the filter shows the currency symbol) |
+| `Column::make('price')->range(0, 100, '$')->money('USD')` | `Column::number('price')->money('USD')->range(0, 100)` (the filter inputs end in `USD`) |
 | `->numberFormat([...])` | `Column::number(...)->format([...])` |
 | `Column::make('day')->date()` / `->dateRange()` | `Column::date('day')->filter()` / `->range()` |
 | `->dateFormat('long')` | `Column::date(...)->format('long')` |
@@ -28,7 +28,7 @@ Migration:
 
 ### Added
 
-- Number filters show the currency symbol of `->money()` next to their inputs, on the side of the locale (`$` before in `es-CL`, `€` after in `de-DE`), or the unit of `->unit()`. The inputs of the range filter are as wide as its bounds.
+- The inputs of number filters end in the currency code of `->money()` (`[ 1200 | CLP ]`, clearer than `$`, which several currencies use) or the unit of `->unit()`; the cells keep the format of the column (`$1.200`). The inputs of the range filter are as wide as its bounds.
 - Option columns without a filter send the labels of their declared options, so the cells show `Archived` instead of `archived`.
 - Date columns without `format()` use the `date_format` of the table.
 

@@ -6,7 +6,7 @@ import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import { formatNumber, getNumberAffix } from '@/lib/data-table-format';
+import { formatNumber, getFilterUnit } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -133,12 +133,12 @@ function DataTableSliderFilterContent<TData extends RowData>({
     const display = meta?.display?.type === 'number' ? meta.display : undefined;
     const valueFormat = display?.format ?? { maximumFractionDigits: 2 };
     const showUnit = Boolean(unit) && valueFormat.style === undefined;
-    // Next to the inputs: the unit, or the symbol of the currency.
-    const affix = getNumberAffix(meta, locale);
+    // After the inputs: the unit, or the code of the currency.
+    const inputUnit = getFilterUnit(meta);
     // Wide enough for the longest bound (`2491510` does not fit in w-24).
     const digits = Math.max(String(min).length, String(max).length, 4);
     const inputStyle = {
-        width: `calc(${digits}ch + ${affix ? '4.25rem' : '2.75rem'})`,
+        width: `calc(${digits}ch + ${inputUnit ? '4.25rem' : '2.75rem'})`,
     };
     const formatValue = React.useCallback(
         (value: number) => formatNumber(value, valueFormat, locale),
@@ -278,11 +278,9 @@ function DataTableSliderFilterContent<TData extends RowData>({
                                 }
                                 onKeyDown={onInputKeyDown}
                             />
-                            {affix && (
-                                <InputGroupAddon align={affix.align}>
-                                    <InputGroupText>
-                                        {affix.text}
-                                    </InputGroupText>
+                            {inputUnit && (
+                                <InputGroupAddon align="inline-end">
+                                    <InputGroupText>{inputUnit}</InputGroupText>
                                 </InputGroupAddon>
                             )}
                         </InputGroup>
@@ -310,11 +308,9 @@ function DataTableSliderFilterContent<TData extends RowData>({
                                 }
                                 onKeyDown={onInputKeyDown}
                             />
-                            {affix && (
-                                <InputGroupAddon align={affix.align}>
-                                    <InputGroupText>
-                                        {affix.text}
-                                    </InputGroupText>
+                            {inputUnit && (
+                                <InputGroupAddon align="inline-end">
+                                    <InputGroupText>{inputUnit}</InputGroupText>
                                 </InputGroupAddon>
                             )}
                         </InputGroup>

@@ -88,7 +88,7 @@ Column::option('category', 'Category')->from('category.name')->sortable()->filte
 | `Column::option()` | `options(list, map or enum)`, `badge()` | `filter(multiple: false)`, `withCounts(false)` |
 
 - A column has at most one filter: calling two filter methods throws an error instead of keeping the last one.
-- The unit of `unit('kg')` goes after the number in the cells and next to the filter inputs; with `money()` the filters show the currency symbol on the side of the locale (`$` before in `es-CL`, `€` after in `de-DE`). `unit()` together with `money()` or `percent()` is an error, since they already say the unit.
+- The unit of `unit('kg')` goes after the number in the cells and next to the filter inputs; with `money()` the filter inputs end in the currency code (`[ 1200 | CLP ]`) while the cells keep the format (`$1.200`). `unit()` together with `money()` or `percent()` is an error, since they already say the unit.
 - An option column shows the labels of its declared options even without a filter; with a filter, the options carry the row counts.
 - Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`, and dates without `format()` use `inertia-datatable.date_format`.
 - Dates without time (Laravel `date` casts) never move to the previous day.

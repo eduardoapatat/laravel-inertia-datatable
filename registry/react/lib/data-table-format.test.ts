@@ -5,7 +5,7 @@ import {
     formatCellValue,
     formatDateValue,
     formatNumber,
-    getNumberAffix,
+    getFilterUnit,
     isDateOnly,
     isSafeUrl,
     truncate,
@@ -163,48 +163,34 @@ describe('truncate and isSafeUrl', () => {
     });
 });
 
-describe('getNumberAffix', () => {
-    const money = (currency: string) => ({
-        variant: 'number' as const,
-        display: {
-            type: 'number' as const,
-            format: { style: 'currency' as const, currency },
-        },
-    });
-
-    it('puts the currency symbol on the side of the locale', () => {
-        expect(getNumberAffix(money('CLP'), 'es-CL')).toEqual({
-            text: '$',
-            align: 'inline-start',
-        });
-        expect(getNumberAffix(money('EUR'), 'de-DE')).toEqual({
-            text: '€',
-            align: 'inline-end',
-        });
-    });
-
-    it('puts the unit of plain numbers at the end', () => {
+describe('getFilterUnit', () => {
+    it('gives the code of the currency', () => {
         expect(
-            getNumberAffix(
-                { display: { type: 'number', unit: 'kg' } },
-                'en-US',
-            ),
-        ).toEqual({ text: 'kg', align: 'inline-end' });
-        expect(getNumberAffix({ variant: 'number', unit: 'u.' })).toEqual({
-            text: 'u.',
-            align: 'inline-end',
-        });
+            getFilterUnit({
+                display: {
+                    type: 'number',
+                    format: { style: 'currency', currency: 'CLP' },
+                },
+            }),
+        ).toBe('CLP');
+    });
+
+    it('gives the unit of plain numbers', () => {
+        expect(getFilterUnit({ display: { type: 'number', unit: 'kg' } })).toBe(
+            'kg',
+        );
+        expect(getFilterUnit({ variant: 'number', unit: 'u.' })).toBe('u.');
     });
 
     it('has none for percentages or columns without a unit', () => {
         expect(
-            getNumberAffix({
+            getFilterUnit({
                 variant: 'number',
                 unit: '%',
                 display: { type: 'number', format: { style: 'percent' } },
             }),
         ).toBeUndefined();
-        expect(getNumberAffix({ display: { type: 'number' } })).toBeUndefined();
+        expect(getFilterUnit({ display: { type: 'number' } })).toBeUndefined();
     });
 });
 

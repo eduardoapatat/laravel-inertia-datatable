@@ -82,7 +82,7 @@ Format (only changes how cells look; the row keeps the raw value and the UI form
 
 - A column without a filter method is not filterable; a column without `sortable()` is not sortable.
 - One filter per column: calling two filter methods (`->filter()->range()`) throws a `LogicException`.
-- `unit()` goes after plain numbers in the cells and next to the filter inputs. It cannot be combined with `money()` or `percent()` (`InvalidArgumentException`): the filter inputs already show the currency symbol.
+- `unit()` goes after plain numbers in the cells and next to the filter inputs. It cannot be combined with `money()` or `percent()` (`InvalidArgumentException`): the filter inputs already end in the currency code (`CLP`).
 - `badge()` / `badge('secondary', ['archived' => 'destructive'])` shows the labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels.
 - An option column without a filter still sends the labels of its declared options, so the cells show `Archived` instead of `archived`.
 
