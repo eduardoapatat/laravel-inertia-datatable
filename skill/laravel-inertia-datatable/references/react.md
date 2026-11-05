@@ -103,4 +103,4 @@ Call the hook once per table with its own prop and give each backend table a `na
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
 - `lib/data-table-{features,filters,types,utils,format}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
 
-These files belong to the project after installation: adapt texts (for example to Spanish) or styles there. Reinstalling from the registry overwrites them, so note local changes.
+These files belong to the project after installation: adapt texts (for example to Spanish) or styles there. `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.

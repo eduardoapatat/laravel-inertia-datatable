@@ -51,6 +51,15 @@ Propone las columnas leyendo los casts del modelo y el esquema de la tabla: text
 
 En React hay dos niveles: los componentes genéricos (`components/data-table/`, hook y libs) se instalan una vez por proyecto desde el registro, y cada tabla tiene su propio componente (`components/data-tables/<recurso>-table.tsx`, con tipos y columnas) reutilizable en cualquier página. `--install-ui` ejecuta `shadcn add` con el gestor del lockfile y responde "no" a sobrescribir los `ui/` existentes; la URL del registro se configura en `inertia-datatable.registry_url`.
 
+### Instalar o actualizar la UI
+
+```bash
+php artisan inertia-datatable:ui            # instala la UI genérica si falta
+php artisan inertia-datatable:ui --update   # actualiza solo los archivos del DataTable (pide confirmación; --force para no preguntar)
+```
+
+La actualización usa el item `data-table-react-files`, que sobrescribe `components/data-table/*`, `components/ui/faceted.tsx`, el hook y `lib/data-table-*.ts`, sin tocar el resto de `components/ui/` del proyecto. Los cambios locales en esos archivos se pierden.
+
 Los stubs se pueden personalizar con `php artisan vendor:publish --tag=inertia-datatable-stubs`.
 
 ## Instalación del frontend (React)

@@ -53,6 +53,8 @@ php artisan make:datatable ProductsTable --react --install-ui
 - `--install-ui` installs the shared UI (`components/data-table/*`, hook, libs) when the project does not have it yet, declining to overwrite existing `ui/` files; without it the command only prints the install command. You can skip step 2's frontend install when using this flag.
 - `--empty` skips the column guessing.
 
+To install the shared UI on its own, or to update it later without touching the project's other `components/ui` files: `php artisan inertia-datatable:ui` / `php artisan inertia-datatable:ui --update`.
+
 Then **review the generated columns with the user's intent in mind** — the guess is a starting point: remove columns nobody needs, add labels in the app's language, mark rarely used ones `->hidden()`, set `defaultSort()`. The full `Column` API, relations, enums, parent-model tables and multiple tables per page are in `references/backend.md`.
 
 ### 4. Wire controller, route and page
