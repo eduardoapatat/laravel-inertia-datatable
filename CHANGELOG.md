@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- Number cells are right-aligned in a box that starts where the header label starts (like tablecn), so figures line up without touching the next column; `meta.numberClassName` changes the box (`min-w-28` for long amounts). Columns that were right-aligned with `meta.className: 'text-right'` no longer need it.
+
 ## [0.6.0] - 2026-11-05
 
 ### Added
