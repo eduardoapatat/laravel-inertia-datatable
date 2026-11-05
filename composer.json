@@ -1,0 +1,63 @@
+{
+    "name": "eduardoapatat/laravel-inertia-datatable",
+    "description": "Server-side DataTable para Laravel + Inertia (React y Vue) basado en shadcn y TanStack Table.",
+    "keywords": ["laravel", "inertia", "datatable", "tanstack-table", "shadcn"],
+    "homepage": "https://github.com/eduardoapatat/laravel-inertia-datatable",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Eduardo Apata Tito"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/http": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.20",
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^4.0|^5.0",
+        "pestphp/pest-plugin-laravel": "^4.0|^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "EduardoApatat\\InertiaDataTable\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EduardoApatat\\InertiaDataTable\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "format": "pint",
+        "format:check": "pint --test",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "check": [
+            "@format:check",
+            "@analyse",
+            "@test"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "EduardoApatat\\InertiaDataTable\\InertiaDataTableServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
