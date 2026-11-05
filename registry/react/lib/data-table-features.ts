@@ -37,6 +37,7 @@ import {
 import type {
     ColumnFilterItem,
     DataTableColumnMeta,
+    DataTableTableMeta,
     JoinOperator,
 } from '@/lib/data-table-types';
 
@@ -303,6 +304,7 @@ export const dataTableFeatures = tableFeatures({
         text: sortFn_text,
     },
     columnMeta: metaHelper<DataTableColumnMeta>(),
+    tableMeta: metaHelper<DataTableTableMeta>(),
 });
 
 export type DataTableFeatures = typeof dataTableFeatures;

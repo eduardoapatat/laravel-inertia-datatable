@@ -56,6 +56,15 @@ export type ColumnVariantMeta =
           } & ColumnVariantOptions[TVariant];
       }[keyof ColumnVariantOptions];
 
+/**
+ * Meta de la tabla: datos del servidor que necesitan los componentes
+ * (paginación y toolbar) sin que cada página tenga que pasarlos.
+ */
+export interface DataTableTableMeta {
+    pageSizeOptions?: number[];
+    searchable?: boolean;
+}
+
 export type DataTableColumnMeta = {
     label?: string;
     icon?: React.ComponentType<React.ComponentProps<'svg'>>;

@@ -35,14 +35,14 @@ interface DataTableToolbarProps<
     TData extends RowData,
 > extends React.ComponentProps<'div'> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
-    /** Muestra la búsqueda global (`search` del contrato). */
+    /** Muestra la búsqueda global; por defecto, si el servidor la permite. */
     searchable?: boolean;
     searchPlaceholder?: string;
 }
 
 export function DataTableToolbar<TData extends RowData>({
     table,
-    searchable = false,
+    searchable,
     searchPlaceholder = 'Search...',
     children,
     className,
@@ -69,7 +69,7 @@ export function DataTableToolbar<TData extends RowData>({
             {...props}
         >
             <div className="flex flex-1 flex-wrap items-center gap-2">
-                {searchable && (
+                {(searchable ?? table.options.meta?.searchable) && (
                     <DataTableSearch
                         table={table}
                         placeholder={searchPlaceholder}

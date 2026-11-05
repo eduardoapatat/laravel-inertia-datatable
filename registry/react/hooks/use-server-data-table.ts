@@ -222,6 +222,10 @@ export function useServerDataTable<TData extends RowData>({
         columns: tableColumns,
         data,
         getRowId,
+        meta: {
+            pageSizeOptions: config.per_page_options,
+            searchable: config.searchable,
+        },
         rowCount: meta.total,
         // Sin filas el servidor informa 1 página, no 0.
         pageCount: meta.last_page,

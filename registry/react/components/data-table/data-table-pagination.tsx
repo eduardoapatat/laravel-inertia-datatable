@@ -35,7 +35,7 @@ interface DataTablePaginationProps<
 
 export function DataTablePagination<TData extends RowData>({
     table,
-    pageSizeOptions = [10, 20, 30, 40, 50],
+    pageSizeOptions,
     className,
     ...props
 }: DataTablePaginationProps<TData>) {
@@ -60,7 +60,12 @@ export function DataTablePagination<TData extends RowData>({
                     pageSize={pageSize}
                     selectedRowCount={selectedRowCount}
                     visibleSelectedRowCount={visibleSelectedRowCount}
-                    pageSizeOptions={pageSizeOptions}
+                    pageSizeOptions={
+                        pageSizeOptions ??
+                        table.options.meta?.pageSizeOptions ?? [
+                            10, 20, 30, 40, 50,
+                        ]
+                    }
                     className={className}
                     {...props}
                 />
