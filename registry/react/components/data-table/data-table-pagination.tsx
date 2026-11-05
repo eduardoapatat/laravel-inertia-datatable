@@ -13,6 +13,7 @@ import { getMessage } from '@/lib/data-table-messages';
 
 import { getVisibleSelectedRows } from '@/lib/data-table-utils';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -138,12 +139,13 @@ function DataTablePaginationContent<TData extends RowData>({
             </div>
             <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
                 <div className="flex items-center gap-2">
-                    <p
+                    <Label
                         id={pageSizeLabelId}
-                        className="text-sm font-medium whitespace-nowrap"
+                        htmlFor={`${pageSizeLabelId}-trigger`}
+                        className="whitespace-nowrap"
                     >
                         {getMessage(table, 'rows_per_page')}
-                    </p>
+                    </Label>
                     <Select
                         value={`${pageSize}`}
                         onValueChange={(value) => {
@@ -151,6 +153,7 @@ function DataTablePaginationContent<TData extends RowData>({
                         }}
                     >
                         <SelectTrigger
+                            id={`${pageSizeLabelId}-trigger`}
                             aria-labelledby={pageSizeLabelId}
                             className="w-18"
                         >

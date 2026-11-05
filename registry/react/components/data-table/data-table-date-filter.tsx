@@ -188,18 +188,21 @@ function DataTableDateFilterContent<TData extends RowData>({
                     />
                 )}
                 {hasValue && (
-                    <div className="border-t p-3">
-                        <Button
-                            aria-label={getMessage(table, 'clear_filter', {
-                                label: title,
-                            })}
-                            variant="outline"
-                            className="w-full"
-                            onClick={onReset}
-                        >
-                            {getMessage(table, 'clear')}
-                        </Button>
-                    </div>
+                    <>
+                        <Separator />
+                        <div className="p-3">
+                            <Button
+                                aria-label={getMessage(table, 'clear_filter', {
+                                    label: title,
+                                })}
+                                variant="outline"
+                                className="w-full"
+                                onClick={onReset}
+                            >
+                                {getMessage(table, 'clear')}
+                            </Button>
+                        </div>
+                    </>
                 )}
             </PopoverContent>
         </Popover>

@@ -238,9 +238,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                 className="flex w-auto flex-col gap-4"
             >
                 <div className="flex flex-col gap-3">
-                    <p className="leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                        {title}
-                    </p>
+                    <Label>{title}</Label>
                     <div
                         className="flex items-center gap-4"
                         onBlur={onInputsBlur}

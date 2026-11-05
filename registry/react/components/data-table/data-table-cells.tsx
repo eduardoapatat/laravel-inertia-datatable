@@ -1,4 +1,7 @@
 import type { CellContext, RowData } from '@tanstack/react-table';
+import * as React from 'react';
+
+import { Badge } from '@/components/ui/badge';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import {
@@ -13,8 +16,10 @@ import {
     toText,
     truncate,
 } from '@/lib/data-table-format';
-import type { DataTableColumnMeta } from '@/lib/data-table-types';
-import { cn } from '@/lib/utils';
+import type {
+    ColumnSelectOption,
+    DataTableColumnMeta,
+} from '@/lib/data-table-types';
 
 type DataTableCellProps<TData extends RowData, TValue> = CellContext<
     DataTableFeatures,
@@ -176,19 +181,81 @@ export function DataTableBooleanCell<TData extends RowData, TValue>(
     );
 }
 
+type BadgeProps = React.ComponentProps<typeof Badge>;
+
+/** Variants of the project's `components/ui/badge.tsx`. */
+export type DataTableBadgeVariant = BadgeProps['variant'];
+
+interface DataTableOptionBadgeProps extends BadgeProps {
+    /** Option of `meta.options`: its icon and label are shown. */
+    option?: ColumnSelectOption;
+    /** Raw value, shown when there is no option. */
+    value?: unknown;
+}
+
+/**
+ * The project's shadcn Badge with the icon and label of an option: the badge
+ * of `->badge()`, exported to reuse it in a custom `cell` with any Badge prop
+ * (`variant`, `className`, `children`…).
+ */
+export function DataTableOptionBadge({
+    option,
+    value,
+    children,
+    ...props
+}: DataTableOptionBadgeProps) {
+    const Icon = option?.icon;
+
+    return (
+        <Badge {...props}>
+            {Icon && <Icon aria-hidden="true" />}
+            {children ?? option?.label ?? toText(value)}
+        </Badge>
+    );
+}
+
+type DataTableOptionCellProps<
+    TData extends RowData,
+    TValue,
+> = DataTableCellProps<TData, TValue> & {
+    /**
+     * Badge props per value, over the variants declared in PHP; shows
+     * badges even without `->badge()`.
+     */
+    badge?: (
+        option: ColumnSelectOption | undefined,
+        value: string | number | boolean,
+    ) => Partial<BadgeProps>;
+    /**
+     * Draws each value with anything else (a dot, a tooltip, a link…);
+     * the cell still splits multiple values and skips empty ones.
+     */
+    renderOption?: (
+        option: ColumnSelectOption | undefined,
+        value: string | number | boolean,
+    ) => React.ReactNode;
+};
+
 /**
  * Option labels (select / multi-select) with the icons of the page
- * `meta.options` and, with `->badge()`, as badges.
+ * `meta.options`: as badges with `->badge()` or the `badge` prop, or drawn by
+ * `renderOption`.
  */
-export function DataTableOptionCell<TData extends RowData, TValue>(
-    props: DataTableCellProps<TData, TValue>,
-) {
+export function DataTableOptionCell<TData extends RowData, TValue>({
+    badge: badgeProps,
+    renderOption,
+    ...props
+}: DataTableOptionCellProps<TData, TValue>) {
     const { meta } = cellSetup(props);
     const value = props.cell.getValue();
-    const badge = meta?.display?.type === 'option' && meta.display.badge;
+    const display = meta?.display?.type === 'option' ? meta.display : undefined;
+    const asBadge = Boolean(display?.badge) || badgeProps !== undefined;
     const values = (Array.isArray(value) ? value : [value])
         .map(toPrimitive)
-        .filter((item) => item !== null && item !== '');
+        .filter(
+            (item): item is string | number | boolean =>
+                item !== null && item !== '',
+        );
 
     if (values.length === 0) {
         return null;
@@ -198,17 +265,37 @@ export function DataTableOptionCell<TData extends RowData, TValue>(
         <span className="inline-flex flex-wrap items-center gap-1.5">
             {values.map((item) => {
                 const option = getOption(meta, item);
+
+                if (renderOption) {
+                    return (
+                        <React.Fragment key={String(item)}>
+                            {renderOption(option, item)}
+                        </React.Fragment>
+                    );
+                }
+
+                if (asBadge) {
+                    const variant = (display?.variants?.[String(item)] ??
+                        display?.variant ??
+                        'outline') as DataTableBadgeVariant;
+
+                    return (
+                        <DataTableOptionBadge
+                            key={String(item)}
+                            option={option}
+                            value={item}
+                            variant={variant}
+                            {...badgeProps?.(option, item)}
+                        />
+                    );
+                }
+
                 const Icon = option?.icon;
 
                 return (
                     <span
                         key={String(item)}
-                        data-slot="data-table-option"
-                        className={cn(
-                            'inline-flex items-center gap-1.5',
-                            badge &&
-                                'rounded-md border px-2 py-0.5 text-xs font-medium',
-                        )}
+                        className="inline-flex items-center gap-1.5"
                     >
                         {Icon && (
                             <Icon

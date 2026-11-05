@@ -14,8 +14,10 @@
                 "cmdk"
             ],
             "registryDependencies": [
+                "badge",
                 "button",
                 "calendar",
+                "checkbox",
                 "direction",
                 "dropdown-menu",
                 "input",

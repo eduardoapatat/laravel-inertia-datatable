@@ -4,7 +4,6 @@
 
 import { Command as CommandPrimitive } from 'cmdk';
 import { cn } from '@/lib/utils';
-import { Slot } from 'radix-ui';
 import {
     composeEventHandlers,
     useComposedRefs,
@@ -12,6 +11,8 @@ import {
 } from 'radix-ui/internal';
 import * as React from 'react';
 
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Popover,
     PopoverContent,
@@ -345,22 +346,18 @@ function FacetedBadgeList({
     );
 }
 
-interface FacetedBadgeProps extends React.ComponentProps<'span'> {
-    asChild?: boolean;
-}
+type FacetedBadgeProps = React.ComponentProps<typeof Badge>;
 
-function FacetedBadge({
-    className,
-    asChild = false,
-    ...props
-}: FacetedBadgeProps) {
-    const Comp = asChild ? Slot.Root : 'span';
-
+/**
+ * Selected value in the trigger: the project's Badge, `secondary`.
+ */
+function FacetedBadge({ className, ...props }: FacetedBadgeProps) {
     return (
-        <Comp
+        <Badge
             data-slot="faceted-badge"
+            variant="secondary"
             className={cn(
-                'flex h-[calc(--spacing(5.25))] w-fit max-w-full min-w-0 items-center justify-center gap-1 rounded-sm bg-input/60 px-1.5 text-xs font-medium whitespace-nowrap text-foreground [&_svg]:pointer-events-none [&_svg]:size-3 [&_svg]:shrink-0',
+                'max-w-full min-w-0 shrink rounded-sm px-1 font-normal',
                 className,
             )}
             {...props}
@@ -548,6 +545,8 @@ interface FacetedItemProps extends React.ComponentProps<
     value: string;
 }
 
+const FacetedItemSelectedContext = React.createContext(false);
+
 function FacetedItem({ value, onSelect, ...props }: FacetedItemProps) {
     const store = useFacetedStore('FacetedItem');
     const isSelected = useFacetedStoreSelector(store, (state) =>
@@ -555,19 +554,21 @@ function FacetedItem({ value, onSelect, ...props }: FacetedItemProps) {
     );
 
     return (
-        <FacetedCommandItem
-            data-slot="faceted-item"
-            data-checked={isSelected || undefined}
-            aria-checked={isSelected}
-            onSelect={() => {
-                if (onSelect) {
-                    onSelect(value);
-                    return;
-                }
-                store.selectItem(value);
-            }}
-            {...props}
-        />
+        <FacetedItemSelectedContext.Provider value={isSelected}>
+            <FacetedCommandItem
+                data-slot="faceted-item"
+                data-checked={isSelected || undefined}
+                aria-checked={isSelected}
+                onSelect={() => {
+                    if (onSelect) {
+                        onSelect(value);
+                        return;
+                    }
+                    store.selectItem(value);
+                }}
+                {...props}
+            />
+        </FacetedItemSelectedContext.Provider>
     );
 }
 
@@ -596,27 +597,27 @@ function FacetedItemIndicator({
 }
 
 /**
- * Checkbox at the start of an item, checked while the item is selected. The
- * border comes from the text color of the item, which every theme makes
- * readable on the item background (also on hover), not from `--input`: in
- * some themes it equals `--accent`, the hover color.
+ * The project's Checkbox at the start of an item, checked while the item is
+ * selected (the item handles the click and the keyboard). Its border comes
+ * from the text color of the item, which every theme makes readable on the
+ * item background (also on hover), not from `--input`: in some themes it
+ * equals `--accent`, the hover color.
  */
 function FacetedItemCheckbox({
     className,
     ...props
-}: React.ComponentProps<'span'>) {
+}: Omit<React.ComponentProps<typeof Checkbox>, 'checked'>) {
+    const isSelected = React.useContext(FacetedItemSelectedContext);
+
     return (
-        <span
-            aria-hidden="true"
+        <Checkbox
             data-slot="faceted-item-checkbox"
-            className={cn(
-                'flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-current/50 group-data-checked/command-item:border-primary group-data-checked/command-item:bg-primary group-data-checked/command-item:text-primary-foreground',
-                className,
-            )}
+            checked={isSelected}
+            tabIndex={-1}
+            aria-hidden="true"
+            className={cn('pointer-events-none border-current/50', className)}
             {...props}
-        >
-            <Check className="invisible size-3.5 text-current group-data-checked/command-item:visible" />
-        </span>
+        />
     );
 }
 
