@@ -12,5 +12,6 @@
         "shadcn": "^4.23.0",
         "typescript": "^5.9.3",
         "vite-plus": "1.4.0"
-    }
+    },
+    "packageManager": "pnpm@12.17.0"
 }
