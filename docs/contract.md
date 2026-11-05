@@ -46,7 +46,7 @@ Ejemplo completo:
 
 - Lista separada por comas; el prefijo `-` indica descendente: `sort=-created_at,name`.
 - Se respeta el orden (prioridad de izquierda a derecha).
-- Nota: tablecn escribe `sort=created_at.desc`; aquí se mantiene `-created_at` (convención de spatie y JSON:API). La traducción la hace `registry/shared`, sin tocar los componentes.
+- Se usa `-created_at` (convención de spatie y JSON:API) en lugar de `created_at.desc`. La traducción desde el estado de TanStack la hace `registry/shared`.
 - Se descartan columnas que no son `sortable`, duplicados y lo que supere `maxSorts` (por defecto 3).
 - Sin orden válido → se aplica `defaultSort` de la tabla, si existe.
 - Siempre se añade la clave primaria como desempate final (si no está ya), para que la paginación sea estable.
@@ -54,7 +54,7 @@ Ejemplo completo:
 
 ### 1.4 `filter[<col>]`
 
-Solo columnas declaradas como filtrables. El modelo de filtros es el de [tablecn](https://github.com/sadmann7/tablecn) (variantes + operadores), para reutilizar sus componentes (faceted filter, range/slider, date filter, filter menu, sort menu) sin cambiar su lógica.
+Solo columnas declaradas como filtrables. El modelo de filtros es el de los componentes del DataTable del frontend (variantes + operadores): faceted filter, range/slider, date filter, filter menu y sort menu.
 
 #### Sintaxis
 
@@ -66,11 +66,11 @@ filter[<col>]=[<operador>.]<valor>
 - **Listas** separadas por comas. Un valor que contenga coma, comillas o espacios en los extremos va entre comillas dobles, y las comillas internas se duplican: `filter[name]=in."Pérez, Ana",Luis`.
 - **Varios filtros sobre la misma columna** con la forma de array; se combinan con AND: `filter[price][]=gte.10&filter[price][]=lte.100`.
 - Si el prefijo no es un operador válido para la variante, todo el texto se toma como valor con el operador implícito (`filter[email]=foo.bar` busca «foo.bar»). Para evitar ambigüedades, el cliente escribe el operador explícito cuando el valor empieza por un nombre de operador.
-- Los nombres de operador no distinguen mayúsculas y se aceptan en las dos formas de tablecn: nombre de URL (`neq`, `not.in`) o clave (`ne`, `notInArray`).
+- Los nombres de operador no distinguen mayúsculas y se aceptan en dos formas: nombre de URL (`neq`, `not.in`) o clave (`ne`, `notInArray`).
 
 #### Variantes y operadores
 
-| Variante | Columna en tablecn (`meta`) | Operador implícito | Operadores (nombre en URL) | Valor |
+| Variante | `meta` de la columna en el frontend | Operador implícito | Operadores (nombre en URL) | Valor |
 |---|---|---|---|---|
 | `text` | `variant: "text"` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | texto |
 | `number` | `variant: "number"` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | número (`.` decimal) |
@@ -106,7 +106,7 @@ filter[<col>]=[<operador>.]<valor>
 #### Etapas
 
 - **Fase 1:** todas las variantes y operadores de la tabla, varios filtros por columna, combinación AND.
-- **Fase futura:** `join=or` (combinar filtros con OR, usado por el filter menu avanzado de tablecn; el nombre del parámetro queda reservado), operador `rel` (fechas relativas a hoy) y relaciones a muchos (`hasMany`, `belongsToMany`).
+- **Fase futura:** `join=or` (combinar filtros con OR, usado por el filter menu avanzado; el nombre del parámetro queda reservado), operador `rel` (fechas relativas a hoy) y relaciones a muchos (`hasMany`, `belongsToMany`).
 
 ### 1.5 `search`
 
@@ -218,13 +218,13 @@ Igual que el `LengthAwarePaginator` de Laravel (en snake_case). `from` y `to` so
 
 Estado **normalizado y aplicado**, con las formas de TanStack Table v9 (`PaginationState`, `SortingState`, `ColumnFiltersState`, `globalFilter`, `VisibilityState`) para pasarlo tal cual a la tabla. `pageIndex` es base 0 (`page - 1`).
 
-Cada elemento de `columnFilters` tiene la forma `ColumnFilterItem` de tablecn: `id`, `filterId` (`<id>-<índice>`), `variant`, `operator` (clave del operador: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) y `value` (`string` o `string[]`, siempre como texto, igual que en la URL).
+Cada elemento de `columnFilters` tiene la forma `ColumnFilterItem` del frontend: `id`, `filterId` (`<id>-<índice>`), `variant`, `operator` (clave del operador: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) y `value` (`string` o `string[]`, siempre como texto, igual que en la URL).
 
 ### 2.5 `facets`
 
 Datos que el cliente no puede calcular por sí mismo en modo servidor (sustituyen a `getFacetedUniqueValues` / `getFacetedMinMaxValues` de TanStack):
 
-**`select` / `multi-select`** → lista de opciones con la forma `ColumnSelectOption` de tablecn (`value`, `label`, `count`; el icono lo pone el cliente):
+**`select` / `multi-select`** → lista de opciones con la forma `ColumnSelectOption` del frontend (`value`, `label`, `count`; el icono lo pone el cliente):
 
 - **Conteo cruzado:** el conteo de cada faceta se calcula con todos los demás filtros y la búsqueda aplicados, **excepto el de la propia faceta**. Así, al marcar «active» se siguen viendo los conteos de «pending» e «inactive». Es un `GROUP BY` por faceta.
 - **Origen de las opciones:**
@@ -240,7 +240,7 @@ Datos que el cliente no puede calcular por sí mismo en modo servidor (sustituye
 
 Metadatos estáticos de la tabla para construir la UI: columnas (etiqueta, si se puede ordenar, variante de filtro, placeholder, unidad, si se puede ocultar, visibilidad por defecto), si hay búsqueda global, `per_page` por defecto y sus opciones, orden por defecto y nombres efectivos de los parámetros de la URL.
 
-El adaptador del cliente traduce cada columna a la `meta` de tablecn (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) y a `enableSorting` / `enableColumnFilter` / `enableHiding`, de modo que la definición vive en un solo lugar: el servidor.
+El adaptador del cliente traduce cada columna a la `meta` de las columnas (`label`, `placeholder`, `variant`, `filter: "range"`, `unit`, `options`) y a `enableSorting` / `enableColumnFilter` / `enableHiding`, de modo que la definición vive en un solo lugar: el servidor.
 
 ---
 

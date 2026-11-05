@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EduardoApatat\InertiaDataTable\Enums;
 
 /**
- * Variantes de filtro del contrato (mismas que tablecn).
+ * Variantes de filtro del contrato (mismas que usa el DataTable del frontend).
  */
 enum FilterVariant: string
 {

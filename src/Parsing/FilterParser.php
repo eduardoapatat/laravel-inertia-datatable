@@ -11,7 +11,7 @@ use EduardoApatat\InertiaDataTable\Enums\FilterVariant;
 use EduardoApatat\InertiaDataTable\FilterItem;
 
 /**
- * Interpreta un parámetro `filter[<col>]=[<operador>.]<valor>` (sintaxis de tablecn).
+ * Interpreta un parámetro `filter[<col>]=[<operador>.]<valor>`.
  */
 final class FilterParser
 {
@@ -173,7 +173,7 @@ final class FilterParser
 
     /**
      * Lista separada por comas; un elemento entre comillas dobles puede contener comas,
-     * y `""` dentro de comillas es una comilla literal (igual que tablecn).
+     * y `""` dentro de comillas es una comilla literal (igual que el frontend).
      *
      * @return list<string>
      */

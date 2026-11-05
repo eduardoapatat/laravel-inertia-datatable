@@ -244,7 +244,7 @@ it('shows the default visible columns when no columns are requested', function (
     ]);
 });
 
-it('echoes the applied filters in the tablecn shape', function () {
+it('echoes the applied filters in the ColumnFilterItem shape', function () {
     seedCatalog();
 
     $response = getJson('/products?filter[status]=active&filter[price][]=gte.10&filter[price][]=lte.50');

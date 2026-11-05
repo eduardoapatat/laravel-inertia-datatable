@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EduardoApatat\InertiaDataTable\Enums;
 
 /**
- * Operadores de filtro del contrato (mismas claves que tablecn).
+ * Operadores de filtro del contrato (mismas claves que usa el DataTable del frontend).
  *
  * El valor del enum es la clave que viaja en `state.columnFilters[].operator`;
  * `urlName()` es el nombre que se usa en el query string.
