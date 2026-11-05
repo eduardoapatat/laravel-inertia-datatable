@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Enums;
+namespace InertiaDataTable\Enums;
 
 /**
  * Variantes de filtro del contrato (mismas que usa el DataTable del frontend).

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests;
+namespace InertiaDataTable\Tests;
 
-use EduardoApatat\InertiaDataTable\InertiaDataTableServiceProvider;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Category;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Tables\CategoryProductsTable;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Tables\ProductsTable;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Routing\Router;
+use InertiaDataTable\InertiaDataTableServiceProvider;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
+use InertiaDataTable\Tests\Fixtures\Tables\CategoryProductsTable;
+use InertiaDataTable\Tests\Fixtures\Tables\ProductsTable;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 abstract class TestCase extends Orchestra

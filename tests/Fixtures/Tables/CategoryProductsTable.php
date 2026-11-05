@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Tables;
+namespace InertiaDataTable\Tests\Fixtures\Tables;
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\DataTable;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Category;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use InertiaDataTable\Column;
+use InertiaDataTable\DataTable;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
+use InertiaDataTable\Tests\Fixtures\Models\Product;
 
 class CategoryProductsTable extends DataTable
 {

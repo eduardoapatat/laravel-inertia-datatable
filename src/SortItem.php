@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable;
+namespace InertiaDataTable;
 
 /**
  * Elemento de `SortingState` de TanStack.

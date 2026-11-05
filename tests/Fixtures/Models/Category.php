@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Models;
+namespace InertiaDataTable\Tests\Fixtures\Models;
 
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use InertiaDataTable\Tests\Fixtures\Factories\CategoryFactory;
 
 class Category extends Model
 {

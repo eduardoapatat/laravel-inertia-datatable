@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Parsing;
+namespace InertiaDataTable\Parsing;
 
-use EduardoApatat\InertiaDataTable\FilterItem;
-use EduardoApatat\InertiaDataTable\SortItem;
-use EduardoApatat\InertiaDataTable\TableDefinition;
-use EduardoApatat\InertiaDataTable\TableState;
+use InertiaDataTable\FilterItem;
+use InertiaDataTable\SortItem;
+use InertiaDataTable\TableDefinition;
+use InertiaDataTable\TableState;
 
 /**
  * Convierte el query string en un `TableState` normalizado según la definición de la tabla.

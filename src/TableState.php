@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable;
+namespace InertiaDataTable;
 
 /**
  * Estado de la tabla pedido en la request, ya normalizado.

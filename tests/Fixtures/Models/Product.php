@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Models;
+namespace InertiaDataTable\Tests\Fixtures\Models;
 
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Enums\ProductStatus;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use InertiaDataTable\Tests\Fixtures\Enums\ProductStatus;
+use InertiaDataTable\Tests\Fixtures\Factories\ProductFactory;
 
 class Product extends Model
 {

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Console;
+namespace InertiaDataTable\Console;
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\DataTable;
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use InertiaDataTable\Column;
+use InertiaDataTable\DataTable;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 

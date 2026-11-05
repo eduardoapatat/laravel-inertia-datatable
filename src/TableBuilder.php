@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable;
+namespace InertiaDataTable;
 
 use Closure;
-use EduardoApatat\InertiaDataTable\Concerns\ResolvesDataTable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use InertiaDataTable\Concerns\ResolvesDataTable;
 use JsonSerializable;
 
 /**

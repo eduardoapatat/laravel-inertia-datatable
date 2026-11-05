@@ -27,12 +27,12 @@
     },
     "autoload": {
         "psr-4": {
-            "EduardoApatat\\InertiaDataTable\\": "src/"
+            "InertiaDataTable\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "EduardoApatat\\InertiaDataTable\\Tests\\": "tests/"
+            "InertiaDataTable\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -49,7 +49,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "EduardoApatat\\InertiaDataTable\\InertiaDataTableServiceProvider"
+                "InertiaDataTable\\InertiaDataTableServiceProvider"
             ]
         }
     },

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\DataTable;
-use EduardoApatat\InertiaDataTable\Parsing\StateParser;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Tables\ProductsTable;
+use InertiaDataTable\Column;
+use InertiaDataTable\DataTable;
+use InertiaDataTable\Parsing\StateParser;
+use InertiaDataTable\Tests\Fixtures\Models\Product;
+use InertiaDataTable\Tests\Fixtures\Tables\ProductsTable;
 
 it('limits the sort to the configured number of columns', function () {
     config(['inertia-datatable.max_sorts' => 2]);

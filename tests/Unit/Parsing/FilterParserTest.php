@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\Enums\FilterOperator;
-use EduardoApatat\InertiaDataTable\Parsing\FilterParser;
+use InertiaDataTable\Column;
+use InertiaDataTable\Enums\FilterOperator;
+use InertiaDataTable\Parsing\FilterParser;
 
 it('parses a parameter into its operator and normalized value', function (Column $column, string $param, FilterOperator $operator, string|array $value) {
     $filter = (new FilterParser)->parse($column, $param);

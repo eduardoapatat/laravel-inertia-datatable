@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Enums;
+namespace InertiaDataTable\Tests\Fixtures\Enums;
 
 enum ProductStatus: string
 {

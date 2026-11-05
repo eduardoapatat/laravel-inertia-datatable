@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Tables;
+namespace InertiaDataTable\Tests\Fixtures\Tables;
 
 use Illuminate\Database\Eloquent\Model;
 

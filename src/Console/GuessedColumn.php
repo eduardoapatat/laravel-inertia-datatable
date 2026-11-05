@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Console;
+namespace InertiaDataTable\Console;
 
 /**
  * Columna propuesta por `make:datatable` a partir del modelo y su esquema.

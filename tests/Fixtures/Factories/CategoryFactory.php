@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Factories;
+namespace InertiaDataTable\Tests\Fixtures\Factories;
 
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
 
 /**
  * @extends Factory<Category>

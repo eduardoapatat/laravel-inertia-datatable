@@ -8,7 +8,7 @@ description: Build server-side data tables (pagination, sorting, filters, global
 Server-side tables for Laravel + Inertia. The backend package parses the query string, applies whitelisted sorting/filters/search with Eloquent and returns one Inertia prop; the React components (shadcn + TanStack Table v9) render it and turn every interaction into a partial Inertia visit. State lives in the URL, so reload, back/forward and shared links reproduce the same view.
 
 Pieces:
-- **Backend** (Composer): `EduardoApatat\InertiaDataTable\DataTable`, `Column`, `php artisan make:datatable`.
+- **Backend** (Composer): `InertiaDataTable\DataTable`, `Column`, `php artisan make:datatable`.
 - **Frontend** (shadcn registry item `data-table-react`): `useServerDataTable` hook, `components/data-table/*`.
 
 ## Workflow

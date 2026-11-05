@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\DataTable;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Category;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use InertiaDataTable\Column;
+use InertiaDataTable\DataTable;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
+use InertiaDataTable\Tests\Fixtures\Models\Product;
 
 use function Pest\Laravel\getJson;
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Tests\Fixtures\Tables;
+namespace InertiaDataTable\Tests\Fixtures\Tables;
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\DataTable;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
+use InertiaDataTable\Column;
+use InertiaDataTable\DataTable;
+use InertiaDataTable\Tests\Fixtures\Models\Product;
 
 class ProductsTable extends DataTable
 {

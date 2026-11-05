@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Query;
+namespace InertiaDataTable\Query;
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\Enums\FilterVariant;
-use EduardoApatat\InertiaDataTable\TableDefinition;
-use EduardoApatat\InertiaDataTable\TableState;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use InertiaDataTable\Column;
+use InertiaDataTable\Enums\FilterVariant;
+use InertiaDataTable\TableDefinition;
+use InertiaDataTable\TableState;
 
 /**
  * Calcula lo que TanStack no puede calcular en modo servidor: opciones con conteo

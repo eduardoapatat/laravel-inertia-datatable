@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Console;
+namespace InertiaDataTable\Console;
 
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;

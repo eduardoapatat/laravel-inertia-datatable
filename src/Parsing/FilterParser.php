@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Parsing;
+namespace InertiaDataTable\Parsing;
 
 use DateTimeImmutable;
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\Enums\FilterOperator;
-use EduardoApatat\InertiaDataTable\Enums\FilterVariant;
-use EduardoApatat\InertiaDataTable\FilterItem;
+use InertiaDataTable\Column;
+use InertiaDataTable\Enums\FilterOperator;
+use InertiaDataTable\Enums\FilterVariant;
+use InertiaDataTable\FilterItem;
 
 /**
  * Interpreta un parámetro `filter[<col>]=[<operador>.]<valor>`.

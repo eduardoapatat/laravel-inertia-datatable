@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable;
+namespace InertiaDataTable;
 
-use EduardoApatat\InertiaDataTable\Parsing\StateParser;
-use EduardoApatat\InertiaDataTable\Query\FacetResolver;
-use EduardoApatat\InertiaDataTable\Query\QueryApplier;
-use EduardoApatat\InertiaDataTable\Query\RelationResolver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use InertiaDataTable\Parsing\StateParser;
+use InertiaDataTable\Query\FacetResolver;
+use InertiaDataTable\Query\QueryApplier;
+use InertiaDataTable\Query\RelationResolver;
 
 /**
  * Resuelve una tabla para una request y produce la respuesta del contrato (docs/contract.md).

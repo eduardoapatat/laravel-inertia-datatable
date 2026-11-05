@@ -15,8 +15,8 @@
 One class per table (what `make:datatable` generates):
 
 ```php
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\DataTable;
+use InertiaDataTable\Column;
+use InertiaDataTable\DataTable;
 
 class ProductsTable extends DataTable
 {

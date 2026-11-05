@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable;
+namespace InertiaDataTable;
 
 use BackedEnum;
-use EduardoApatat\InertiaDataTable\Enums\FilterVariant;
 use Illuminate\Support\Str;
+use InertiaDataTable\Enums\FilterVariant;
 use InvalidArgumentException;
 
 /**

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Concerns;
+namespace InertiaDataTable\Concerns;
 
-use EduardoApatat\InertiaDataTable\DataTableEngine;
-use EduardoApatat\InertiaDataTable\TableDefinition;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use InertiaDataTable\DataTableEngine;
+use InertiaDataTable\TableDefinition;
 
 /**
  * Hace que una tabla funcione como prop de Inertia (Arrayable) y como respuesta JSON (Responsable).

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Category;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Tables\ProductsWithUrlTable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
+use InertiaDataTable\Tests\Fixtures\Models\Product;
+use InertiaDataTable\Tests\Fixtures\Tables\ProductsWithUrlTable;
 
 use function Pest\Laravel\assertDatabaseCount;
 use function Pest\Laravel\getJson;

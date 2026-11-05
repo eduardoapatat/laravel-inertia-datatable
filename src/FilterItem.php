@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable;
+namespace InertiaDataTable;
 
-use EduardoApatat\InertiaDataTable\Enums\FilterOperator;
-use EduardoApatat\InertiaDataTable\Enums\FilterVariant;
+use InertiaDataTable\Enums\FilterOperator;
+use InertiaDataTable\Enums\FilterVariant;
 
 /**
  * Filtro normalizado (forma `ColumnFilterItem` del frontend).

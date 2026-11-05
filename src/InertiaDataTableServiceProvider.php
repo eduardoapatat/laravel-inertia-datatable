@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable;
+namespace InertiaDataTable;
 
-use EduardoApatat\InertiaDataTable\Console\MakeDataTableCommand;
-use EduardoApatat\InertiaDataTable\Console\UiCommand;
 use Illuminate\Support\ServiceProvider;
+use InertiaDataTable\Console\MakeDataTableCommand;
+use InertiaDataTable\Console\UiCommand;
 
 class InertiaDataTableServiceProvider extends ServiceProvider
 {

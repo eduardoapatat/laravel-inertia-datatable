@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Query;
+namespace InertiaDataTable\Query;
 
-use EduardoApatat\InertiaDataTable\Column;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use InertiaDataTable\Column;
 use LogicException;
 
 /**

@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace EduardoApatat\InertiaDataTable\Query;
+namespace InertiaDataTable\Query;
 
-use EduardoApatat\InertiaDataTable\Column;
-use EduardoApatat\InertiaDataTable\Enums\FilterOperator;
-use EduardoApatat\InertiaDataTable\Enums\FilterVariant;
-use EduardoApatat\InertiaDataTable\FilterItem;
-use EduardoApatat\InertiaDataTable\SortItem;
-use EduardoApatat\InertiaDataTable\TableDefinition;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use InertiaDataTable\Column;
+use InertiaDataTable\Enums\FilterOperator;
+use InertiaDataTable\Enums\FilterVariant;
+use InertiaDataTable\FilterItem;
+use InertiaDataTable\SortItem;
+use InertiaDataTable\TableDefinition;
 
 /**
  * Aplica filtros, búsqueda global y orden de una tabla a una consulta Eloquent.

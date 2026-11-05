@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use App\DataTables\ProductsTable;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Account;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Category;
-use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
+use InertiaDataTable\Tests\Fixtures\Models\Account;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
+use InertiaDataTable\Tests\Fixtures\Models\Product;
 
 use function Pest\Laravel\artisan;
 
@@ -24,8 +24,8 @@ it('creates a table class with the columns guessed from the model', function () 
 
     expect(File::get(app_path('DataTables/ProductsTable.php')))
         ->toContain('namespace App\DataTables;')
-        ->toContain('use EduardoApatat\InertiaDataTable\Tests\Fixtures\Enums\ProductStatus;')
-        ->toContain('use EduardoApatat\InertiaDataTable\Tests\Fixtures\Models\Product;')
+        ->toContain('use InertiaDataTable\Tests\Fixtures\Enums\ProductStatus;')
+        ->toContain('use InertiaDataTable\Tests\Fixtures\Models\Product;')
         ->toContain('return Product::query();')
         ->toContain("Column::make('name', 'Name')->sortable()->searchable()->text()->hideable(false),")
         ->toContain("Column::make('category', 'Category')->from('category.name')->sortable()->searchable()->multiSelect(),")

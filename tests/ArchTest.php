@@ -7,5 +7,5 @@ arch('no deja llamadas de depuración')
     ->not->toBeUsed();
 
 arch('usa tipos estrictos en src')
-    ->expect('EduardoApatat\InertiaDataTable')
+    ->expect('InertiaDataTable')
     ->toUseStrictTypes();
