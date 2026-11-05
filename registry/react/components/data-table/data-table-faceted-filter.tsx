@@ -75,16 +75,25 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
     columnFilterValue,
 }: DataTableFacetedFilterContentProps<TData, TValue>) {
     const dir = useDirection();
+    // Los filtros booleanos guardan un único valor ('true' / 'false').
+    const isScalar = column?.columnDef.meta?.variant === 'boolean';
     const selectedValues = Array.isArray(columnFilterValue)
         ? columnFilterValue.filter(
               (value): value is string => typeof value === 'string',
           )
-        : [];
+        : typeof columnFilterValue === 'string'
+          ? [columnFilterValue]
+          : [];
     const hasSelection = selectedValues.length > 0;
 
     function onValueChange(value: string | string[] | undefined) {
         const values = Array.isArray(value) ? value : value ? [value] : [];
-        column?.setFilterValue(values.length > 0 ? values : undefined);
+
+        if (values.length === 0) {
+            column?.setFilterValue(undefined);
+        } else {
+            column?.setFilterValue(isScalar ? values[0] : values);
+        }
     }
 
     function onReset(event: React.MouseEvent) {

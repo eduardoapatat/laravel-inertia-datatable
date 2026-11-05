@@ -135,6 +135,11 @@ function DataTableSearch<TData extends RowData>({
     );
 }
 
+const BOOLEAN_OPTIONS = [
+    { label: 'Yes', value: 'true' },
+    { label: 'No', value: 'false' },
+];
+
 interface DataTableToolbarFilterProps<TData extends RowData> {
     column: Column<DataTableFeatures, TData>;
 }
@@ -185,6 +190,15 @@ function DataTableToolbarFilter<TData extends RowData>({
                     column={column}
                     title={title}
                     multiple={filterVariant === 'date-range'}
+                />
+            );
+
+        case 'boolean':
+            return (
+                <DataTableFacetedFilter
+                    column={column}
+                    title={title}
+                    options={BOOLEAN_OPTIONS}
                 />
             );
 
