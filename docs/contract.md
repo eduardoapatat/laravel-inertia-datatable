@@ -89,8 +89,11 @@ filter[<col>]=[<operador>.]<valor>
 | `eq` / `neq` | `=` / `<>`; en `date` compara el día completo (`whereDate`); en `text` no distingue mayúsculas |
 | `lt` `lte` `gt` `gte` | comparación; en `date` por día (`lte` 2026-01-31 incluye todo ese día) |
 | `between` | ambos extremos inclusivos; con un extremo vacío equivale a `gte` / `lte` |
-| `in` / `not.in` | `whereIn` / `whereNotIn` (`not.in` incluye además los `NULL`) |
+| `in` / `not.in` | `whereIn` / `whereNotIn` |
 | `is.empty` / `not.is.empty` | `IS NULL` (o `''` en `text`) / lo contrario |
+
+- Las negaciones (`not.ilike`, `neq`, `not.in`) incluyen las filas sin valor (`NULL`): «no es X» también vale para lo que no tiene valor. En columnas de relaciones incluyen las filas sin relación.
+- «Sin distinguir mayúsculas» depende de la base de datos: en MySQL/MariaDB (collation `_ci`) y PostgreSQL (`ILIKE`, `lower()`) funciona con cualquier letra; en SQLite solo con letras ASCII (`Á` ≠ `á`).
 
 #### Normalización
 
@@ -117,7 +120,7 @@ filter[<col>]=[<operador>.]<valor>
 - Lista separada por comas de las columnas **visibles**.
 - Ausente → visibilidad por defecto (cada columna declara si se ve por defecto).
 - Se ignoran las columnas desconocidas; las no ocultables (`hideable: false`) siempre se muestran.
-- Las filas de `data` solo incluyen las claves de las columnas visibles más las claves fijas (`alwaysInclude`, por defecto la clave primaria). Mostrar una columna oculta implica pedirla de nuevo al servidor.
+- Las filas de `data` no incluyen las claves de las columnas ocultas (ver §2.2). Mostrar una columna oculta implica pedirla de nuevo al servidor.
 - Se usa una lista de visibles (no de ocultas) para poder mostrar columnas ocultas por defecto.
 
 ### 1.7 Varias tablas en la misma página
@@ -138,11 +141,11 @@ El backend devuelve un objeto que sirve como **prop de Inertia** o como **respue
 
 ```php
 return Inertia::render('users/index', [
-    'users' => fn () => DataTable::for(User::query())->…->toArray(),
+    'users' => fn () => UsersTable::make(),
 ]);
 ```
 
-Usar un closure permite que funcionen las recargas parciales de Inertia (`router.get(url, {}, { only: ['users'] })`).
+Inertia convierte el objeto con `toArray()` (es `Arrayable`). Usar un closure evita resolver la tabla cuando una recarga parcial no la pide (`router.get(url, {}, { only: ['users'] })`).
 
 ### 2.1 Forma
 
@@ -201,7 +204,10 @@ Usar un closure permite que funcionen las recargas parciales de Inertia (`router
 
 ### 2.2 `data`
 
-Filas de la página actual. Sin `transform`, es el `toArray()` del modelo; con `->transform(fn ($row) => [...])`, lo que devuelva el closure. En ambos casos se recortan a las columnas visibles más `alwaysInclude`.
+Filas de la página actual:
+
+- **Sin `transform`:** solo las columnas visibles más las claves fijas (`alwaysInclude`, por defecto la clave primaria). Cada valor sale del `toArray()` del modelo (respeta `$hidden`, casts y formato de fechas); las columnas de relaciones se aplanan bajo su id.
+- **Con `transform`:** lo que devuelva el método `transform()` de la clase o el closure de `->transform()`, quitando las claves de las columnas ocultas. Las claves que no son columnas (por ejemplo `url`) se mantienen.
 
 ### 2.3 `meta`
 
@@ -312,10 +318,22 @@ DataTable::for(User::query())
 
 ### 5.3 Tablas a partir de un modelo padre
 
-La consulta base puede ser cualquier `Builder` o relación de Eloquent, así que una tabla puede mostrar solo los registros de un padre:
+La consulta base puede ser cualquier `Builder` o relación de Eloquent. `make()` crea la tabla desde el contenedor, así que el constructor admite argumentos por nombre (y dependencias inyectadas):
 
 ```php
-UserProductsTable::for($user->products());
+class UserProductsTable extends DataTable
+{
+    public function __construct(private readonly User $user) {}
+
+    public function query(): HasMany
+    {
+        return $this->user->products();
+    }
+
+    // columns(), …
+}
+
+UserProductsTable::make(user: $user);
 ```
 
 ### 5.4 Columnas de relaciones (`belongsTo` / `hasOne`)
@@ -332,7 +350,7 @@ UserProductsTable::for($user->products());
 
 Límites de esta fase:
 
-- Solo relaciones a uno (`belongsTo`, `hasOne`), con un nivel de profundidad (`category.name`; no `category.parent.name`).
+- Solo relaciones a uno (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`), con un nivel de profundidad (`category.name`; no `category.parent.name`). Declarar una columna sobre una relación a muchos lanza una `LogicException` al resolver la tabla, aunque solo se muestre.
 - Los valores de la faceta son los de la columna mostrada (`filter[category]=Electrónica`). Si hay valores repetidos (dos categorías con el mismo nombre), se agrupan.
 - Las relaciones a muchos (`hasMany`, `belongsToMany`, por ejemplo tags) quedan para una fase futura.
 
