@@ -4,9 +4,15 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-05
+
 ### Changed
 
 - Filter buttons have a dashed border, the filter options show a checkbox at the start and the count at the end (like the shadcn tasks example), and the sort check of the column menu is at the end. `components/ui/faceted.tsx` adds `FacetedItemCheckbox` and `FacetedItemCount`.
+
+### Fixed
+
+- The checkbox of the filter options stays visible on hover in any theme: its border comes from the item text color, not from `--input` (equal to the hover color in some dark themes).
 
 ## [0.4.0] - 2026-11-05
 
@@ -73,7 +79,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.1.0...v0.2.0
