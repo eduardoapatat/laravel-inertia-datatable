@@ -143,7 +143,7 @@ columnHelper.accessor('category', {
 
 ## Toolbar, pagination and loading state
 
-- `<DataTableToolbar table={table} />` renders the global search (when the server allows it) and one control per filterable column: text/number inputs, faceted filters with counts, range slider, date pickers, Yes/No for booleans, plus Reset and the column visibility menu. Props: `searchPlaceholder`, `searchable` (override), `children` (extra buttons on the right). For another arrangement, see the next section.
+- `<DataTableToolbar table={table} />` renders the global search (when the server allows it) and one control per filterable column: text/number inputs, faceted filters with counts, range slider, date pickers, Yes/No for booleans (with `empty: true` in PHP, a "without value" option or check, `DataTableEmptyFilter`), plus Reset and the column visibility menu. Props: `searchPlaceholder`, `searchable` (override), `children` (extra buttons on the right). For another arrangement, see the next section.
 - Pagination is part of `<DataTable>` (below the table; `pagination={false}` to place it yourself); page sizes come from the server.
 - `isLoading` is true while a visit is in flight; use it for a subtle opacity or a spinner, never to unmount the table (that would lose input focus).
 - Text filters and the search are debounced (300 ms, `debounceMs` option); paging, sorting and visibility navigate immediately.

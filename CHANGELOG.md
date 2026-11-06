@@ -9,9 +9,12 @@ All notable changes to this package are documented here. The format follows [Kee
 - `money('CLP', cell: 'both', filter: 'both')` shows the symbol before the number and the code after it (`$1.684.910 CLP`, `[ $ | 1200 | CLP ]`), for when `$` could be more than one currency.
 - `unit('u.', cell: false)` or `unit('u.', filter: false)` hides the unit in the cells (and the filter label) or next to the filter inputs.
 - Cells without a value (`null` or `''`) show a muted `—` instead of nothing (`empty` text of `lang/*/ui.php`, `DataTableEmptyCell`); `->whenEmpty('Not published')` changes it per column and `->whenEmpty('')` keeps them blank.
+- `empty: true` in `filterSelect()`, `filterMultiSelect()`, `filterRange()` and `filterDate()` offers the rows without a value: the last option of the list, with its count, or an "Include …" check under the slider or the calendar (`DataTableEmptyFilter`). They are added with OR to what is picked, or shown alone, and are named after `whenEmpty()` or the new `no_value` text. With `validate_columns`, a `NOT NULL` column throws.
+- Boolean filters accept `is.empty` and `not.is.empty` in the URL.
 
 ### Changed
 
+- `is.empty` is combined with OR with the other filters of its column (`(between … AND …) OR IS NULL`); with AND that combination could never match a row.
 - `getFilterAffix()` of `lib/data-table-format.ts` is now `getFilterAffixes()`, which returns a list (the symbol and the code can go on both sides), and the `affix` prop of `DataTableFilterInput` is now `affixes`.
 - `make:datatable` only proposes the model's own columns: foreign keys (`category_id`) are left out instead of becoming relation columns (`from('category.name')`), which are added by hand.
 - The number cells show the currency code (`cell: 'code'`) and the unit (`unit('kg')`) smaller and muted after the number (`data-slot="data-table-number-suffix"`). `formatNumberCell()` gives the number and that suffix apart, for custom cells.

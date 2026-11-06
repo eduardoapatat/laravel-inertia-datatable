@@ -235,7 +235,7 @@ Data the client cannot compute by itself in server mode (they replace TanStack's
   - An option column without a filter sends only its declared options, without `count` and without a query, so the cells show their labels.
   - Not declared: distinct values present in the database, sorted by value, with `label = value`.
 - Selected values always appear, even if their count is 0.
-- In this phase `NULL` values are excluded.
+- `NULL` values are not an option. With `empty: true` in the filter, the rows without a value go last as `{ "value": null, "label": …, "count"?: … }`; the label is the text of `->whenEmpty()` or the `no_value` UI text.
 - Counts can be disabled per column (`->filterSelect(counts: false)` / `->filterMultiSelect(counts: false)`); then `count` is not sent.
 
 **`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `Column::number(...)->filterRange(min: 0, max: 5000)` to skip the query.
@@ -256,7 +256,7 @@ Each column:
   "filter": { "variant": "range" } }
 ```
 
-`filter` is `null` or `{ "variant": …, "placeholder"?: … }`, with the variants of §1.4. Each type of column allows only some of them:
+`filter` is `null` or `{ "variant": …, "placeholder"?: …, "empty"?: true }`, with the variants of §1.4. `empty: true` (`filterRange(empty: true)`, `filterSelect(empty: true)`…, not in `filterInput()`) makes the filter offer the rows without a value, sent as `is.empty` next to the column's other filters (OR, §1.4); with `inertia-datatable.validate_columns`, it throws on a `NOT NULL` column. Each type of column allows only some of them:
 
 | Column | `display.type` | Filter variants |
 |---|---|---|
