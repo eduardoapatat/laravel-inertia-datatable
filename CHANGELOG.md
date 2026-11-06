@@ -8,6 +8,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 - `money('CLP', cell: 'both', filter: 'both')` shows the symbol before the number and the code after it (`$1.684.910 CLP`, `[ $ | 1200 | CLP ]`), for when `$` could be more than one currency.
 - `unit('u.', cell: false)` or `unit('u.', filter: false)` hides the unit in the cells (and the filter label) or next to the filter inputs.
+- Cells without a value (`null` or `''`) show a muted `—` instead of nothing (`empty` text of `lang/*/ui.php`, `DataTableEmptyCell`); `->whenEmpty('Not published')` changes it per column and `->whenEmpty('')` keeps them blank.
 
 ### Changed
 

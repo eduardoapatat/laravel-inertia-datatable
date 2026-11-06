@@ -87,7 +87,7 @@ columnHelper.accessor('featured', {
 
 - Badge variant of a value, first wins: the `badge` prop of `DataTableOptionCell` → `meta.display.variants` of the page (replaces the whole PHP map) → the map of `badge('…', [...])` in PHP → `badgeVariant()` of the enum → the column variant of `badge('…')` → `outline`. How each variant looks is the project's `components/ui/badge.tsx`.
 
-- To render a value differently (extra icons, other fields of the row, another component), write a custom `cell` (for a color or a class by value, `meta.cellClassName` as a function is shorter, see "Column width and classes") and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell`. They take the cell context:
+- To render a value differently (extra icons, other fields of the row, another component), write a custom `cell` (for a color or a class by value, `meta.cellClassName` as a function is shorter, see "Column width and classes") and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell` (each one shows `DataTableEmptyCell`, the `—` or the text of `->whenEmpty()`, for empty values). They take the cell context:
 
 ```tsx
 import { DataTableNumberCell } from '@/components/data-table/data-table-cells';

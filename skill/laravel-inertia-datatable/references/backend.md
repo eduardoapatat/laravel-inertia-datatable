@@ -68,6 +68,7 @@ Methods of every type:
 | `sortable()` | Allowed in `sort` |
 | `hideable(false)` | Always visible (use for the column that identifies the row); cannot be combined with `hidden()` |
 | `hidden()` | Hidden by default; the user can show it |
+| `whenEmpty('Not published')` | Text of the cells without a value (`null` or `''`); without it, a muted `—` (the `empty` UI text); `''` leaves them blank |
 
 Format (only changes how cells look; the row keeps the raw value and the UI formats with Intl and the table locale, see Configuration) and filter of each type:
 
