@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-06
+
 ### Added
 
 - `money('CLP', cell: …, filter: …)` chooses how the currency is shown in the cells (and the filter label) and next to the filter inputs, separately: `symbol` before the number (`$1.684.910`, `[ $ | 1200 ]`), `code` after it (`1.684.910 CLP`, `[ 1200 | CLP ]`) or `none`.
@@ -164,7 +166,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.0...v0.6.1
