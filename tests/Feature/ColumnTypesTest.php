@@ -81,7 +81,11 @@ it('adds up the number methods', function () {
 
 it('shows the unit of plain numbers', function () {
     expect(displayOf(Column::number('weight')->unit('kg')->decimals(1)))
-        ->toBe(['type' => 'number', 'format' => ['minimumFractionDigits' => 1, 'maximumFractionDigits' => 1], 'unit' => 'kg']);
+        ->toBe(['type' => 'number', 'format' => ['minimumFractionDigits' => 1, 'maximumFractionDigits' => 1], 'unit' => 'kg'])
+        ->and(displayOf(Column::number('stock')->unit('u.', cell: false)))
+        ->toBe(['type' => 'number', 'unit' => 'u.', 'showUnit' => ['cell' => false]])
+        ->and(displayOf(Column::number('stock')->unit('u.', filter: false)))
+        ->toBe(['type' => 'number', 'unit' => 'u.', 'showUnit' => ['filter' => false]]);
 });
 
 it('rejects a unit next to a currency or a percentage', function (Closure $build) {
@@ -136,6 +140,7 @@ it('rejects invalid definitions', function (Closure $build, string $message) {
     'currency' => [fn () => Column::number('price')->money('pesos'), 'The currency [pesos] must be an ISO 4217 code'],
     'decimals' => [fn () => Column::number('price')->decimals(-1), 'The number of decimals cannot be negative.'],
     'unit' => [fn () => Column::number('weight')->unit(' '), 'The unit cannot be empty.'],
+    'hidden unit' => [fn () => Column::number('weight')->unit('kg', cell: false, filter: false), 'The unit of the column [weight] is hidden in the cells and in the filter: remove unit().'],
     'range' => [fn () => Column::number('price')->filterRange(10, 1), 'The range of the column [price] starts after it ends.'],
     'date preset' => [fn () => Column::date('created_at')->format('full'), 'The date format [full] is not one of: short, medium, long, datetime, relative.'],
     'limit' => [fn () => Column::text('notes')->limit(0), 'The text limit must be at least 1 character.'],

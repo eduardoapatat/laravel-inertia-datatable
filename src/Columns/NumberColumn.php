@@ -23,6 +23,13 @@ final class NumberColumn extends Column
 
     private ?string $unit = null;
 
+    /**
+     * Where the unit is not shown.
+     *
+     * @var array{cell?: false, filter?: false}
+     */
+    private array $showUnit = [];
+
     private ?string $placeholder = null;
 
     private int|float|null $min = null;
@@ -104,15 +111,22 @@ final class NumberColumn extends Column
     }
 
     /**
-     * Unit after plain numbers, in the cells and in the filters: `unit('kg')` → `12 kg`.
+     * Unit after plain numbers: `unit('kg')` → `12 kg`. `cell` and `filter`
+     * choose whether it is shown in the cells (and the filter label) and next
+     * to the filter inputs.
      */
-    public function unit(string $unit): self
+    public function unit(string $unit, bool $cell = true, bool $filter = true): self
     {
         if (trim($unit) === '') {
             throw new InvalidArgumentException('The unit cannot be empty.');
         }
 
+        if (! $cell && ! $filter) {
+            throw new InvalidArgumentException("The unit of the column [{$this->id()}] is hidden in the cells and in the filter: remove unit().");
+        }
+
         $this->unit = $unit;
+        $this->showUnit = array_filter(['cell' => $cell, 'filter' => $filter], fn (bool $show): bool => ! $show);
         $this->ensureUnitFits();
 
         return $this;
@@ -163,6 +177,7 @@ final class NumberColumn extends Column
                 'type' => 'number',
                 'format' => $this->format === [] ? null : $this->format,
                 'unit' => $this->unit,
+                'showUnit' => $this->showUnit === [] ? null : $this->showUnit,
                 'currency' => $this->currency === [] ? null : $this->currency,
             ],
             fn (mixed $value): bool => $value !== null,

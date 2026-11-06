@@ -63,6 +63,11 @@ export type ServerColumnDisplay =
           /** Unit after plain numbers (`->unit('kg')`). */
           unit?: string;
           /**
+           * Where the unit is hidden: in the cells (and the filter label) or
+           * next to the filter inputs; shown when missing.
+           */
+          showUnit?: { cell?: false; filter?: false };
+          /**
            * Currency of `->money()` in the cells (and the filter label) and
            * next to the filter inputs; `symbol` when missing.
            */

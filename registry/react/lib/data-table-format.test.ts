@@ -198,6 +198,22 @@ describe('formatNumberCell', () => {
         ).toEqual({ text: '12', suffix: 'kg' });
     });
 
+    it('leaves out a unit hidden in the cells', () => {
+        expect(
+            formatNumberCell(
+                {
+                    display: {
+                        type: 'number',
+                        unit: 'u.',
+                        showUnit: { cell: false },
+                    },
+                },
+                12,
+                'es-CL',
+            ),
+        ).toEqual({ text: '12' });
+    });
+
     it('keeps the symbol, plain numbers and empty values whole', () => {
         expect(formatNumberCell(money(), 1500, 'es-CL')).toEqual({
             text: '$1.500',
@@ -239,6 +255,18 @@ describe('getFilterAffixes', () => {
         expect(getFilterAffixes({ variant: 'number', unit: 'u.' })).toEqual([
             { text: 'u.', align: 'inline-end' },
         ]);
+    });
+
+    it('leaves out a unit hidden in the filter', () => {
+        expect(
+            getFilterAffixes({
+                display: {
+                    type: 'number',
+                    unit: 'u.',
+                    showUnit: { filter: false },
+                },
+            }),
+        ).toEqual([]);
     });
 
     it('has none for percentages or columns without a unit', () => {

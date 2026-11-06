@@ -213,7 +213,8 @@ export function getFilterAffixes(
         return affixes;
     }
 
-    const unit = format?.style === undefined ? getUnit(meta) : undefined;
+    const unit =
+        format?.style === undefined ? getUnit(meta, 'filter') : undefined;
 
     return unit ? [{ text: unit, align: 'inline-end' }] : [];
 }
@@ -530,12 +531,20 @@ function toNumber(value: unknown): number | null {
 }
 
 /**
- * Unit of the column: `->unit('kg')` in PHP or `meta.unit` in the page.
+ * Unit of the column in the cells (and the filter label) or next to the filter
+ * inputs: `->unit('kg', cell: false)` in PHP or `meta.unit` in the page.
  */
-function getUnit(meta: DataTableColumnMeta | undefined): string | undefined {
+export function getUnit(
+    meta: DataTableColumnMeta | undefined,
+    place: 'cell' | 'filter' = 'cell',
+): string | undefined {
     const display = meta?.display?.type === 'number' ? meta.display : undefined;
 
-    return display?.unit ?? (meta && 'unit' in meta ? meta.unit : undefined);
+    if (display?.unit !== undefined) {
+        return display.showUnit?.[place] === false ? undefined : display.unit;
+    }
+
+    return meta && 'unit' in meta ? meta.unit : undefined;
 }
 
 /**

@@ -272,7 +272,7 @@ Each column:
 |---|---|---|
 | `{ "type": "number", "format": { "style": "currency", "currency": "CLP" } }` | `money()`, `decimals()`, `percent()`, `format()` | `format` = Intl.NumberFormat options |
 | `{ "type": "number", "format": { … }, "currency": { "cell": "both", "filter": "none" } }` | `money('CLP', cell:, filter:)` | Currency in the cells (and the filter label) and next to the filter inputs: `symbol` (default, not sent), `code`, `both` or `none` |
-| `{ "type": "number", "unit": "kg" }` | `unit()` | Unit after plain numbers and next to the filter inputs (never with a `style`) |
+| `{ "type": "number", "unit": "kg", "showUnit": { "cell": false } }` | `unit('kg', cell:, filter:)` | Unit after plain numbers and next to the filter inputs (never with a `style`); `showUnit` (only when one side hides it) says where it is not shown |
 | `{ "type": "date", "format": "long" }` | `format()` | `short`, `medium`, `long`, `datetime`, `relative` or Intl.DateTimeFormat options; without `format`, the table `date_format`; dates without time are formatted in UTC |
 | `{ "type": "text", "limit": 60, "link": "url" }` | `limit()`, `url()`, `email()` | Cut text; link only for http/https URLs |
 | `{ "type": "boolean", "labels": { "true": "Sí", "false": "No" } }` | `labels()` | Labels of true/false (also `1`/`0`); without them, the Yes / No of `messages` |

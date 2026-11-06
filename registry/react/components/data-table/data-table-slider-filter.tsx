@@ -6,7 +6,11 @@ import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import { formatNumber, getFilterAffixes } from '@/lib/data-table-format';
+import {
+    formatNumber,
+    getFilterAffixes,
+    getUnit,
+} from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -74,7 +78,8 @@ function DataTableSliderFilterContent<TData extends RowData>({
     const numberMeta = meta?.variant === 'number' ? meta : undefined;
     const declaredMin = numberMeta?.min;
     const declaredMax = numberMeta?.max;
-    const unit = numberMeta?.unit;
+    // The label of the filter shows the unit as the cells do.
+    const unit = getUnit(meta, 'cell');
 
     const [facetedRange, setFacetedRange] = React.useState(() =>
         getFacetedRange(column),
