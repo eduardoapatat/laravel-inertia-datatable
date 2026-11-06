@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import { getFilterUnit } from '@/lib/data-table-format';
+import { getFilterAffix, type FilterAffix } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -276,7 +276,7 @@ function DataTableToolbarFilter<TData extends RowData>({
                     type="number"
                     inputMode="numeric"
                     placeholder={placeholder}
-                    unit={getFilterUnit(columnMeta)}
+                    affix={getFilterAffix(columnMeta)}
                     className="w-30"
                 />
             );
@@ -323,14 +323,14 @@ interface DataTableFilterInputProps<
     TData extends RowData,
 > extends React.ComponentProps<'input'> {
     column: Column<DataTableFeatures, TData>;
-    /** Unit or currency code after the value (`getFilterUnit`). */
-    unit?: string;
+    /** Unit or currency next to the value (`getFilterAffix`). */
+    affix?: FilterAffix;
 }
 
 function DataTableFilterInput<TData extends RowData>({
     column,
     type = 'text',
-    unit,
+    affix,
     className,
     ...props
 }: DataTableFilterInputProps<TData>) {
@@ -348,14 +348,14 @@ function DataTableFilterInput<TData extends RowData>({
                         column.setFilterValue(event.target.value || undefined),
                 };
 
-                if (!unit)
+                if (!affix)
                     return <Input {...inputProps} className={className} />;
 
                 return (
                     <InputGroup className={className}>
                         <InputGroupInput {...inputProps} />
-                        <InputGroupAddon align="inline-end">
-                            <InputGroupText>{unit}</InputGroupText>
+                        <InputGroupAddon align={affix.align}>
+                            <InputGroupText>{affix.text}</InputGroupText>
                         </InputGroupAddon>
                     </InputGroup>
                 );

@@ -8,6 +8,7 @@ import {
 import type {
     ColumnDisplay,
     ColumnSelectOption,
+    CurrencyDisplay,
     DataTableColumnMeta,
     DatePreset,
 } from '@/lib/data-table-types';
@@ -53,12 +54,15 @@ const RELATIVE_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
 
 /**
  * Number with Intl options (`{ style: 'currency', currency: 'CLP' }`…). Texts
- * that are not numbers are returned as they are.
+ * that are not numbers are returned as they are. Currencies follow `currency`:
+ * the symbol before the number (`$1.234`, in any locale), the code after it
+ * (`1.234 CLP`) or nothing (`1.234`); the locale gives the separators.
  */
 export function formatNumber(
     value: unknown,
     format: Intl.NumberFormatOptions = {},
     locale?: string,
+    currency: CurrencyDisplay = 'symbol',
 ): string {
     const number = toNumber(value);
 
@@ -67,29 +71,93 @@ export function formatNumber(
     }
 
     try {
+        if (
+            format.style === 'currency' &&
+            format.currencyDisplay === undefined
+        ) {
+            return formatMoney(number, format, locale, currency);
+        }
+
         return new Intl.NumberFormat(locale, format).format(number);
     } catch {
         return String(number);
     }
 }
 
-/**
- * Unit shown after the number inputs of a filter, which take the raw value:
- * the unit of plain numbers (`->unit('kg')`) or the code of the currency
- * (`->money('CLP')` → `CLP`, clearer than `$`, which several currencies use).
- * Percentages and Intl units have none.
- */
-export function getFilterUnit(
-    meta: DataTableColumnMeta | undefined,
-): string | undefined {
-    const format =
-        meta?.display?.type === 'number' ? meta.display.format : undefined;
+function formatMoney(
+    number: number,
+    format: Intl.NumberFormatOptions,
+    locale: string | undefined,
+    currency: CurrencyDisplay,
+): string {
+    const parts = new Intl.NumberFormat(locale, {
+        ...format,
+        currencyDisplay: 'narrowSymbol',
+    }).formatToParts(number);
+    const symbol = parts.find((part) => part.type === 'currency')?.value ?? '';
+    const sign = parts.find((part) => part.type === 'minusSign')?.value ?? '';
+    const digits = parts
+        .filter(
+            (part) =>
+                part.type !== 'currency' &&
+                part.type !== 'minusSign' &&
+                !(part.type === 'literal' && part.value.trim() === ''),
+        )
+        .map((part) => part.value)
+        .join('');
 
-    if (format?.style === 'currency') {
-        return format.currency?.toUpperCase();
+    switch (currency) {
+        case 'code':
+            return `${sign}${digits} ${format.currency?.toUpperCase() ?? ''}`.trim();
+        case 'none':
+            return `${sign}${digits}`;
+        default:
+            return `${sign}${symbol}${digits}`;
+    }
+}
+
+export interface FilterAffix {
+    text: string;
+    align: 'inline-start' | 'inline-end';
+}
+
+/**
+ * What goes next to the number inputs of a filter, which take the raw value:
+ * the unit of plain numbers (`->unit('kg')`) after them or, for `->money()`,
+ * the symbol before (`$`, by default) or the code after (`CLP`), as chosen
+ * with `filter:`. Percentages and Intl units have none.
+ */
+export function getFilterAffix(
+    meta: DataTableColumnMeta | undefined,
+): FilterAffix | undefined {
+    const display = meta?.display?.type === 'number' ? meta.display : undefined;
+    const format = display?.format;
+
+    if (format?.style === 'currency' && format.currency) {
+        switch (display?.currency?.filter ?? 'symbol') {
+            case 'code':
+                return {
+                    text: format.currency.toUpperCase(),
+                    align: 'inline-end',
+                };
+            case 'none':
+                return undefined;
+            default: {
+                const text = new Intl.NumberFormat(undefined, {
+                    ...format,
+                    currencyDisplay: 'narrowSymbol',
+                })
+                    .formatToParts(0)
+                    .find((part) => part.type === 'currency')?.value;
+
+                return text ? { text, align: 'inline-start' } : undefined;
+            }
+        }
     }
 
-    return format?.style === undefined ? getUnit(meta) : undefined;
+    const unit = format?.style === undefined ? getUnit(meta) : undefined;
+
+    return unit ? { text: unit, align: 'inline-end' } : undefined;
 }
 
 /**
@@ -282,7 +350,12 @@ export function formatCellValue(
     switch (display?.type) {
         case 'number':
             return withUnit(
-                formatNumber(value, display.format, locale),
+                formatNumber(
+                    value,
+                    display.format,
+                    locale,
+                    display.currency?.cell,
+                ),
                 meta,
                 display.format,
             );

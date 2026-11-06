@@ -10,7 +10,10 @@ import type {
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type { DataTableMessages } from '@/lib/data-table-messages';
-import type { ServerColumnDisplay } from '@/lib/data-table-server';
+import type {
+    CurrencyDisplay,
+    ServerColumnDisplay,
+} from '@/lib/data-table-server';
 import type {
     FILTER_OPERATORS,
     FILTER_VARIANTS,
@@ -79,6 +82,8 @@ export interface DataTableTableMeta {
  * or in the page `meta`, which wins.
  */
 export type ColumnDisplay = ServerColumnDisplay;
+
+export type { CurrencyDisplay };
 
 export type DatePreset = Extract<
     Extract<ColumnDisplay, { type: 'date' }>['format'],

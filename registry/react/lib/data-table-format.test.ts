@@ -6,7 +6,7 @@ import {
     formatDateValue,
     formatNumber,
     getOption,
-    getFilterUnit,
+    getFilterAffix,
     isDateOnly,
     isSafeUrl,
     truncate,
@@ -164,34 +164,79 @@ describe('truncate and isSafeUrl', () => {
     });
 });
 
-describe('getFilterUnit', () => {
-    it('gives the code of the currency', () => {
-        expect(
-            getFilterUnit({
-                display: {
-                    type: 'number',
-                    format: { style: 'currency', currency: 'CLP' },
-                },
-            }),
-        ).toBe('CLP');
+describe('getFilterAffix', () => {
+    const money = (filter?: 'symbol' | 'code' | 'none') => ({
+        display: {
+            type: 'number' as const,
+            format: { style: 'currency' as const, currency: 'CLP' },
+            ...(filter ? { currency: { filter } } : {}),
+        },
     });
 
-    it('gives the unit of plain numbers', () => {
-        expect(getFilterUnit({ display: { type: 'number', unit: 'kg' } })).toBe(
-            'kg',
-        );
-        expect(getFilterUnit({ variant: 'number', unit: 'u.' })).toBe('u.');
+    it('puts the currency symbol before the inputs by default', () => {
+        expect(getFilterAffix(money())).toEqual({
+            text: '$',
+            align: 'inline-start',
+        });
+    });
+
+    it('puts the currency code after the inputs, or nothing', () => {
+        expect(getFilterAffix(money('code'))).toEqual({
+            text: 'CLP',
+            align: 'inline-end',
+        });
+        expect(getFilterAffix(money('none'))).toBeUndefined();
+    });
+
+    it('puts the unit of plain numbers after the inputs', () => {
+        expect(
+            getFilterAffix({ display: { type: 'number', unit: 'kg' } }),
+        ).toEqual({ text: 'kg', align: 'inline-end' });
+        expect(getFilterAffix({ variant: 'number', unit: 'u.' })).toEqual({
+            text: 'u.',
+            align: 'inline-end',
+        });
     });
 
     it('has none for percentages or columns without a unit', () => {
         expect(
-            getFilterUnit({
+            getFilterAffix({
                 variant: 'number',
                 unit: '%',
                 display: { type: 'number', format: { style: 'percent' } },
             }),
         ).toBeUndefined();
-        expect(getFilterUnit({ display: { type: 'number' } })).toBeUndefined();
+        expect(getFilterAffix({ display: { type: 'number' } })).toBeUndefined();
+    });
+});
+
+describe('formatNumber with a currency', () => {
+    const clp = { style: 'currency' as const, currency: 'CLP' };
+
+    it('puts the symbol before the number in any locale', () => {
+        expect(formatNumber(1684910, clp, 'es-CL')).toBe('$1.684.910');
+        expect(formatNumber(1684910, clp, 'es')).toBe('$1.684.910');
+        expect(formatNumber(1684910, clp, 'en')).toBe('$1,684,910');
+        expect(formatNumber(-1500, clp, 'es-CL')).toBe('-$1.500');
+    });
+
+    it('puts the code after the number, or shows only the number', () => {
+        expect(formatNumber(1684910, clp, 'es-CL', 'code')).toBe(
+            '1.684.910 CLP',
+        );
+        expect(formatNumber(1684910, clp, 'en', 'none')).toBe('1,684,910');
+    });
+
+    it('keeps the decimals of the currency', () => {
+        expect(
+            formatNumber(5, { style: 'currency', currency: 'USD' }, 'en-US'),
+        ).toBe('$5.00');
+    });
+
+    it('lets currencyDisplay of the format decide', () => {
+        expect(
+            formatNumber(5, { ...clp, currencyDisplay: 'name' }, 'en-US'),
+        ).toBe('5 Chilean pesos');
     });
 });
 

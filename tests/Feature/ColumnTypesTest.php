@@ -256,3 +256,17 @@ it('uses the variants of the enum only with a badge', function () {
 it('rejects an empty badge variant from an enum', function () {
     Column::option('only')->options(BlankVariant::class);
 })->throws(InvalidArgumentException::class, 'BlankVariant::badgeVariant() must return a badge variant');
+
+it('shows the currency as a symbol by default, or as chosen in the cells and in the filter', function () {
+    $format = ['style' => 'currency', 'currency' => 'CLP'];
+
+    expect(displayOf(Column::number('price')->money('CLP')))->toBe(['type' => 'number', 'format' => $format])
+        ->and(displayOf(Column::number('price')->money('CLP', cell: 'code', filter: 'none')))
+        ->toBe(['type' => 'number', 'format' => $format, 'currency' => ['cell' => 'code', 'filter' => 'none']])
+        ->and(displayOf(Column::number('price')->money('CLP', filter: 'code')))
+        ->toBe(['type' => 'number', 'format' => $format, 'currency' => ['filter' => 'code']]);
+});
+
+it('rejects an unknown currency display', function () {
+    Column::number('price')->money('CLP', cell: 'name');
+})->throws(InvalidArgumentException::class, 'The cell currency display [name] is not one of: symbol, code, none.');
