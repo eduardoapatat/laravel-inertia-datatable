@@ -34,6 +34,8 @@ Migration:
 - The inputs of number filters end in the currency code of `->money()` (`[ 1200 | CLP ]`, clearer than `$`, which several currencies use) or the unit of `->unit()`; the cells keep the format of the column (`$1.200`). The inputs of the range filter are as wide as its bounds.
 - Option columns without a filter send the labels of their declared options, so the cells show `Archived` instead of `archived`.
 - Date columns without `format()` use the `date_format` of the table.
+- `meta.icons` in React gives an icon per value (`{ active: CircleCheck }`, or `true` / `false` in boolean columns) without repeating the labels, the filter variant or the badge variants of PHP. Boolean cells and the Yes / No filter show icons too.
+- With `options(Enum::class)` and `badge()`, a `badgeVariant()` method on the enum gives the badge variant of each case, like `label()` gives its label.
 
 ## [0.6.1] - 2026-11-05
 

@@ -72,19 +72,20 @@ Match the layout conventions of the app (breadcrumbs, wrappers, Wayfinder route 
 - Client-only columns (no backend id: actions, row selection) go after the backend columns; add `meta: { position: 'start' }` to put one first (for example a selection checkbox).
 - You do not set `enableSorting`, `enableColumnFilter`, `enableHiding` or filter `meta` yourself: the hook fills them from the server config (label, variant from the column type and its filter, placeholder, unit, options with counts, range bounds). Number filters end their inputs in the unit or the currency code (`getFilterUnit` in `lib/data-table-format.ts`).
 - The page can set or override the format in `meta.display` (same shape as the server `display`; with the same type, only the declared keys change): `meta: { display: { type: 'number', format: { style: 'percent' } } }`.
-- Icons per option go in `meta.options` (labels and counts still come from the server); they show in the faceted filter and in the cells:
+- Icons per value go in `meta.icons`; labels, counts and badge variants still come from the server. They show in the filter list and in the cells (with or without badge), also in boolean columns with the keys `true` / `false`. Icons are lucide components imported by name, so only the ones used reach the bundle; do not send icon names from PHP or use `DynamicIcon`:
 
 ```tsx
 columnHelper.accessor('status', {
-    meta: {
-        variant: 'multi-select',
-        options: [
-            { value: 'active', label: 'Active', icon: CircleCheck },
-            { value: 'draft', label: 'Draft', icon: CircleDashed },
-        ],
-    },
+    meta: { icons: { active: CircleCheck, draft: CircleDashed, archived: Archive } },
+}),
+columnHelper.accessor('featured', {
+    meta: { icons: { true: Star } },
 }),
 ```
+
+`meta.options` (`variant: 'multi-select'` plus `{ value, label, icon }`) still works when the page must also change the labels.
+
+- Badge variant of a value, first wins: the `badge` prop of `DataTableOptionCell` → `meta.display.variants` of the page (replaces the whole PHP map) → the map of `badge('…', [...])` in PHP → `badgeVariant()` of the enum → the column variant of `badge('…')` → `outline`. How each variant looks is the project's `components/ui/badge.tsx`.
 
 - To render a value differently (extra icons, other fields of the row, another component), write a custom `cell` (for a color or a class by value, `meta.cellClassName` as a function is shorter, see "Column width and classes") and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell`. They take the cell context:
 
@@ -100,7 +101,7 @@ columnHelper.accessor('price', {
 }),
 ```
 
-- Option cells (select / multi-select) can be customized without rewriting them; the cell still splits multiple values, skips empty ones and keeps the PHP labels and the `meta.options` icons:
+- Option cells (select / multi-select) can be customized without rewriting them; the cell still splits multiple values, skips empty ones and keeps the PHP labels and the `meta.icons` icons:
 
 ```tsx
 import {

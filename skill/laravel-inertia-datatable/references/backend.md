@@ -84,7 +84,7 @@ Format (only changes how cells look; the row keeps the raw value and the UI form
 - The name of each filter method says the control in the toolbar; the URL also accepts the other operators of its variant (`filter[stock]=gt.100`, `between.10,50`, `is.empty`…, see `docs/contract.md` §1.4).
 - One filter per column: calling two filter methods (`->filterInput()->filterRange()`) throws a `LogicException`. `url()` with `email()` and `hidden()` with `hideable(false)` throw too.
 - `unit()` goes after plain numbers in the cells and next to the filter inputs. It cannot be combined with `money()` or `percent()` (`InvalidArgumentException`): the filter inputs already end in the currency code (`CLP`).
-- `badge()` / `badge('secondary', ['archived' => 'destructive'])` shows the labels with the project's shadcn `Badge` (and the icons of the React `meta.options`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels.
+- `badge()` / `badge('secondary', ['archived' => 'destructive'])` shows the labels with the project's shadcn `Badge` (and the icons of the React `meta.icons`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels.
 - An option column without a filter still sends the labels of its declared options, so the cells show `Archived` instead of `archived`.
 
 `make:datatable` proposes `decimals(N)` for `decimal:N` casts; it never guesses a currency.
@@ -97,7 +97,7 @@ Column::option('status', 'Status')->options(OrderStatus::class)->badge()->filter
 ```
 
 - Relations: one level, to-one only (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`). The relation is eager loaded automatically and the row gets the flat value under the column id (`"category": "Books"`). Sorting uses a correlated subquery, filtering uses `whereHas`.
-- Enums: labels come from a `label()` method on the enum when it exists, otherwise from the case name. The cast on the model makes rows serialize the enum value.
+- Enums: labels come from a `label()` method on the enum when it exists, otherwise from the case name; with `badge()`, the variant of each value comes from a `badgeVariant()` method when it exists (the map passed to `badge()` wins). Keep icons in React (`meta.icons`): they are components, not data. The cast on the model makes rows serialize the enum value.
 - Facet counts are crossed: each option counts rows with every other filter and the search applied, except its own column's filter.
 
 ## Tables scoped to a parent model
