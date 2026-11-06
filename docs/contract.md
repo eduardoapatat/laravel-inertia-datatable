@@ -256,7 +256,7 @@ Each column:
   "filter": { "variant": "range" } }
 ```
 
-`filter` is `null` or `{ "variant": …, "placeholder"?: …, "empty"?: true }`, with the variants of §1.4. `empty: true` (`filterRange(empty: true)`, `filterSelect(empty: true)`…, not in `filterInput()`) makes the filter offer the rows without a value, sent as `is.empty` next to the column's other filters (OR, §1.4); with `inertia-datatable.validate_columns`, it throws on a `NOT NULL` column. Each type of column allows only some of them:
+`filter` is `null` or `{ "variant": …, "placeholder"?: …, "empty"?: true }`, with the variants of §1.4. `empty: true` (`filterRange(empty: true)`, `filterSelect(empty: true)`…, not in `filterInput()`) makes the filter offer the rows without a value, sent as `is.empty` next to the column's other filters (OR, §1.4); with `inertia-datatable.validate_columns`, it throws on a `NOT NULL` column and on a `belongsTo` column whose foreign key and related column are both `NOT NULL`. Each type of column allows only some of them:
 
 | Column | `display.type` | Filter variants |
 |---|---|---|

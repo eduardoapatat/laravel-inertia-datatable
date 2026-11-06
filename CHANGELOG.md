@@ -9,7 +9,7 @@ All notable changes to this package are documented here. The format follows [Kee
 - `money('CLP', cell: 'both', filter: 'both')` shows the symbol before the number and the code after it (`$1.684.910 CLP`, `[ $ | 1200 | CLP ]`), for when `$` could be more than one currency.
 - `unit('u.', cell: false)` or `unit('u.', filter: false)` hides the unit in the cells (and the filter label) or next to the filter inputs.
 - Cells without a value (`null` or `''`) show a muted `—` instead of nothing (`empty` text of `lang/*/ui.php`, `DataTableEmptyCell`); `->whenEmpty('Not published')` changes it per column and `->whenEmpty('')` keeps them blank.
-- `empty: true` in `filterSelect()`, `filterMultiSelect()`, `filterRange()` and `filterDate()` offers the rows without a value: the last option of the list, with its count, or an "Include …" check under the slider or the calendar (`DataTableEmptyFilter`). They are added with OR to what is picked, or shown alone, and are named after `whenEmpty()` or the new `no_value` text. With `validate_columns`, a `NOT NULL` column throws.
+- `empty: true` in `filterSelect()`, `filterMultiSelect()`, `filterRange()` and `filterDate()` offers the rows without a value: the last option of the list, with its count, or an "Include …" check under the slider or the calendar (`DataTableEmptyFilter`). They are added with OR to what is picked, or shown alone, and are named after `whenEmpty()` or the new `no_value` text. With `validate_columns`, a `NOT NULL` column throws, and so does a `belongsTo` column whose foreign key and related column are both `NOT NULL`.
 - Boolean filters accept `is.empty` and `not.is.empty` in the URL.
 
 ### Changed
