@@ -48,7 +48,7 @@ enum FilterVariant: string
                 FilterOperator::Gt, FilterOperator::Gte, FilterOperator::IsBetween,
                 FilterOperator::IsEmpty, FilterOperator::IsNotEmpty,
             ],
-            self::Boolean => [FilterOperator::Eq, FilterOperator::Ne],
+            self::Boolean => [FilterOperator::Eq, FilterOperator::Ne, FilterOperator::IsEmpty, FilterOperator::IsNotEmpty],
             self::Select => [
                 FilterOperator::InArray, FilterOperator::Eq, FilterOperator::Ne,
                 FilterOperator::IsEmpty, FilterOperator::IsNotEmpty,

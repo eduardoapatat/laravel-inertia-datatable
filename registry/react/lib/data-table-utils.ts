@@ -109,6 +109,8 @@ const MULTI_SELECT_OPERATORS = [
 const BOOLEAN_OPERATORS = [
     { label: 'Is', value: 'eq' },
     { label: 'Is not', value: 'ne' },
+    { label: 'Is empty', value: 'isEmpty' },
+    { label: 'Is not empty', value: 'isNotEmpty' },
 ] satisfies FilterOperatorOption[];
 
 const MULTI_VALUE_FILTER_VARIANTS: FilterVariant[] = [

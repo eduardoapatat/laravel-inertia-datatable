@@ -23,17 +23,45 @@ final class QueryApplier
     public function __construct(private readonly RelationResolver $relations = new RelationResolver) {}
 
     /**
+     * The filters of a column are combined with AND, except `is.empty`, which
+     * adds the rows without a value: `(between AND …) OR IS NULL`.
+     *
      * @param  Builder<covariant Model>  $query
      * @param  list<FilterItem>  $filters
      */
     public function applyFilters(Builder $query, TableDefinition $definition, array $filters): void
     {
-        foreach ($filters as $filter) {
-            $column = $definition->column($filter->id);
+        $byColumn = [];
 
-            if ($column !== null) {
-                $this->applyFilter($query, $column, $filter);
+        foreach ($filters as $filter) {
+            $byColumn[$filter->id][] = $filter;
+        }
+
+        foreach ($byColumn as $id => $items) {
+            $column = $definition->column((string) $id);
+
+            if ($column === null) {
+                continue;
             }
+
+            $empty = array_values(array_filter($items, fn (FilterItem $item): bool => $item->operator === FilterOperator::IsEmpty));
+            $values = array_values(array_filter($items, fn (FilterItem $item): bool => $item->operator !== FilterOperator::IsEmpty));
+
+            if ($empty === [] || $values === []) {
+                foreach ($items as $filter) {
+                    $this->applyFilter($query, $column, $filter);
+                }
+
+                continue;
+            }
+
+            $query->where(fn (Builder $group) => $group
+                ->where(function (Builder $matching) use ($column, $values): void {
+                    foreach ($values as $filter) {
+                        $this->applyFilter($matching, $column, $filter);
+                    }
+                })
+                ->orWhere(fn (Builder $none) => $this->applyFilter($none, $column, $empty[0])));
         }
     }
 

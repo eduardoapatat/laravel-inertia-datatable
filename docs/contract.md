@@ -64,7 +64,7 @@ filter[<col>]=[<operator>.]<value>
 
 - **Without an operator** the variant's implicit operator is applied: `filter[status]=active,pending` = `filter[status]=in.active,pending`.
 - **Lists** are comma-separated. A value containing a comma, quotes or leading/trailing spaces goes in double quotes, with inner quotes doubled: `filter[name]=in."Pérez, Ana",Luis`.
-- **Several filters on the same column** use the array form and are combined with AND: `filter[price][]=gte.10&filter[price][]=lte.100`.
+- **Several filters on the same column** use the array form and are combined with AND: `filter[price][]=gte.10&filter[price][]=lte.100`. The exception is `is.empty`, which adds the rows without a value with OR: `filter[published_at][]=between.2026-01-01,2026-03-31&filter[published_at][]=is.empty` → `(published_at BETWEEN … AND …) OR published_at IS NULL` (with AND it could never match a row).
 - If the prefix is not a valid operator for the variant, the whole text is taken as the value with the implicit operator (`filter[email]=foo.bar` searches for "foo.bar"). To avoid ambiguity, the client writes the explicit operator when the value starts with an operator name.
 - Operator names are case-insensitive and accepted in two forms: URL name (`neq`, `not.in`) or key (`ne`, `notInArray`).
 
@@ -77,7 +77,7 @@ filter[<col>]=[<operator>.]<value>
 | `range` | `variant: "number", filter: "range"` | `between` | same as `number` | `min,max`; one end may be empty (`10,` / `,100`) |
 | `date` | `variant: "date"` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` (`rel` in a future phase) | `YYYY-MM-DD` |
 | `date-range` | `variant: "date", filter: "range"` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`) |
-| `boolean` | `variant: "boolean"` | `eq` | `eq`, `neq` | `true` / `false` |
+| `boolean` | `variant: "boolean"` | `eq` | `eq`, `neq`, `is.empty`, `not.is.empty` | `true` / `false` |
 | `select` | `variant: "select"` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | value or list |
 | `multi-select` | `variant: "multi-select"` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | list |
 
@@ -105,7 +105,7 @@ filter[<col>]=[<operator>.]<value>
 
 #### Phases
 
-- **Phase 1:** all the variants and operators in the table, several filters per column, AND combination.
+- **Phase 1:** all the variants and operators in the table, several filters per column, AND combination (OR for `is.empty` within its column).
 - **Future phase:** `join=or` (combine filters with OR, used by the advanced filter menu; the parameter name is reserved), the `rel` operator (dates relative to today) and to-many relations (`hasMany`, `belongsToMany`).
 
 ### 1.5 `search`
