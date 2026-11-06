@@ -11,7 +11,6 @@ import type {
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type { DataTableMessages } from '@/lib/data-table-messages';
 import type {
-    CellCurrencyDisplay,
     CurrencyDisplay,
     ServerColumnDisplay,
 } from '@/lib/data-table-server';
@@ -84,7 +83,7 @@ export interface DataTableTableMeta {
  */
 export type ColumnDisplay = ServerColumnDisplay;
 
-export type { CellCurrencyDisplay, CurrencyDisplay };
+export type { CurrencyDisplay };
 
 export type DatePreset = Extract<
     Extract<ColumnDisplay, { type: 'date' }>['format'],

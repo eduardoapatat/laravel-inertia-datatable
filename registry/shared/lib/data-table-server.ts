@@ -46,15 +46,10 @@ export interface ServerFilter {
 
 /**
  * How the currency of `->money()` is shown: the symbol before the number
- * (`$1.234`, by default), the code after it (`1.234 CLP`) or nothing (`1.234`).
+ * (`$1.234`, by default), the code after it (`1.234 CLP`), both
+ * (`$1.234 CLP`) or nothing (`1.234`).
  */
-export type CurrencyDisplay = 'symbol' | 'code' | 'none';
-
-/**
- * How the currency is shown in the cells: also `both`, the symbol before the
- * number and the code after it (`$1.234 CLP`).
- */
-export type CellCurrencyDisplay = CurrencyDisplay | 'both';
+export type CurrencyDisplay = 'symbol' | 'code' | 'both' | 'none';
 
 /**
  * How the cells of a column are displayed; `type` is the type of the column
@@ -71,7 +66,7 @@ export type ServerColumnDisplay =
            * Currency of `->money()` in the cells (and the filter label) and
            * next to the filter inputs; `symbol` when missing.
            */
-          currency?: { cell?: CellCurrencyDisplay; filter?: CurrencyDisplay };
+          currency?: { cell?: CurrencyDisplay; filter?: CurrencyDisplay };
       }
     | {
           type: 'date';

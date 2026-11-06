@@ -7,7 +7,7 @@ import {
     formatNumber,
     formatNumberCell,
     getOption,
-    getFilterAffix,
+    getFilterAffixes,
     isDateOnly,
     isSafeUrl,
     truncate,
@@ -211,49 +211,45 @@ describe('formatNumberCell', () => {
     });
 });
 
-describe('getFilterAffix', () => {
-    const money = (filter?: 'symbol' | 'code' | 'none') => ({
+describe('getFilterAffixes', () => {
+    const money = (filter?: 'symbol' | 'code' | 'both' | 'none') => ({
         display: {
             type: 'number' as const,
             format: { style: 'currency' as const, currency: 'CLP' },
             ...(filter ? { currency: { filter } } : {}),
         },
     });
+    const symbol = { text: '$', align: 'inline-start' };
+    const code = { text: 'CLP', align: 'inline-end' };
 
     it('puts the currency symbol before the inputs by default', () => {
-        expect(getFilterAffix(money())).toEqual({
-            text: '$',
-            align: 'inline-start',
-        });
+        expect(getFilterAffixes(money())).toEqual([symbol]);
     });
 
-    it('puts the currency code after the inputs, or nothing', () => {
-        expect(getFilterAffix(money('code'))).toEqual({
-            text: 'CLP',
-            align: 'inline-end',
-        });
-        expect(getFilterAffix(money('none'))).toBeUndefined();
+    it('puts the currency code after the inputs, both, or nothing', () => {
+        expect(getFilterAffixes(money('code'))).toEqual([code]);
+        expect(getFilterAffixes(money('both'))).toEqual([symbol, code]);
+        expect(getFilterAffixes(money('none'))).toEqual([]);
     });
 
     it('puts the unit of plain numbers after the inputs', () => {
         expect(
-            getFilterAffix({ display: { type: 'number', unit: 'kg' } }),
-        ).toEqual({ text: 'kg', align: 'inline-end' });
-        expect(getFilterAffix({ variant: 'number', unit: 'u.' })).toEqual({
-            text: 'u.',
-            align: 'inline-end',
-        });
+            getFilterAffixes({ display: { type: 'number', unit: 'kg' } }),
+        ).toEqual([{ text: 'kg', align: 'inline-end' }]);
+        expect(getFilterAffixes({ variant: 'number', unit: 'u.' })).toEqual([
+            { text: 'u.', align: 'inline-end' },
+        ]);
     });
 
     it('has none for percentages or columns without a unit', () => {
         expect(
-            getFilterAffix({
+            getFilterAffixes({
                 variant: 'number',
                 unit: '%',
                 display: { type: 'number', format: { style: 'percent' } },
             }),
-        ).toBeUndefined();
-        expect(getFilterAffix({ display: { type: 'number' } })).toBeUndefined();
+        ).toEqual([]);
+        expect(getFilterAffixes({ display: { type: 'number' } })).toEqual([]);
     });
 });
 

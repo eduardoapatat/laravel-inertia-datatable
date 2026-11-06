@@ -6,9 +6,9 @@ import {
     type TableWithMeta,
 } from '@/lib/data-table-messages';
 import type {
-    CellCurrencyDisplay,
     ColumnDisplay,
     ColumnSelectOption,
+    CurrencyDisplay,
     DataTableColumnMeta,
     DatePreset,
 } from '@/lib/data-table-types';
@@ -63,7 +63,7 @@ export function formatNumber(
     value: unknown,
     format: Intl.NumberFormatOptions = {},
     locale?: string,
-    currency: CellCurrencyDisplay = 'symbol',
+    currency: CurrencyDisplay = 'symbol',
 ): string {
     const number = toNumber(value);
 
@@ -89,7 +89,7 @@ function formatMoney(
     number: number,
     format: Intl.NumberFormatOptions,
     locale: string | undefined,
-    currency: CellCurrencyDisplay,
+    currency: CurrencyDisplay,
 ): string {
     const parts = new Intl.NumberFormat(locale, {
         ...format,
@@ -177,40 +177,45 @@ export interface FilterAffix {
 /**
  * What goes next to the number inputs of a filter, which take the raw value:
  * the unit of plain numbers (`->unit('kg')`) after them or, for `->money()`,
- * the symbol before (`$`, by default) or the code after (`CLP`), as chosen
- * with `filter:`. Percentages and Intl units have none.
+ * the symbol before (`$`, by default), the code after (`CLP`) or both, as
+ * chosen with `filter:`. Percentages and Intl units have none.
  */
-export function getFilterAffix(
+export function getFilterAffixes(
     meta: DataTableColumnMeta | undefined,
-): FilterAffix | undefined {
+): FilterAffix[] {
     const display = meta?.display?.type === 'number' ? meta.display : undefined;
     const format = display?.format;
 
     if (format?.style === 'currency' && format.currency) {
-        switch (display?.currency?.filter ?? 'symbol') {
-            case 'code':
-                return {
-                    text: format.currency.toUpperCase(),
-                    align: 'inline-end',
-                };
-            case 'none':
-                return undefined;
-            default: {
-                const text = new Intl.NumberFormat(undefined, {
-                    ...format,
-                    currencyDisplay: 'narrowSymbol',
-                })
-                    .formatToParts(0)
-                    .find((part) => part.type === 'currency')?.value;
+        const shown = display?.currency?.filter ?? 'symbol';
+        const affixes: FilterAffix[] = [];
 
-                return text ? { text, align: 'inline-start' } : undefined;
+        if (shown === 'symbol' || shown === 'both') {
+            const symbol = new Intl.NumberFormat(undefined, {
+                ...format,
+                currencyDisplay: 'narrowSymbol',
+            })
+                .formatToParts(0)
+                .find((part) => part.type === 'currency')?.value;
+
+            if (symbol) {
+                affixes.push({ text: symbol, align: 'inline-start' });
             }
         }
+
+        if (shown === 'code' || shown === 'both') {
+            affixes.push({
+                text: format.currency.toUpperCase(),
+                align: 'inline-end',
+            });
+        }
+
+        return affixes;
     }
 
     const unit = format?.style === undefined ? getUnit(meta) : undefined;
 
-    return unit ? { text: unit, align: 'inline-end' } : undefined;
+    return unit ? [{ text: unit, align: 'inline-end' }] : [];
 }
 
 /**

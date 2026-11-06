@@ -32,24 +32,22 @@ final class NumberColumn extends Column
     /**
      * How the currency of `money()` is shown, when it is not the symbol before the number.
      *
-     * @var array{cell?: 'code'|'both'|'none', filter?: 'code'|'none'}
+     * @var array{cell?: 'code'|'both'|'none', filter?: 'code'|'both'|'none'}
      */
     private array $currency = [];
 
-    private const array CELL_CURRENCY_DISPLAYS = ['symbol', 'code', 'both', 'none'];
-
-    private const array FILTER_CURRENCY_DISPLAYS = ['symbol', 'code', 'none'];
+    private const array CURRENCY_DISPLAYS = ['symbol', 'code', 'both', 'none'];
 
     /**
      * Amount in a currency (ISO 4217 code). Without a currency, the one of
      * `inertia-datatable.currency`. `cell` and `filter` choose how the currency
      * is shown in the cells (and the filter label) and next to the filter inputs:
      * `symbol` before the number (`$1.234`, by default), `code` after it
-     * (`1.234 CLP`) or `none` (`1.234`); the cells also take `both`
-     * (`$1.234 CLP`). The locale gives the separators.
+     * (`1.234 CLP`), `both` (`$1.234 CLP`) or `none` (`1.234`). The locale
+     * gives the separators.
      *
      * @param  string  $cell  `symbol`, `code`, `both` or `none`.
-     * @param  string  $filter  `symbol`, `code` or `none`.
+     * @param  string  $filter  `symbol`, `code`, `both` or `none`.
      */
     public function money(?string $currency = null, ?int $decimals = null, string $cell = 'symbol', string $filter = 'symbol'): self
     {
@@ -63,13 +61,13 @@ final class NumberColumn extends Column
             throw new InvalidArgumentException("The currency [{$currency}] must be an ISO 4217 code, such as USD or CLP.");
         }
 
-        foreach (['cell' => [$cell, self::CELL_CURRENCY_DISPLAYS], 'filter' => [$filter, self::FILTER_CURRENCY_DISPLAYS]] as $place => [$display, $allowed]) {
-            if (! in_array($display, $allowed, true)) {
-                throw new InvalidArgumentException("The {$place} currency display [{$display}] is not one of: ".implode(', ', $allowed).'.');
+        foreach (['cell' => $cell, 'filter' => $filter] as $place => $display) {
+            if (! in_array($display, self::CURRENCY_DISPLAYS, true)) {
+                throw new InvalidArgumentException("The {$place} currency display [{$display}] is not one of: ".implode(', ', self::CURRENCY_DISPLAYS).'.');
             }
         }
 
-        /** @var array{cell?: 'code'|'both'|'none', filter?: 'code'|'none'} $displays */
+        /** @var array{cell?: 'code'|'both'|'none', filter?: 'code'|'both'|'none'} $displays */
         $displays = array_filter(['cell' => $cell, 'filter' => $filter], fn (string $display): bool => $display !== 'symbol');
         $this->currency = $displays;
 

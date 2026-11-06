@@ -6,7 +6,7 @@ import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import { formatNumber, getFilterAffix } from '@/lib/data-table-format';
+import { formatNumber, getFilterAffixes } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -133,12 +133,12 @@ function DataTableSliderFilterContent<TData extends RowData>({
     const display = meta?.display?.type === 'number' ? meta.display : undefined;
     const valueFormat = display?.format ?? { maximumFractionDigits: 2 };
     const showUnit = Boolean(unit) && valueFormat.style === undefined;
-    // After the inputs: the unit, or the code of the currency.
-    const affix = getFilterAffix(meta);
+    // Next to the inputs: the unit, or the symbol and/or code of the currency.
+    const affixes = getFilterAffixes(meta);
     // Wide enough for the longest bound (`2491510` does not fit in w-24).
     const digits = Math.max(String(min).length, String(max).length, 4);
     const inputStyle = {
-        width: `calc(${digits}ch + ${affix ? '4.25rem' : '2.75rem'})`,
+        width: `calc(${digits}ch + ${2.75 + affixes.length * 1.5}rem)`,
     };
     const formatValue = React.useCallback(
         (value: number) =>
@@ -279,13 +279,16 @@ function DataTableSliderFilterContent<TData extends RowData>({
                                 }
                                 onKeyDown={onInputKeyDown}
                             />
-                            {affix && (
-                                <InputGroupAddon align={affix.align}>
+                            {affixes.map((affix) => (
+                                <InputGroupAddon
+                                    key={affix.align}
+                                    align={affix.align}
+                                >
                                     <InputGroupText>
                                         {affix.text}
                                     </InputGroupText>
                                 </InputGroupAddon>
-                            )}
+                            ))}
                         </InputGroup>
                         <Label htmlFor={`${id}-to`} className="sr-only">
                             {getMessage(table, 'to')}
@@ -311,13 +314,16 @@ function DataTableSliderFilterContent<TData extends RowData>({
                                 }
                                 onKeyDown={onInputKeyDown}
                             />
-                            {affix && (
-                                <InputGroupAddon align={affix.align}>
+                            {affixes.map((affix) => (
+                                <InputGroupAddon
+                                    key={affix.align}
+                                    align={affix.align}
+                                >
                                     <InputGroupText>
                                         {affix.text}
                                     </InputGroupText>
                                 </InputGroupAddon>
-                            )}
+                            ))}
                         </InputGroup>
                     </div>
                     <Label htmlFor={`${id}-slider`} className="sr-only">
