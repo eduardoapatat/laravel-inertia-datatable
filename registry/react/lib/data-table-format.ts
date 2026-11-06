@@ -6,9 +6,9 @@ import {
     type TableWithMeta,
 } from '@/lib/data-table-messages';
 import type {
+    CellCurrencyDisplay,
     ColumnDisplay,
     ColumnSelectOption,
-    CurrencyDisplay,
     DataTableColumnMeta,
     DatePreset,
 } from '@/lib/data-table-types';
@@ -56,13 +56,14 @@ const RELATIVE_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
  * Number with Intl options (`{ style: 'currency', currency: 'CLP' }`…). Texts
  * that are not numbers are returned as they are. Currencies follow `currency`:
  * the symbol before the number (`$1.234`, in any locale), the code after it
- * (`1.234 CLP`) or nothing (`1.234`); the locale gives the separators.
+ * (`1.234 CLP`), both (`$1.234 CLP`) or nothing (`1.234`); the locale gives the
+ * separators.
  */
 export function formatNumber(
     value: unknown,
     format: Intl.NumberFormatOptions = {},
     locale?: string,
-    currency: CurrencyDisplay = 'symbol',
+    currency: CellCurrencyDisplay = 'symbol',
 ): string {
     const number = toNumber(value);
 
@@ -88,7 +89,7 @@ function formatMoney(
     number: number,
     format: Intl.NumberFormatOptions,
     locale: string | undefined,
-    currency: CurrencyDisplay,
+    currency: CellCurrencyDisplay,
 ): string {
     const parts = new Intl.NumberFormat(locale, {
         ...format,
@@ -106,9 +107,13 @@ function formatMoney(
         .map((part) => part.value)
         .join('');
 
+    const code = format.currency?.toUpperCase() ?? '';
+
     switch (currency) {
         case 'code':
-            return `${sign}${digits} ${format.currency?.toUpperCase() ?? ''}`.trim();
+            return `${sign}${digits} ${code}`.trim();
+        case 'both':
+            return `${sign}${symbol}${digits} ${code}`.trim();
         case 'none':
             return `${sign}${digits}`;
         default:
@@ -123,8 +128,9 @@ export interface NumberCellParts {
 
 /**
  * Number cell split in the number and what goes after it, which the cell shows
- * smaller and muted: the currency code with `cell: 'code'` or the unit of plain
- * numbers (`->unit('kg')`). Without one, `text` is the whole formatted value.
+ * smaller and muted: the currency code with `cell: 'code'` or `'both'` or the
+ * unit of plain numbers (`->unit('kg')`). Without one, `text` is the whole
+ * formatted value.
  */
 export function formatNumberCell(
     meta: DataTableColumnMeta | undefined,
@@ -133,13 +139,14 @@ export function formatNumberCell(
 ): NumberCellParts {
     const display = meta?.display?.type === 'number' ? meta.display : undefined;
     const format = display?.format;
+    const cell = display?.currency?.cell;
     let suffix: string | undefined;
 
     if (toNumber(value) !== null) {
         if (format?.style === 'currency') {
             suffix =
                 format.currencyDisplay === undefined &&
-                display?.currency?.cell === 'code'
+                (cell === 'code' || cell === 'both')
                     ? format.currency?.toUpperCase()
                     : undefined;
         } else if (format?.style === undefined) {
@@ -152,7 +159,12 @@ export function formatNumberCell(
     }
 
     return {
-        text: formatNumber(value, format, locale, 'none'),
+        text: formatNumber(
+            value,
+            format,
+            locale,
+            cell === 'both' ? 'symbol' : 'none',
+        ),
         suffix,
     };
 }

@@ -166,7 +166,7 @@ describe('truncate and isSafeUrl', () => {
 });
 
 describe('formatNumberCell', () => {
-    const money = (cell?: 'symbol' | 'code' | 'none') => ({
+    const money = (cell?: 'symbol' | 'code' | 'both' | 'none') => ({
         display: {
             type: 'number' as const,
             format: { style: 'currency' as const, currency: 'CLP' },
@@ -177,6 +177,13 @@ describe('formatNumberCell', () => {
     it('splits the currency code from the number', () => {
         expect(formatNumberCell(money('code'), 1234567, 'es-CL')).toEqual({
             text: '1.234.567',
+            suffix: 'CLP',
+        });
+    });
+
+    it('keeps the symbol and splits the code with both', () => {
+        expect(formatNumberCell(money('both'), 1234567, 'es-CL')).toEqual({
+            text: '$1.234.567',
             suffix: 'CLP',
         });
     });
@@ -265,6 +272,10 @@ describe('formatNumber with a currency', () => {
             '1.684.910 CLP',
         );
         expect(formatNumber(1684910, clp, 'en', 'none')).toBe('1,684,910');
+    });
+
+    it('puts the symbol before and the code after the number with both', () => {
+        expect(formatNumber(-1500, clp, 'es-CL', 'both')).toBe('-$1.500 CLP');
     });
 
     it('keeps the decimals of the currency', () => {

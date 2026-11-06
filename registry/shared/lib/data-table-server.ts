@@ -51,6 +51,12 @@ export interface ServerFilter {
 export type CurrencyDisplay = 'symbol' | 'code' | 'none';
 
 /**
+ * How the currency is shown in the cells: also `both`, the symbol before the
+ * number and the code after it (`$1.234 CLP`).
+ */
+export type CellCurrencyDisplay = CurrencyDisplay | 'both';
+
+/**
  * How the cells of a column are displayed; `type` is the type of the column
  * (`Column::number()`, `Column::date()`…). Formats are Intl options, applied on
  * the client with the table locale.
@@ -65,7 +71,7 @@ export type ServerColumnDisplay =
            * Currency of `->money()` in the cells (and the filter label) and
            * next to the filter inputs; `symbol` when missing.
            */
-          currency?: { cell?: CurrencyDisplay; filter?: CurrencyDisplay };
+          currency?: { cell?: CellCurrencyDisplay; filter?: CurrencyDisplay };
       }
     | {
           type: 'date';

@@ -264,9 +264,15 @@ it('shows the currency as a symbol by default, or as chosen in the cells and in 
         ->and(displayOf(Column::number('price')->money('CLP', cell: 'code', filter: 'none')))
         ->toBe(['type' => 'number', 'format' => $format, 'currency' => ['cell' => 'code', 'filter' => 'none']])
         ->and(displayOf(Column::number('price')->money('CLP', filter: 'code')))
-        ->toBe(['type' => 'number', 'format' => $format, 'currency' => ['filter' => 'code']]);
+        ->toBe(['type' => 'number', 'format' => $format, 'currency' => ['filter' => 'code']])
+        ->and(displayOf(Column::number('price')->money('CLP', cell: 'both')))
+        ->toBe(['type' => 'number', 'format' => $format, 'currency' => ['cell' => 'both']]);
 });
 
 it('rejects an unknown currency display', function () {
     Column::number('price')->money('CLP', cell: 'name');
-})->throws(InvalidArgumentException::class, 'The cell currency display [name] is not one of: symbol, code, none.');
+})->throws(InvalidArgumentException::class, 'The cell currency display [name] is not one of: symbol, code, both, none.');
+
+it('keeps both the symbol and the code for the cells only', function () {
+    Column::number('price')->money('CLP', filter: 'both');
+})->throws(InvalidArgumentException::class, 'The filter currency display [both] is not one of: symbol, code, none.');
