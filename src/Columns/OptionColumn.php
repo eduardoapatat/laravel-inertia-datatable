@@ -25,17 +25,23 @@ final class OptionColumn extends Column
     /** @var array<string, string>|null */
     private ?array $options = null;
 
+    /** @var array<string, string> Badge variant per value, from `badgeVariant()` of the enum. */
+    private array $enumVariants = [];
+
     private bool $withCounts = true;
 
     /**
-     * A list of values, a value => label map or a backed enum (with its
-     * `label()` method, if it has one).
+     * A list of values, a value => label map or a backed enum. The enum gives
+     * the label of each case with a `label()` method and, with `badge()`, its
+     * badge variant with a `badgeVariant()` method (the variants passed to
+     * `badge()` win).
      *
      * @param  array<array-key, string|int>|class-string<BackedEnum>  $options
      */
     public function options(array|string $options): self
     {
         $this->options = self::normalizeOptions($options);
+        $this->enumVariants = is_string($options) ? self::enumVariants($options) : [];
 
         return $this;
     }
@@ -79,7 +85,38 @@ final class OptionColumn extends Column
 
     public function display(): array
     {
-        return ['type' => 'option', ...$this->badgeDisplay()];
+        $badge = $this->badgeDisplay();
+
+        if (($badge['badge'] ?? false) && $this->enumVariants !== []) {
+            $badge['variants'] = [...$this->enumVariants, ...$badge['variants'] ?? []];
+        }
+
+        return ['type' => 'option', ...$badge];
+    }
+
+    /**
+     * @param  class-string<BackedEnum>  $enum
+     * @return array<string, string>
+     */
+    private static function enumVariants(string $enum): array
+    {
+        $variants = [];
+
+        foreach ($enum::cases() as $case) {
+            if (! method_exists($case, 'badgeVariant')) {
+                return [];
+            }
+
+            $variant = $case->badgeVariant();
+
+            if (! is_string($variant) || trim($variant) === '') {
+                throw new InvalidArgumentException("{$enum}::badgeVariant() must return a badge variant, such as outline or secondary.");
+            }
+
+            $variants[(string) $case->value] = $variant;
+        }
+
+        return $variants;
     }
 
     /**

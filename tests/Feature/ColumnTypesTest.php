@@ -12,6 +12,8 @@ use InertiaDataTable\Columns\OptionColumn;
 use InertiaDataTable\Columns\TextColumn;
 use InertiaDataTable\DataTable;
 use InertiaDataTable\TableBuilder;
+use InertiaDataTable\Tests\Fixtures\Enums\BlankVariant;
+use InertiaDataTable\Tests\Fixtures\Enums\OrderStage;
 use InertiaDataTable\Tests\Fixtures\Enums\ProductStatus;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
 
@@ -235,3 +237,22 @@ it('only searches the types whose values can be compared as text', function () {
         ->and(method_exists(DateColumn::class, 'searchable'))->toBeFalse()
         ->and(method_exists(BooleanColumn::class, 'searchable'))->toBeFalse();
 });
+
+it('takes the labels and the badge variants of an enum', function () {
+    expect(Column::option('stage')->options(OrderStage::class)->optionLabels())
+        ->toBe(['open' => 'Abierta', 'won' => 'Ganada', 'lost' => 'Perdida'])
+        ->and(displayOf(Column::option('stage')->badge()->options(OrderStage::class)))
+        ->toBe(['type' => 'option', 'badge' => true, 'variant' => 'outline', 'variants' => ['open' => 'secondary', 'won' => 'secondary', 'lost' => 'destructive']])
+        ->and(displayOf(Column::option('stage')->options(OrderStage::class)->badge('outline', ['won' => 'default'])))
+        ->toBe(['type' => 'option', 'badge' => true, 'variant' => 'outline', 'variants' => ['open' => 'secondary', 'won' => 'default', 'lost' => 'destructive']]);
+});
+
+it('uses the variants of the enum only with a badge', function () {
+    expect(displayOf(Column::option('stage')->options(OrderStage::class)))->toBe(['type' => 'option'])
+        ->and(displayOf(Column::option('stage')->options(OrderStage::class)->badge(false)))->toBe(['type' => 'option', 'badge' => false])
+        ->and(displayOf(Column::option('status')->options(ProductStatus::class)->badge()))->toBe(['type' => 'option', 'badge' => true, 'variant' => 'outline']);
+});
+
+it('rejects an empty badge variant from an enum', function () {
+    Column::option('only')->options(BlankVariant::class);
+})->throws(InvalidArgumentException::class, 'BlankVariant::badgeVariant() must return a badge variant');
