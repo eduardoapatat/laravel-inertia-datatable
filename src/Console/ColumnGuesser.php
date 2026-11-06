@@ -6,17 +6,14 @@ namespace InertiaDataTable\Console;
 
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
-use ReflectionMethod;
-use ReflectionNamedType;
-use Throwable;
 
 /**
  * Proposes the columns of a table from the model casts and the database schema:
- * only what is needed to show them (type, relation path, enum labels, decimals),
- * plus the global search on a `name` or `title` column. Sorting, filters and
- * hiding are added by hand.
+ * only the model's own columns and what is needed to show them (type, enum
+ * labels, decimals), plus the global search on a `name` or `title` column.
+ * Foreign keys are left out; relations, sorting, filters and hiding are added
+ * by hand.
  */
 final class ColumnGuesser
 {
@@ -28,11 +25,6 @@ final class ColumnGuesser
         'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at',
         'email_verified_at',
     ];
-
-    /**
-     * Preferred attributes to display a related model.
-     */
-    private const array DISPLAY_ATTRIBUTES = ['name', 'title', 'label', 'email'];
 
     /**
      * Columns that get the global search, the first one found.
@@ -52,13 +44,11 @@ final class ColumnGuesser
         foreach ($schema->getColumns($model->getTable()) as $column) {
             $name = $column['name'];
 
-            if ($name === $model->getKeyName() || in_array($name, $hidden, true) || in_array($name, self::EXCLUDED, true)) {
+            if ($name === $model->getKeyName() || str_ends_with($name, '_id') || in_array($name, $hidden, true) || in_array($name, self::EXCLUDED, true)) {
                 continue;
             }
 
-            $guessed = str_ends_with($name, '_id')
-                ? $this->guessRelation($model, $name, $column['nullable'])
-                : $this->guessAttribute($name, $casts[$name] ?? null, strtolower($column['type_name']), strtolower($column['type']), $column['nullable']);
+            $guessed = $this->guessAttribute($name, $casts[$name] ?? null, strtolower($column['type_name']), strtolower($column['type']), $column['nullable']);
 
             if ($guessed !== null) {
                 $columns[] = $guessed;
@@ -112,49 +102,6 @@ final class ColumnGuesser
             $this->isStringType($typeName) => new GuessedColumn($name, $label, 'text', [], 'string', $nullable),
             default => null,
         };
-    }
-
-    /**
-     * `category_id` → `Column::option('category')->from('category.name')` when the `category()` relation exists.
-     */
-    private function guessRelation(Model $model, string $foreignKey, bool $nullable): ?GuessedColumn
-    {
-        $relationName = Str::camel(Str::beforeLast($foreignKey, '_id'));
-
-        if (! method_exists($model, $relationName)) {
-            return null;
-        }
-
-        $returnType = (new ReflectionMethod($model, $relationName))->getReturnType();
-
-        if (! $returnType instanceof ReflectionNamedType || ! is_a($returnType->getName(), BelongsTo::class, true)) {
-            return null;
-        }
-
-        try {
-            /** @var BelongsTo<Model, Model> $relation */
-            $relation = $model->{$relationName}();
-            $related = $relation->getRelated();
-            $relatedColumns = $related->getConnection()->getSchemaBuilder()->getColumnListing($related->getTable());
-        } catch (Throwable) {
-            return null;
-        }
-
-        $attribute = collect(self::DISPLAY_ATTRIBUTES)->first(fn (string $candidate): bool => in_array($candidate, $relatedColumns, true));
-
-        if ($attribute === null) {
-            return null;
-        }
-
-        return new GuessedColumn(
-            Str::snake($relationName),
-            Str::headline($relationName),
-            'option',
-            ["from('{$relationName}.{$attribute}')"],
-            'string',
-            $nullable,
-            isRelation: true,
-        );
     }
 
     /**

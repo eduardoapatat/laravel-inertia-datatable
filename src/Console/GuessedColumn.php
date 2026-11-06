@@ -22,7 +22,6 @@ final readonly class GuessedColumn
         public string $kind,
         public bool $nullable,
         public ?string $enumClass = null,
-        public bool $isRelation = false,
     ) {}
 
     public function toPhp(): string

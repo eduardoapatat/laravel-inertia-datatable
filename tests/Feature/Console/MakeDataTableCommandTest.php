@@ -30,11 +30,11 @@ it('creates a table class with the columns guessed from the model', function () 
         ->toContain('use InertiaDataTable\Tests\Fixtures\Models\Product;')
         ->toContain('return Product::query();')
         ->toContain("Column::text('name', 'Name')->searchable(),")
-        ->toContain("Column::option('category', 'Category')->from('category.name'),")
         ->toContain("Column::option('status', 'Status')->options(ProductStatus::class),")
         ->toContain("Column::number('price', 'Price'),")
         ->toContain("Column::boolean('featured', 'Featured'),")
         ->toContain("Column::date('released_on', 'Released On'),")
+        ->not->toContain('category')
         ->not->toContain('->sortable()')
         ->not->toContain('->filter')
         ->not->toContain('->hideable(')
@@ -68,7 +68,7 @@ it('creates a table that resolves against the database', function () {
 
     expect($response['data'])->toHaveCount(1)
         ->and($response['data'][0]['name'])->toBe('Lamp')
-        ->and($response['data'][0]['category'])->toBe('Home');
+        ->and($response['data'][0])->not->toHaveKey('category');
 });
 
 it('creates a reusable React component with the react option', function () {
@@ -77,7 +77,7 @@ it('creates a reusable React component with the react option', function () {
     expect(File::get(resource_path('js/components/data-tables/products-table.tsx')))
         ->toContain('export type Product = {')
         ->toContain('    name?: string;')
-        ->toContain('    category?: string | null;')
+        ->not->toContain('category')
         ->toContain('    price?: number;')
         ->toContain('const columns = columnHelper.columns([]);')
         ->toContain(" *     columnHelper.accessor('name', {")
