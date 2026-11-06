@@ -266,7 +266,7 @@ Each column:
 | `Column::boolean()` | `boolean` | `boolean` (`filterSelect()`) |
 | `Column::option()` | `option` | `select` (`filterSelect()`), `multi-select` (`filterMultiSelect()`); options in `facets` |
 
-`display` is always present: `type` is the type of the column and the other keys say how its cells are shown. Rows keep the raw value and the client formats it with Intl and `locale` (`null`: the browser's):
+`display` is always present: `type` is the type of the column and the other keys say how its cells are shown. Any type can carry `empty`, the text of cells without a value (`->whenEmpty()`); without it, the client shows the `empty` message (`—`). Rows keep the raw value and the client formats it with Intl and `locale` (`null`: the browser's):
 
 | `display` | Declared with | Cell |
 |---|---|---|

@@ -493,6 +493,18 @@ export function getOption(
         : option;
 }
 
+/**
+ * Whether a cell has nothing to show: `null`, `undefined`, `''` or a list of
+ * those.
+ */
+export function isEmptyValue(value: unknown): boolean {
+    if (Array.isArray(value)) {
+        return value.every(isEmptyValue);
+    }
+
+    return value === null || value === undefined || value === '';
+}
+
 export function toText(value: unknown): string {
     switch (typeof value) {
         case 'string':

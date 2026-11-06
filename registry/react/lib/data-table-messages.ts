@@ -19,6 +19,7 @@ export const DEFAULT_MESSAGES = {
     loading: 'Loading table…',
     yes: 'Yes',
     no: 'No',
+    empty: '—',
 
     sort_ascending: 'Asc',
     sort_descending: 'Desc',

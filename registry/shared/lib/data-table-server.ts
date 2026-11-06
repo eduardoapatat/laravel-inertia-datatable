@@ -56,7 +56,7 @@ export type CurrencyDisplay = 'symbol' | 'code' | 'both' | 'none';
  * (`Column::number()`, `Column::date()`…). Formats are Intl options, applied on
  * the client with the table locale.
  */
-export type ServerColumnDisplay =
+export type ServerColumnDisplay = (
     | {
           type: 'number';
           format?: Intl.NumberFormatOptions;
@@ -103,7 +103,14 @@ export type ServerColumnDisplay =
           variant?: string;
           /** Badge variant per option value. */
           variants?: Record<string, string>;
-      };
+      }
+) & {
+    /**
+     * Text of the cells without a value (`->whenEmpty()`); without it, the
+     * `empty` message (`—`).
+     */
+    empty?: string;
+};
 
 /** Filter of a column (`->filter()`, `->range()`…). */
 export interface ServerColumnFilter {

@@ -79,6 +79,14 @@ it('adds up the number methods', function () {
         ->toBe(['type' => 'number']);
 });
 
+it('sends the text of empty cells in the display of any type', function () {
+    expect(displayOf(Column::date('published_at')->whenEmpty('Not published')))
+        ->toBe(['type' => 'date', 'empty' => 'Not published'])
+        ->and(displayOf(Column::number('stock')->unit('u.')->whenEmpty('')))
+        ->toBe(['type' => 'number', 'unit' => 'u.', 'empty' => ''])
+        ->and(displayOf(Column::text('name')))->not->toHaveKey('empty');
+});
+
 it('shows the unit of plain numbers', function () {
     expect(displayOf(Column::number('weight')->unit('kg')->decimals(1)))
         ->toBe(['type' => 'number', 'format' => ['minimumFractionDigits' => 1, 'maximumFractionDigits' => 1], 'unit' => 'kg'])

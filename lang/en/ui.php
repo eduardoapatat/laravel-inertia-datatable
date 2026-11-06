@@ -24,6 +24,7 @@ return [
     'loading' => 'Loading table…',
     'yes' => 'Yes',
     'no' => 'No',
+    'empty' => '—',
 
     // Column header
     'sort_ascending' => 'Asc',

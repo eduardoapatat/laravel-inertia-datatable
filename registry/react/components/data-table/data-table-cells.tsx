@@ -12,12 +12,14 @@ import {
     getFormatContext,
     getOption,
     isDateOnly,
+    isEmptyValue,
     isEmail,
     isSafeUrl,
     toPrimitive,
     toText,
     truncate,
 } from '@/lib/data-table-format';
+import { getMessage } from '@/lib/data-table-messages';
 import type {
     ColumnSelectOption,
     DataTableColumnMeta,
@@ -67,6 +69,27 @@ export function DataTableCell<TData extends RowData, TValue>(
 }
 
 /**
+ * Cell without a value: the text of `->whenEmpty()` or the `empty` text of the
+ * UI (`—`), muted. Every type cell shows it for `null` and `''`.
+ */
+export function DataTableEmptyCell<TData extends RowData, TValue>(
+    props: DataTableCellProps<TData, TValue>,
+) {
+    const { meta } = cellSetup(props);
+    const text = meta?.display?.empty ?? getMessage(props.table, 'empty');
+
+    if (!text) {
+        return null;
+    }
+
+    return (
+        <span data-slot="data-table-empty" className="text-muted-foreground">
+            {text}
+        </span>
+    );
+}
+
+/**
  * Text, cut with `->limit()` (the full text in the tooltip) and shown as a
  * link with `->url()` or `->email()`.
  */
@@ -75,7 +98,13 @@ export function DataTableTextCell<TData extends RowData, TValue>(
 ) {
     const { meta } = cellSetup(props);
     const display = meta?.display?.type === 'text' ? meta.display : undefined;
-    const text = toText(props.cell.getValue());
+    const value = props.cell.getValue();
+
+    if (isEmptyValue(value)) {
+        return <DataTableEmptyCell {...props} />;
+    }
+
+    const text = toText(value);
     const shown = truncate(text, display?.limit);
     const title = shown === text ? undefined : text;
 
@@ -117,6 +146,11 @@ export function DataTableNumberCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
 ) {
     const { meta, locale } = cellSetup(props);
+
+    if (isEmptyValue(props.cell.getValue())) {
+        return <DataTableEmptyCell {...props} />;
+    }
+
     const { text, suffix } = formatNumberCell(
         meta?.display?.type === 'number'
             ? meta
@@ -159,7 +193,7 @@ export function DataTableDateCell<TData extends RowData, TValue>(
     const text = formatDateValue(value, format, locale);
 
     if (text === '') {
-        return null;
+        return <DataTableEmptyCell {...props} />;
     }
 
     return (
@@ -199,7 +233,7 @@ export function DataTableBooleanCell<TData extends RowData, TValue>(
     );
 
     if (text === '') {
-        return null;
+        return <DataTableEmptyCell {...props} />;
     }
 
     const key =
@@ -317,7 +351,7 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
         );
 
     if (values.length === 0) {
-        return null;
+        return <DataTableEmptyCell {...props} />;
     }
 
     return (

@@ -9,6 +9,7 @@ import {
     getOption,
     getFilterAffixes,
     isDateOnly,
+    isEmptyValue,
     isSafeUrl,
     truncate,
 } from './data-table-format';
@@ -364,5 +365,22 @@ describe('getOption', () => {
             icon: Icon,
         });
         expect(getOption({ icons: { true: Icon } }, false)).toBeUndefined();
+    });
+});
+
+describe('isEmptyValue', () => {
+    it('is empty for null, undefined, blank texts and lists of them', () => {
+        expect(isEmptyValue(null)).toBe(true);
+        expect(isEmptyValue(undefined)).toBe(true);
+        expect(isEmptyValue('')).toBe(true);
+        expect(isEmptyValue([])).toBe(true);
+        expect(isEmptyValue([null, ''])).toBe(true);
+    });
+
+    it('is not empty for zero, false or a list with a value', () => {
+        expect(isEmptyValue(0)).toBe(false);
+        expect(isEmptyValue(false)).toBe(false);
+        expect(isEmptyValue(' ')).toBe(false);
+        expect(isEmptyValue([null, 'a'])).toBe(false);
     });
 });

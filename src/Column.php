@@ -36,6 +36,8 @@ abstract class Column
 
     private ?FilterVariant $filter = null;
 
+    private ?string $whenEmpty = null;
+
     final protected function __construct(private readonly string $id, ?string $label)
     {
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $id) !== 1) {
@@ -121,6 +123,18 @@ abstract class Column
     }
 
     /**
+     * Text of the cells without a value (`null` or `''`), such as
+     * `whenEmpty('Not published')`; `''` leaves them blank. Without it, the
+     * `empty` text of the UI (`—`, muted).
+     */
+    public function whenEmpty(string $text): static
+    {
+        $this->whenEmpty = $text;
+
+        return $this;
+    }
+
+    /**
      * Hides the column by default (the user can show it).
      */
     public function hidden(bool $hidden = true): static
@@ -200,7 +214,7 @@ abstract class Column
             'sortable' => $this->sortable,
             'hideable' => $this->hideable,
             'visible' => $this->isVisibleByDefault(),
-            'display' => $this->display(),
+            'display' => $this->whenEmpty === null ? $this->display() : [...$this->display(), 'empty' => $this->whenEmpty],
             'filter' => $this->filter === null ? null : ['variant' => $this->filter->value, ...$this->filterOptions()],
         ];
     }

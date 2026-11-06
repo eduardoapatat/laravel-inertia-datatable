@@ -24,6 +24,7 @@ return [
     'loading' => 'Cargando tabla…',
     'yes' => 'Sí',
     'no' => 'No',
+    'empty' => '—',
 
     // Encabezado de columna
     'sort_ascending' => 'Asc',
