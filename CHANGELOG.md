@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-11-05
+
 ### Changed
 
 - `make:datatable` only proposes what is needed to show the columns (type, relation path, enum labels, decimals): no `sortable()`, filters or `hideable(false)`, which are added by hand. `searchable()` goes on one column, `name` or else `title`. Relations are proposed when the method declares its `BelongsTo` return type.
@@ -153,7 +155,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.5.0...v0.6.0
