@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- `make:datatable` only proposes what is needed to show the columns (type, relation path, enum labels, decimals): no `sortable()`, filters or `hideable(false)`, which are added by hand. `searchable()` goes on one column, `name` or else `title`. Relations are proposed when the method declares its `BelongsTo` return type.
+
 ## [0.7.0] - 2026-11-05
 
 ### Changed (breaking)
