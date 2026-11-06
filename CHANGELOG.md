@@ -10,6 +10,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Changed
 
+- `make:datatable` only proposes the model's own columns: foreign keys (`category_id`) are left out instead of becoming relation columns (`from('category.name')`), which are added by hand.
 - The number cells show the currency code (`cell: 'code'`) and the unit (`unit('kg')`) smaller and muted after the number (`data-slot="data-table-number-suffix"`). `formatNumberCell()` gives the number and that suffix apart, for custom cells.
 
 ## [0.8.0] - 2026-11-06
