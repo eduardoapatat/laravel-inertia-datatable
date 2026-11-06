@@ -5,6 +5,7 @@ import {
     formatCellValue,
     formatDateValue,
     formatNumber,
+    getOption,
     getFilterUnit,
     isDateOnly,
     isSafeUrl,
@@ -202,5 +203,46 @@ describe('formatCellValue with a date column without a format', () => {
                 dateFormat: 'short',
             }),
         ).toBe('15-01-26');
+    });
+});
+
+describe('getOption', () => {
+    const Icon = () => null;
+
+    it('adds the icon of meta.icons to the option of the server', () => {
+        expect(
+            getOption(
+                {
+                    variant: 'select',
+                    options: [{ value: 'active', label: 'Activo' }],
+                    icons: { active: Icon },
+                },
+                'active',
+            ),
+        ).toEqual({ value: 'active', label: 'Activo', icon: Icon });
+    });
+
+    it('keeps the icon declared in meta.options', () => {
+        const Own = () => null;
+
+        expect(
+            getOption(
+                {
+                    variant: 'select',
+                    options: [{ value: 'active', label: 'Activo', icon: Own }],
+                    icons: { active: Icon },
+                },
+                'active',
+            )?.icon,
+        ).toBe(Own);
+    });
+
+    it('gives an option with only the icon for values without options', () => {
+        expect(getOption({ icons: { true: Icon } }, true)).toEqual({
+            value: 'true',
+            label: 'true',
+            icon: Icon,
+        });
+        expect(getOption({ icons: { true: Icon } }, false)).toBeUndefined();
     });
 });

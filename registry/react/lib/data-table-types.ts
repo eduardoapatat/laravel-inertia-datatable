@@ -102,6 +102,12 @@ export type DataTableColumnMeta = {
     position?: 'start' | 'end';
     display?: ColumnDisplay;
     /**
+     * Icon per value, shown in the filter list and in the cells of option and
+     * boolean columns (`true` / `false`): `{ active: CircleCheck }`. The labels
+     * and badge variants still come from PHP.
+     */
+    icons?: Record<string, React.ComponentType<React.ComponentProps<'svg'>>>;
+    /**
      * Tailwind classes of the header and the cells, for example a responsive
      * width (`w-40 md:w-80`, over `size`) or `text-right`.
      */

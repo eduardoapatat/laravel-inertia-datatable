@@ -237,9 +237,11 @@ function booleanOptions<TData extends RowData>(
                   false: getMessage(column.table, 'no'),
               };
 
+    const icons = column.columnDef.meta?.icons;
+
     return [
-        { label: labels.true, value: 'true' },
-        { label: labels.false, value: 'false' },
+        { label: labels.true, value: 'true', icon: icons?.true },
+        { label: labels.false, value: 'false', icon: icons?.false },
     ];
 }
 

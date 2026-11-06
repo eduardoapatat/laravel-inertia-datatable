@@ -515,6 +515,7 @@ function toOptions(
             value: option.value,
             label: own?.label ?? option.label,
             count: option.count,
+            icon: own?.icon ?? userMeta?.icons?.[option.value],
         };
     });
 }

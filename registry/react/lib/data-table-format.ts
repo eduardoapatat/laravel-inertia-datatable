@@ -345,7 +345,7 @@ export function getOptionLabel(
 
 /**
  * Option (select / multi-select) of a value, with its label, count and the
- * icon declared in the page `meta`.
+ * icon declared in the page `meta` (`meta.icons` or `meta.options`).
  */
 export function getOption(
     meta: DataTableColumnMeta | undefined,
@@ -353,8 +353,12 @@ export function getOption(
 ): ColumnSelectOption | undefined {
     const text = value === null || value === undefined ? '' : String(value);
     const options = meta && 'options' in meta ? meta.options : undefined;
+    const option = options?.find((item) => item.value === text);
+    const icon = meta?.icons?.[text];
 
-    return options?.find((option) => option.value === text);
+    return icon && !option?.icon
+        ? { value: text, label: text, ...option, icon }
+        : option;
 }
 
 export function toText(value: unknown): string {

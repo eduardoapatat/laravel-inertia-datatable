@@ -167,9 +167,9 @@ export function DataTableDateCell<TData extends RowData, TValue>(
 }
 
 /**
- * The labels of `->booleanLabels()` or the Yes / No texts of the table; with
- * `->badge()`, inside the project's Badge (variant of `true` / `false`, else
- * the column one).
+ * The labels of `->labels()` or the Yes / No texts of the table, with the
+ * icon of `meta.icons.true` / `meta.icons.false`; with `->badge()`, inside the
+ * project's Badge (variant of `true` / `false`, else the column one).
  */
 export function DataTableBooleanCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
@@ -178,36 +178,51 @@ export function DataTableBooleanCell<TData extends RowData, TValue>(
     const display =
         meta?.display?.type === 'boolean' ? meta.display : undefined;
     const value = props.cell.getValue();
+    const text = formatCellValue(
+        display ? meta : { ...meta, display: { type: 'boolean' } },
+        value,
+        context,
+    );
+
+    if (text === '') {
+        return null;
+    }
+
+    const key =
+        formatBoolean(value, { true: 'true', false: 'false' }) === 'true'
+            ? 'true'
+            : 'false';
+    const Icon = meta?.icons?.[key];
 
     if (display?.badge) {
-        if (value === null || value === undefined || value === '') {
-            return null;
-        }
-
-        const key =
-            formatBoolean(value, { true: 'true', false: 'false' }) === 'true'
-                ? 'true'
-                : 'false';
-
         return (
             <DataTableOptionBadge
+                option={
+                    Icon ? { value: key, label: text, icon: Icon } : undefined
+                }
                 variant={
                     (display.variants?.[key] ??
                         display.variant ??
                         'outline') as DataTableBadgeVariant
                 }
             >
-                {formatCellValue(meta, value, context)}
+                {text}
             </DataTableOptionBadge>
         );
     }
 
-    return formatCellValue(
-        meta?.display?.type === 'boolean'
-            ? meta
-            : { ...meta, display: { type: 'boolean' } },
-        props.cell.getValue(),
-        context,
+    if (!Icon) {
+        return text;
+    }
+
+    return (
+        <span className="inline-flex items-center gap-1.5">
+            <Icon
+                aria-hidden="true"
+                className="size-3.5 shrink-0 text-muted-foreground"
+            />
+            {text}
+        </span>
     );
 }
 
