@@ -7,6 +7,7 @@ All notable changes to this package are documented here. The format follows [Kee
 ### Added
 
 - `money('CLP', cell: 'both', filter: 'both')` shows the symbol before the number and the code after it (`$1.684.910 CLP`, `[ $ | 1200 | CLP ]`), for when `$` could be more than one currency.
+- `unit('u.', cell: false)` or `unit('u.', filter: false)` hides the unit in the cells (and the filter label) or next to the filter inputs.
 
 ### Changed
 
