@@ -8,6 +8,7 @@ import {
     formatBoolean,
     formatCellValue,
     formatDateValue,
+    formatNumberCell,
     getFormatContext,
     getOption,
     isDateOnly,
@@ -109,21 +110,34 @@ export function DataTableTextCell<TData extends RowData, TValue>(
 
 /**
  * Number, currency or percentage with Intl and the table locale; the column is
- * aligned to the end with its header (`meta.align` changes it).
+ * aligned to the end with its header (`meta.align` changes it). The currency
+ * code (`cell: 'code'`) and the unit go after the number, smaller and muted.
  */
 export function DataTableNumberCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
 ) {
     const { meta, locale } = cellSetup(props);
+    const { text, suffix } = formatNumberCell(
+        meta?.display?.type === 'number'
+            ? meta
+            : { ...meta, display: { type: 'number' } },
+        props.cell.getValue(),
+        locale,
+    );
 
     return (
         <span data-slot="data-table-number" className="tabular-nums">
-            {formatCellValue(
-                meta?.display?.type === 'number'
-                    ? meta
-                    : { ...meta, display: { type: 'number' } },
-                props.cell.getValue(),
-                locale,
+            {text}
+            {suffix && (
+                <>
+                    {' '}
+                    <span
+                        data-slot="data-table-number-suffix"
+                        className="text-xs text-muted-foreground"
+                    >
+                        {suffix}
+                    </span>
+                </>
             )}
         </span>
     );

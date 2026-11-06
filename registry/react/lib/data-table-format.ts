@@ -116,6 +116,47 @@ function formatMoney(
     }
 }
 
+export interface NumberCellParts {
+    text: string;
+    suffix?: string;
+}
+
+/**
+ * Number cell split in the number and what goes after it, which the cell shows
+ * smaller and muted: the currency code with `cell: 'code'` or the unit of plain
+ * numbers (`->unit('kg')`). Without one, `text` is the whole formatted value.
+ */
+export function formatNumberCell(
+    meta: DataTableColumnMeta | undefined,
+    value: unknown,
+    locale?: string,
+): NumberCellParts {
+    const display = meta?.display?.type === 'number' ? meta.display : undefined;
+    const format = display?.format;
+    let suffix: string | undefined;
+
+    if (toNumber(value) !== null) {
+        if (format?.style === 'currency') {
+            suffix =
+                format.currencyDisplay === undefined &&
+                display?.currency?.cell === 'code'
+                    ? format.currency?.toUpperCase()
+                    : undefined;
+        } else if (format?.style === undefined) {
+            suffix = getUnit(meta);
+        }
+    }
+
+    if (!suffix) {
+        return { text: formatCellValue(meta, value, locale) };
+    }
+
+    return {
+        text: formatNumber(value, format, locale, 'none'),
+        suffix,
+    };
+}
+
 export interface FilterAffix {
     text: string;
     align: 'inline-start' | 'inline-end';

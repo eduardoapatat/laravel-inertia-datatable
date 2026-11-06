@@ -5,6 +5,7 @@ import {
     formatCellValue,
     formatDateValue,
     formatNumber,
+    formatNumberCell,
     getOption,
     getFilterAffix,
     isDateOnly,
@@ -161,6 +162,45 @@ describe('truncate and isSafeUrl', () => {
         expect(isSafeUrl('https://example.com')).toBe(true);
         expect(isSafeUrl('javascript:alert(1)')).toBe(false);
         expect(isSafeUrl('not a url')).toBe(false);
+    });
+});
+
+describe('formatNumberCell', () => {
+    const money = (cell?: 'symbol' | 'code' | 'none') => ({
+        display: {
+            type: 'number' as const,
+            format: { style: 'currency' as const, currency: 'CLP' },
+            ...(cell ? { currency: { cell } } : {}),
+        },
+    });
+
+    it('splits the currency code from the number', () => {
+        expect(formatNumberCell(money('code'), 1234567, 'es-CL')).toEqual({
+            text: '1.234.567',
+            suffix: 'CLP',
+        });
+    });
+
+    it('splits the unit of plain numbers', () => {
+        expect(
+            formatNumberCell(
+                { display: { type: 'number', unit: 'kg' } },
+                12,
+                'es-CL',
+            ),
+        ).toEqual({ text: '12', suffix: 'kg' });
+    });
+
+    it('keeps the symbol, plain numbers and empty values whole', () => {
+        expect(formatNumberCell(money(), 1500, 'es-CL')).toEqual({
+            text: '$1.500',
+        });
+        expect(formatNumberCell(money('none'), 1500, 'es-CL')).toEqual({
+            text: '1.500',
+        });
+        expect(formatNumberCell(money('code'), null, 'es-CL')).toEqual({
+            text: '',
+        });
     });
 });
 
