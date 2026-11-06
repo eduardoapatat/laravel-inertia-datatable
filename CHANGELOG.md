@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-05
+
 ### Changed (breaking)
 
 - Columns have a type: `Column::text()`, `Column::number()`, `Column::date()`, `Column::boolean()` and `Column::option()` replace `Column::make()`. Each type only offers the format and filter methods that make sense for its values, so combinations such as `->boolean()->money()` or `->dateRange()->badge()` no longer exist, and the IDE and PHPStan catch them.
@@ -147,7 +149,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.4.1...v0.5.0

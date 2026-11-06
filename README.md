@@ -5,7 +5,7 @@
 
 Reusable DataTable for **Laravel + Inertia + React**, built on shadcn/ui and TanStack Table, with pagination, sorting, filters, global search and column visibility **resolved on the server**.
 
-> Version 0.6: backend and React UI. The Vue version is in progress. Changes in [`CHANGELOG.md`](CHANGELOG.md).
+> Version 0.7: backend and React UI. The Vue version is in progress. Changes in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## What this repo contains
 
@@ -158,7 +158,7 @@ php artisan inertia-datatable:ui --update   # brings the new version of the Data
 From the registry of the same version as the package, it installs `@tanstack/react-table` v9, the `useServerDataTable` hook, the components in `resources/js/components/data-table/` and the missing shadcn primitives, answering "no" to overwriting the existing `ui/` files (the DataTable only uses variants the starter kit already has). By hand:
 
 ```bash
-pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.6.1/r/data-table-react.json
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.7.0/r/data-table-react.json
 ```
 
 Inertia writes the URL with brackets and commas encoded (`filter%5Bstatus%5D=a%2Cb`). For readable URLs, add this to the app's `HandleInertiaRequests` middleware (it affects every Inertia page, so the package does not do it by itself):
@@ -177,7 +177,7 @@ For usage in pages, see `make:datatable --react` above and the skill's React ref
 So Claude Code knows how to install the package and create tables in a project:
 
 ```bash
-pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.6.1/r/data-table-skill.json
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.7.0/r/data-table-skill.json
 ```
 
 It is placed in `.claude/skills/laravel-inertia-datatable/`.
