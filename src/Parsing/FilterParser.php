@@ -25,7 +25,7 @@ final class FilterParser
 
     public function parse(Column $column, string $param): ?FilterItem
     {
-        $variant = $column->filterVariant();
+        $variant = $column->variantOfFilter();
 
         if ($variant === null) {
             return null;

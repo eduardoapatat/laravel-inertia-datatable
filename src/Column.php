@@ -171,7 +171,13 @@ abstract class Column
         return $this->visible;
     }
 
-    public function filterVariant(): ?FilterVariant
+    /**
+     * Variant of the filter of the column, or null without one. Read by the
+     * engine; to add a filter use the `filter…()` methods of each type.
+     *
+     * @internal
+     */
+    public function variantOfFilter(): ?FilterVariant
     {
         return $this->filter;
     }

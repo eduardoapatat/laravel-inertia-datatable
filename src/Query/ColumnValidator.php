@@ -42,7 +42,7 @@ final class ColumnValidator
             $usages = array_keys(array_filter([
                 'sortable' => $column->isSortable(),
                 'searchable' => $column->isSearchable(),
-                'filterable' => $column->filterVariant() !== null,
+                'filterable' => $column->variantOfFilter() !== null,
             ]));
 
             if ($usages !== []) {

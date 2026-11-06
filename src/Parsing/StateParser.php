@@ -87,7 +87,7 @@ final class StateParser
         foreach ($value as $columnId => $params) {
             $column = $definition->column((string) $columnId);
 
-            if ($column === null || $column->filterVariant() === null) {
+            if ($column === null || $column->variantOfFilter() === null) {
                 continue;
             }
 

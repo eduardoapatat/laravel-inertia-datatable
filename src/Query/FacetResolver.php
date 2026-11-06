@@ -34,14 +34,14 @@ final class FacetResolver
 
         foreach ($definition->columns as $id => $column) {
             if ($column instanceof OptionColumn) {
-                $options = $column->filterVariant() === null
+                $options = $column->variantOfFilter() === null
                     ? $this->declaredOptions($column)
                     : $this->options($definition, $state, $column);
 
                 if ($options !== null) {
                     $facets[$id] = $options;
                 }
-            } elseif ($column instanceof NumberColumn && $column->filterVariant() === FilterVariant::Range) {
+            } elseif ($column instanceof NumberColumn && $column->variantOfFilter() === FilterVariant::Range) {
                 $facets[$id] = $this->range($definition, $column);
             }
         }

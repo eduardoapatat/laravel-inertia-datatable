@@ -28,6 +28,7 @@ Migration:
 | `->withCounts(false)` | `filterSelect(counts: false)` / `filterMultiSelect(counts: false)` |
 | `->searchable()` on a date or boolean column | removed: the global search only covers text, number and option columns |
 | `Column::make('total')` (no filter) | the factory of its type: `Column::number('total')` |
+| `$column->filterVariant()` (reads the filter, does not add one) | `$column->variantOfFilter()`, internal; so typing `->filter` only offers the methods that add a filter |
 
 ### Added
 
