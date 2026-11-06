@@ -505,6 +505,17 @@ export function isEmptyValue(value: unknown): boolean {
     return value === null || value === undefined || value === '';
 }
 
+/**
+ * Name of the rows without a value in the filters: the text of
+ * `->whenEmpty()` or the `no_value` text of the UI.
+ */
+export function getEmptyLabel(
+    meta: DataTableColumnMeta | undefined,
+    table?: TableWithMeta,
+): string {
+    return meta?.display?.empty || getMessage(table, 'no_value');
+}
+
 export function toText(value: unknown): string {
     switch (typeof value) {
         case 'string':

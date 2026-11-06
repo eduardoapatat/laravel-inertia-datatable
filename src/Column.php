@@ -38,6 +38,8 @@ abstract class Column
 
     private ?string $whenEmpty = null;
 
+    private bool $filterEmpty = false;
+
     final protected function __construct(private readonly string $id, ?string $label)
     {
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $id) !== 1) {
@@ -215,7 +217,11 @@ abstract class Column
             'hideable' => $this->hideable,
             'visible' => $this->isVisibleByDefault(),
             'display' => $this->whenEmpty === null ? $this->display() : [...$this->display(), 'empty' => $this->whenEmpty],
-            'filter' => $this->filter === null ? null : ['variant' => $this->filter->value, ...$this->filterOptions()],
+            'filter' => $this->filter === null ? null : [
+                'variant' => $this->filter->value,
+                ...$this->filterOptions(),
+                ...($this->filterEmpty ? ['empty' => true] : []),
+            ],
         ];
     }
 
@@ -241,15 +247,45 @@ abstract class Column
     }
 
     /**
-     * A column has one filter: a second filter method is a mistake, not a change.
+     * Whether the filter offers the rows without a value (`empty: true`).
+     *
+     * @internal
      */
-    protected function withFilter(FilterVariant $variant): static
+    public function filtersEmpty(): bool
+    {
+        return $this->filterEmpty;
+    }
+
+    /**
+     * Name of the rows without a value in the filter: the text of
+     * `whenEmpty()` or the `no_value` text of the UI.
+     *
+     * @internal
+     */
+    public function emptyLabel(): string
+    {
+        if ($this->whenEmpty !== null && $this->whenEmpty !== '') {
+            return $this->whenEmpty;
+        }
+
+        $label = trans('inertia-datatable::ui.no_value');
+
+        return is_string($label) && $label !== 'inertia-datatable::ui.no_value' ? $label : 'No value';
+    }
+
+    /**
+     * A column has one filter: a second filter method is a mistake, not a change.
+     * With `empty`, the filter also offers the rows without a value, added with
+     * OR to what is picked.
+     */
+    protected function withFilter(FilterVariant $variant, bool $empty = false): static
     {
         if ($this->filter !== null) {
             throw new LogicException("The column [{$this->id}] already has a {$this->filter->value} filter.");
         }
 
         $this->filter = $variant;
+        $this->filterEmpty = $empty;
 
         return $this;
     }

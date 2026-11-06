@@ -116,6 +116,8 @@ export type ServerColumnDisplay = (
 export interface ServerColumnFilter {
     variant: FilterVariant;
     placeholder?: string;
+    /** The filter also offers the rows without a value (`empty: true`). */
+    empty?: true;
 }
 
 export interface ServerColumnConfig {
@@ -130,7 +132,8 @@ export interface ServerColumnConfig {
 }
 
 export interface ServerFacetOption {
-    value: string;
+    /** `null`: the rows without a value, last, with `empty: true`. */
+    value: string | null;
     label: string;
     count?: number;
 }

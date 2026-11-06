@@ -130,6 +130,13 @@ export type DataTableColumnMeta = {
      * `end` for number columns and `start` for the rest by default.
      */
     align?: DataTableAlign;
+    /**
+     * The filter also offers the rows without a value (`empty: true` in
+     * PHP), added with OR to what is picked.
+     */
+    empty?: boolean;
+    /** Rows without a value, for the filter list (from the server facets). */
+    emptyCount?: number;
 } & ColumnVariantMeta;
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];

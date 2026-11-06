@@ -36,18 +36,20 @@ final class DateColumn extends Column
     /**
      * Calendar in the toolbar to pick one day. The URL also accepts other
      * operators (`lt.2026-01-01`, `is.empty`…, docs/contract.md §1.4).
+     * `empty: true` adds a check for the rows without a date.
      */
-    public function filterDate(): self
+    public function filterDate(bool $empty = false): self
     {
-        return $this->withFilter(FilterVariant::Date);
+        return $this->withFilter(FilterVariant::Date, $empty);
     }
 
     /**
-     * Calendar in the toolbar to pick a from / to range of days.
+     * Calendar in the toolbar to pick a from / to range of days. `empty: true`
+     * adds a check for the rows without a date.
      */
-    public function filterRange(): self
+    public function filterRange(bool $empty = false): self
     {
-        return $this->withFilter(FilterVariant::DateRange);
+        return $this->withFilter(FilterVariant::DateRange, $empty);
     }
 
     public function display(): array

@@ -48,24 +48,26 @@ final class OptionColumn extends Column
 
     /**
      * List of the options in the toolbar to pick one. `counts: false` skips the
-     * query that counts the rows of each option.
+     * query that counts the rows of each option; `empty: true` adds an option
+     * for the rows without a value.
      */
-    public function filterSelect(bool $counts = true): self
+    public function filterSelect(bool $counts = true, bool $empty = false): self
     {
         $this->withCounts = $counts;
 
-        return $this->withFilter(FilterVariant::Select);
+        return $this->withFilter(FilterVariant::Select, $empty);
     }
 
     /**
      * List of the options in the toolbar to pick several. `counts: false` skips
-     * the query that counts the rows of each option.
+     * the query that counts the rows of each option; `empty: true` adds an
+     * option for the rows without a value.
      */
-    public function filterMultiSelect(bool $counts = true): self
+    public function filterMultiSelect(bool $counts = true, bool $empty = false): self
     {
         $this->withCounts = $counts;
 
-        return $this->withFilter(FilterVariant::MultiSelect);
+        return $this->withFilter(FilterVariant::MultiSelect, $empty);
     }
 
     /**

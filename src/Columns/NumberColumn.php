@@ -146,9 +146,10 @@ final class NumberColumn extends Column
 
     /**
      * Slider with a from / to input in the toolbar. Without `min`/`max` its
-     * bounds are computed from the base query.
+     * bounds are computed from the base query. `empty: true` adds a check for
+     * the rows without a value.
      */
-    public function filterRange(int|float|null $min = null, int|float|null $max = null): self
+    public function filterRange(int|float|null $min = null, int|float|null $max = null, bool $empty = false): self
     {
         if ($min !== null && $max !== null && $min > $max) {
             throw new InvalidArgumentException("The range of the column [{$this->id()}] starts after it ends.");
@@ -157,7 +158,7 @@ final class NumberColumn extends Column
         $this->min = $min;
         $this->max = $max;
 
-        return $this->withFilter(FilterVariant::Range);
+        return $this->withFilter(FilterVariant::Range, $empty);
     }
 
     public function min(): int|float|null

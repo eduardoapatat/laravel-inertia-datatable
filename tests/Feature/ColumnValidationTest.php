@@ -54,6 +54,19 @@ it('checks sortable relation columns against the related table', function () {
     resolveTable(productsTable(Column::text('category', 'Category')->from('category.nme')->sortable()));
 })->throws(LogicException::class, 'The column [category] is sortable, but [categories.nme] does not exist');
 
+it('fails when the filter offers rows without a value on a NOT NULL column', function () {
+    resolveTable(productsTable(Column::date('released_on', 'Released')->filterRange(empty: true)));
+})->throws(LogicException::class, 'The filter of the column [released_on] offers the rows without a value, but [products.released_on] is NOT NULL: no row can match.');
+
+it('accepts the rows without a value on nullable and relation columns', function () {
+    $response = resolveTable(productsTable(
+        Column::option('sku', 'SKU')->filterSelect(empty: true),
+        Column::option('category', 'Category')->from('category.name')->filterMultiSelect(empty: true),
+    ));
+
+    expect($response['config']['columns'][1]['filter'])->toBe(['variant' => 'select', 'empty' => true]);
+});
+
 it('fails when a displayed column has no value in the model', function () {
     Product::factory()->create();
 

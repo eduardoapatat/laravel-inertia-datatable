@@ -198,6 +198,34 @@ describe('stateToQuery', () => {
         ]);
     });
 
+    it('sends the rows without a value next to the range of the column', () => {
+        const pairs = stateToQuery(
+            {
+                ...defaultState,
+                filters: [
+                    {
+                        id: 'price',
+                        variant: 'range',
+                        operator: 'isBetween',
+                        value: ['10', '50'],
+                    },
+                    {
+                        id: 'price',
+                        variant: 'range',
+                        operator: 'isEmpty',
+                        value: '',
+                    },
+                ],
+            },
+            config,
+        );
+
+        expect(pairs).toEqual([
+            ['filter[price][]', '10,50'],
+            ['filter[price][]', 'is.empty'],
+        ]);
+    });
+
     it('uses the array form when a column has several filters', () => {
         const pairs = stateToQuery(
             {

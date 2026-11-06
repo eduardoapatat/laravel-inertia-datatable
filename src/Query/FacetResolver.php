@@ -26,7 +26,7 @@ final class FacetResolver
     ) {}
 
     /**
-     * @return array<string, list<array{value: string, label: string, count?: int}>|array{min: int|float|null, max: int|float|null}>
+     * @return array<string, list<array{value: string|null, label: string, count?: int}>|array{min: int|float|null, max: int|float|null}>
      */
     public function resolve(TableDefinition $definition, TableState $state): array
     {
@@ -73,19 +73,21 @@ final class FacetResolver
 
     /**
      * Cross count: with every filter and the search applied, except the column's own filters.
+     * With `empty: true`, the rows without a value go last with `value: null`.
      *
-     * @return list<array{value: string, label: string, count?: int}>
+     * @return list<array{value: string|null, label: string, count?: int}>
      */
     private function options(TableDefinition $definition, TableState $state, OptionColumn $column): array
     {
         $declared = $column->optionLabels();
         $counts = [];
+        $emptyCount = 0;
 
         if ($column->hasCounts() || $declared === null) {
             $query = clone $definition->query;
             $this->applier->applyFilters($query, $definition, $state->filtersExcept($column->id()));
             $this->applier->applySearch($query, $definition, $state->search);
-            $counts = $this->groupedCounts($query, $column);
+            [$counts, $emptyCount] = $this->groupedCounts($query, $column);
         }
 
         $labels = $declared ?? array_combine(array_keys($counts), array_map(strval(...), array_keys($counts)));
@@ -111,12 +113,18 @@ final class FacetResolver
             $options[] = $option;
         }
 
+        if ($column->filtersEmpty()) {
+            $options[] = ['value' => null, 'label' => $column->emptyLabel(), ...($column->hasCounts() ? ['count' => $emptyCount] : [])];
+        }
+
         return $options;
     }
 
     /**
+     * Rows per value, and the rows without a value apart.
+     *
      * @param  Builder<covariant Model>  $query
-     * @return array<string, int>
+     * @return array{array<string, int>, int}
      */
     private function groupedCounts(Builder $query, Column $column): array
     {
@@ -124,19 +132,23 @@ final class FacetResolver
             ->fromSub($this->valueQuery($query, $column), 'facet')
             ->select('facet_value')
             ->selectRaw('count(*) as facet_count')
-            ->whereNotNull('facet_value')
             ->groupBy('facet_value')
             ->orderBy('facet_value')
             ->get();
 
         $counts = [];
+        $emptyCount = 0;
 
         foreach ($rows as $row) {
-            /** @var object{facet_value: string|int|float|bool, facet_count: int|string} $row */
-            $counts[(string) $row->facet_value] = (int) $row->facet_count;
+            /** @var object{facet_value: string|int|float|bool|null, facet_count: int|string} $row */
+            if ($row->facet_value === null) {
+                $emptyCount = (int) $row->facet_count;
+            } else {
+                $counts[(string) $row->facet_value] = (int) $row->facet_count;
+            }
         }
 
-        return $counts;
+        return [$counts, $emptyCount];
     }
 
     /**

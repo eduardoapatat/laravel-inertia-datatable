@@ -7,14 +7,19 @@ import type { DateRange } from 'react-day-picker';
 import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 import * as React from 'react';
 
-import type { DataTableFeatures } from '@/lib/data-table-features';
+import {
+    clearColumnFilter,
+    type DataTableFeatures,
+    getEmptyFilter,
+} from '@/lib/data-table-features';
 
-import { formatDate } from '@/lib/data-table-format';
+import { formatDate, getEmptyLabel } from '@/lib/data-table-format';
 import {
     getMessage,
     getWeekStartsOn,
     type TableWithMeta,
 } from '@/lib/data-table-messages';
+import { DataTableEmptyFilter } from '@/components/data-table/data-table-empty-filter';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useDirection } from '@/components/ui/direction';
@@ -41,12 +46,16 @@ export function DataTableDateFilter<TData extends RowData>({
     return (
         <Subscribe
             source={column.table.atoms.columnFilters}
-            selector={() => column.getFilterValue()}
+            selector={() => ({
+                value: column.getFilterValue(),
+                empty: getEmptyFilter(column),
+            })}
         >
-            {(filterValue) => (
+            {({ value, empty }) => (
                 <DataTableDateFilterContent
                     column={column}
-                    columnFilterValue={filterValue}
+                    columnFilterValue={value}
+                    includesEmpty={empty}
                     {...props}
                 />
             )}
@@ -59,8 +68,10 @@ function DataTableDateFilterContent<TData extends RowData>({
     title = column.columnDef.meta?.label ?? column.id,
     multiple,
     columnFilterValue,
+    includesEmpty,
 }: DataTableDateFilterProps<TData> & {
     columnFilterValue: unknown;
+    includesEmpty: boolean;
 }) {
     const dir = useDirection();
     const table = column.table;
@@ -104,17 +115,25 @@ function DataTableDateFilterContent<TData extends RowData>({
     const onReset = React.useCallback(
         (event: React.MouseEvent) => {
             event.stopPropagation();
-            column.setFilterValue(undefined);
+            clearColumnFilter(column);
         },
         [column],
     );
 
-    const hasValue = getIsDateRange(selectedDates)
+    const hasDates = getIsDateRange(selectedDates)
         ? Boolean(selectedDates.from || selectedDates.to)
         : selectedDates.length > 0;
-    const dateText = getIsDateRange(selectedDates)
-        ? formatDateRange(selectedDates, locale)
-        : formatDate(selectedDates[0], { month: 'short' }, locale);
+    const hasValue = hasDates || includesEmpty;
+    const dateText = [
+        hasDates
+            ? getIsDateRange(selectedDates)
+                ? formatDateRange(selectedDates, locale)
+                : formatDate(selectedDates[0], { month: 'short' }, locale)
+            : '',
+        includesEmpty ? getEmptyLabel(column.columnDef.meta, table) : '',
+    ]
+        .filter(Boolean)
+        .join(', ');
 
     const label = (
         <span className="flex min-w-0 items-center gap-2">
@@ -186,6 +205,17 @@ function DataTableDateFilterContent<TData extends RowData>({
                         }
                         onSelect={onSelect}
                     />
+                )}
+                {column.columnDef.meta?.empty && (
+                    <>
+                        <Separator />
+                        <div className="p-3">
+                            <DataTableEmptyFilter
+                                column={column}
+                                checked={includesEmpty}
+                            />
+                        </div>
+                    </>
                 )}
                 {hasValue && (
                     <>

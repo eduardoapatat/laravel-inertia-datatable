@@ -7,6 +7,7 @@ import {
     formatNumber,
     formatNumberCell,
     getOption,
+    getEmptyLabel,
     getFilterAffixes,
     isDateOnly,
     isEmptyValue,
@@ -382,5 +383,30 @@ describe('isEmptyValue', () => {
         expect(isEmptyValue(false)).toBe(false);
         expect(isEmptyValue(' ')).toBe(false);
         expect(isEmptyValue([null, 'a'])).toBe(false);
+    });
+});
+
+describe('getEmptyLabel', () => {
+    const table = {
+        options: { meta: { messages: { no_value: 'Sin valor' } } },
+    };
+
+    it('uses the text of whenEmpty()', () => {
+        expect(
+            getEmptyLabel(
+                { display: { type: 'date', empty: 'Sin publicar' } },
+                table,
+            ),
+        ).toBe('Sin publicar');
+    });
+
+    it('uses the no_value text without it or when it is blank', () => {
+        expect(getEmptyLabel({ display: { type: 'date' } }, table)).toBe(
+            'Sin valor',
+        );
+        expect(
+            getEmptyLabel({ display: { type: 'date', empty: '' } }, table),
+        ).toBe('Sin valor');
+        expect(getEmptyLabel(undefined)).toBe('No value');
     });
 });

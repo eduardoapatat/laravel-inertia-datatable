@@ -6,8 +6,13 @@ import type * as React from 'react';
 
 import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 
-import type { DataTableFeatures } from '@/lib/data-table-features';
-import { formatNumber } from '@/lib/data-table-format';
+import {
+    clearColumnFilter,
+    type DataTableFeatures,
+    getEmptyFilter,
+    setEmptyFilter,
+} from '@/lib/data-table-features';
+import { formatNumber, getEmptyLabel } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 import type { ColumnSelectOption } from '@/lib/data-table-types';
 
@@ -26,11 +31,18 @@ import {
     FacetedItemCheckbox,
     FacetedItemCount,
     FacetedList,
+    FacetedSeparator,
     FacetedTrigger,
     FacetedValue,
 } from '@/components/ui/faceted';
 import { Separator } from '@/components/ui/separator';
 import { CirclePlus, CircleX } from 'lucide-react';
+
+/**
+ * Value of the "without value" item inside the list: never sent, it becomes an
+ * `is.empty` filter next to the picked values.
+ */
+const EMPTY_VALUE = '\u0000empty';
 
 interface DataTableFacetedFilterProps<TData extends RowData, TValue> {
     column?: Column<DataTableFeatures, TData, TValue>;
@@ -50,12 +62,16 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
     return (
         <Subscribe
             source={column.table.atoms.columnFilters}
-            selector={() => column.getFilterValue()}
+            selector={() => ({
+                value: column.getFilterValue(),
+                empty: getEmptyFilter(column),
+            })}
         >
-            {(filterValue) => (
+            {({ value, empty }) => (
                 <DataTableFacetedFilterContent
                     column={column}
-                    columnFilterValue={filterValue}
+                    columnFilterValue={value}
+                    includesEmpty={empty}
                     {...props}
                 />
             )}
@@ -68,6 +84,7 @@ interface DataTableFacetedFilterContentProps<
     TValue,
 > extends DataTableFacetedFilterProps<TData, TValue> {
     columnFilterValue?: unknown;
+    includesEmpty?: boolean;
 }
 
 function DataTableFacetedFilterContent<TData extends RowData, TValue>({
@@ -76,40 +93,60 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
     options,
     multiple = false,
     columnFilterValue,
+    includesEmpty = false,
 }: DataTableFacetedFilterContentProps<TData, TValue>) {
     const table = column?.table;
+    const meta = column?.columnDef.meta;
     const dir = useDirection();
     // Boolean filters store a single value ('true' / 'false').
-    const isScalar = column?.columnDef.meta?.variant === 'boolean';
-    const selectedValues = Array.isArray(columnFilterValue)
+    const isScalar = meta?.variant === 'boolean';
+    const pickedValues = Array.isArray(columnFilterValue)
         ? columnFilterValue.filter(
               (value): value is string => typeof value === 'string',
           )
         : typeof columnFilterValue === 'string'
           ? [columnFilterValue]
           : [];
+    const selectedValues = includesEmpty
+        ? [...pickedValues, EMPTY_VALUE]
+        : pickedValues;
     const hasSelection = selectedValues.length > 0;
+    // With `empty: true` in PHP, the rows without a value go last.
+    const emptyOption = meta?.empty
+        ? {
+              value: EMPTY_VALUE,
+              label: getEmptyLabel(meta, table),
+              count: meta.emptyCount,
+          }
+        : undefined;
+    const items = emptyOption ? [...options, emptyOption] : options;
 
     function onValueChange(value: string | string[] | undefined) {
         const values = Array.isArray(value) ? value : value ? [value] : [];
+        const picked = values.filter((item) => item !== EMPTY_VALUE);
 
-        if (values.length === 0) {
-            column?.setFilterValue(undefined);
-        } else {
-            column?.setFilterValue(isScalar ? values[0] : values);
+        column?.setFilterValue(
+            picked.length === 0 ? undefined : isScalar ? picked[0] : picked,
+        );
+
+        if (column && emptyOption) {
+            setEmptyFilter(column, values.includes(EMPTY_VALUE));
         }
     }
 
     function onReset(event: React.MouseEvent) {
         event.stopPropagation();
-        column?.setFilterValue(undefined);
+
+        if (column) {
+            clearColumnFilter(column);
+        }
     }
 
     return (
         <Faceted
             value={multiple ? selectedValues : selectedValues[0]}
             onValueChange={onValueChange}
-            items={options}
+            items={items}
             multiple={multiple}
         >
             <FacetedTrigger asChild>
@@ -194,6 +231,28 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                             </FacetedItem>
                         ))}
                     </FacetedGroup>
+                    {emptyOption && (
+                        <>
+                            <FacetedSeparator />
+                            <FacetedGroup>
+                                <FacetedItem value={emptyOption.value}>
+                                    <FacetedItemCheckbox />
+                                    <span className="flex-1 truncate">
+                                        {emptyOption.label}
+                                    </span>
+                                    {emptyOption.count !== undefined && (
+                                        <FacetedItemCount>
+                                            {formatNumber(
+                                                emptyOption.count,
+                                                {},
+                                                table?.options.meta?.locale,
+                                            )}
+                                        </FacetedItemCount>
+                                    )}
+                                </FacetedItem>
+                            </FacetedGroup>
+                        </>
+                    )}
                     <FacetedClear>
                         {getMessage(table, 'clear_filters')}
                     </FacetedClear>

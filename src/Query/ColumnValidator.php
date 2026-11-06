@@ -11,12 +11,13 @@ use LogicException;
 
 /**
  * Checks that the declared columns exist, so a typo or a missing migration fails
- * on the first load instead of when someone sorts or filters. Enabled with
+ * on the first load instead of when someone sorts or filters, and that the
+ * filters with `empty: true` are on columns that can be NULL. Enabled with
  * `inertia-datatable.validate_columns` (by default, only in debug mode).
  */
 final class ColumnValidator
 {
-    /** @var array<string, list<string>> Lowercase column names per connection and table. */
+    /** @var array<string, array<string, bool>> Whether each column (lowercase) is nullable, per connection and table. */
     private array $listings = [];
 
     public function __construct(
@@ -48,6 +49,8 @@ final class ColumnValidator
             if ($usages !== []) {
                 $this->ensureColumnExists($this->owner($model, $column), $column->attribute(), sprintf('The column [%s] is %s', $column->id(), implode(', ', $usages)));
             }
+
+            $this->ensureCanBeEmpty($model, $column);
         }
 
         foreach ($definition->defaultSort as $item) {
@@ -93,7 +96,7 @@ final class ColumnValidator
         $columns = $this->columns($model);
 
         // An empty listing means the schema could not be read: nothing to compare with.
-        if ($columns === [] || in_array(strtolower($attribute), $columns, true)) {
+        if ($columns === [] || array_key_exists(strtolower($attribute), $columns)) {
             return;
         }
 
@@ -106,16 +109,41 @@ final class ColumnValidator
     }
 
     /**
-     * @return list<string>
+     * The option "without value" of a filter never matches on a NOT NULL column.
+     * Relation columns are skipped: rows without the related record are empty.
+     */
+    private function ensureCanBeEmpty(Model $model, Column $column): void
+    {
+        if (! $column->filtersEmpty() || $column->relation() !== null) {
+            return;
+        }
+
+        if (($this->columns($model)[strtolower($column->attribute())] ?? true) === false) {
+            throw new LogicException(sprintf(
+                'The filter of the column [%s] offers the rows without a value, but [%s.%s] is NOT NULL: no row can match. Remove empty: true or make the column nullable.',
+                $column->id(),
+                $model->getTable(),
+                $column->attribute(),
+            ));
+        }
+    }
+
+    /**
+     * @return array<string, bool>
      */
     private function columns(Model $model): array
     {
         $key = $model->getConnectionName().'|'.$model->getTable();
 
-        return $this->listings[$key] ??= array_map(
-            strtolower(...),
-            $model->getConnection()->getSchemaBuilder()->getColumnListing($model->getTable()),
-        );
+        if (! isset($this->listings[$key])) {
+            $this->listings[$key] = [];
+
+            foreach ($model->getConnection()->getSchemaBuilder()->getColumns($model->getTable()) as $column) {
+                $this->listings[$key][strtolower($column['name'])] = (bool) $column['nullable'];
+            }
+        }
+
+        return $this->listings[$key];
     }
 
     private function missingReason(Model $model, string $attribute): string

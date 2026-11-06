@@ -257,6 +257,25 @@ it('sends the labels of option columns without a filter, without counting', func
     ]]);
 });
 
+it('counts the rows without a value last, named by whenEmpty() or the UI text', function () {
+    seedCatalog();
+    app()->setLocale('es');
+
+    $facets = DataTable::for(Product::query())
+        ->columns([
+            Column::option('category')->from('category.name')->whenEmpty('Sin categoría')->filterMultiSelect(empty: true),
+            Column::option('sku')->filterSelect(counts: false, empty: true),
+        ])
+        ->withRequest(Request::create('/?filter[category]=Oficina'))
+        ->toArray()['facets'];
+
+    expect($facets['category'])->toBe([
+        ['value' => 'Hogar', 'label' => 'Hogar', 'count' => 2],
+        ['value' => 'Oficina', 'label' => 'Oficina', 'count' => 1],
+        ['value' => null, 'label' => 'Sin categoría', 'count' => 1],
+    ])->and(end($facets['sku']))->toBe(['value' => null, 'label' => 'Sin valor']);
+});
+
 it('includes only visible columns, the primary key and non hideable columns in each row', function () {
     seedCatalog();
 

@@ -25,6 +25,8 @@ return [
     'yes' => 'Yes',
     'no' => 'No',
     'empty' => '—',
+    'no_value' => 'No value',
+    'include' => 'Include :label',
 
     // Column header
     'sort_ascending' => 'Asc',

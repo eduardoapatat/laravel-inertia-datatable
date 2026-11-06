@@ -422,6 +422,10 @@ function serverMeta(
     const base = {
         label: server.label,
         placeholder: server.filter?.placeholder,
+        empty: server.filter?.empty,
+        emptyCount: Array.isArray(facet)
+            ? facet.find((option) => option.value === null)?.count
+            : undefined,
     };
     const filter = server.filter?.variant;
     const display = server.display;
@@ -507,15 +511,20 @@ function toOptions(
     const declared =
         userMeta && 'options' in userMeta ? (userMeta.options ?? []) : [];
 
-    return facet.map((option) => {
-        const own = declared.find((item) => item.value === option.value);
+    // The rows without a value are not an option: the filter adds them apart.
+    return facet.flatMap(({ value, label, count }) => {
+        if (value === null) {
+            return [];
+        }
+
+        const own = declared.find((item) => item.value === value);
 
         return {
             ...own,
-            value: option.value,
-            label: own?.label ?? option.label,
-            count: option.count,
-            icon: own?.icon ?? userMeta?.icons?.[option.value],
+            value,
+            label: own?.label ?? label,
+            count,
+            icon: own?.icon ?? userMeta?.icons?.[value],
         };
     });
 }

@@ -57,6 +57,15 @@ it('sends the filter with only its own keys', function () {
         ->and(filterOf(Column::option('status')->filterMultiSelect()))->toBe(['variant' => 'multi-select']);
 });
 
+it('offers the rows without a value in the list, range and date filters', function () {
+    expect(filterOf(Column::number('price')->filterRange(empty: true)))->toBe(['variant' => 'range', 'empty' => true])
+        ->and(filterOf(Column::date('published_at')->filterDate(empty: true)))->toBe(['variant' => 'date', 'empty' => true])
+        ->and(filterOf(Column::date('published_at')->filterRange(empty: true)))->toBe(['variant' => 'date-range', 'empty' => true])
+        ->and(filterOf(Column::boolean('featured')->filterSelect(empty: true)))->toBe(['variant' => 'boolean', 'empty' => true])
+        ->and(filterOf(Column::option('status')->filterSelect(empty: true)))->toBe(['variant' => 'select', 'empty' => true])
+        ->and(filterOf(Column::option('status')->filterMultiSelect(empty: true)))->toBe(['variant' => 'multi-select', 'empty' => true]);
+});
+
 it('has one filter per column', function () {
     Column::number('price')->filterInput()->filterRange();
 })->throws(LogicException::class, 'The column [price] already has a number filter.');

@@ -20,6 +20,8 @@ export const DEFAULT_MESSAGES = {
     yes: 'Yes',
     no: 'No',
     empty: '—',
+    no_value: 'No value',
+    include: 'Include :label',
 
     sort_ascending: 'Asc',
     sort_descending: 'Desc',

@@ -29,10 +29,11 @@ final class BooleanColumn extends Column
 
     /**
      * List in the toolbar to pick Yes or No (with the labels of `labels()`).
+     * `empty: true` adds an option for the rows without a value.
      */
-    public function filterSelect(): self
+    public function filterSelect(bool $empty = false): self
     {
-        return $this->withFilter(FilterVariant::Boolean);
+        return $this->withFilter(FilterVariant::Boolean, $empty);
     }
 
     public function display(): array

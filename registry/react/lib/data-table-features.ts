@@ -3,6 +3,7 @@
 import {
     assignPrototypeAPIs,
     assignTableAPIs,
+    type Column,
     columnFacetingFeature,
     type ColumnFilter,
     columnFilteringFeature,
@@ -308,3 +309,62 @@ export const dataTableFeatures = tableFeatures({
 });
 
 export type DataTableFeatures = typeof dataTableFeatures;
+
+type DataTableColumn<TData extends RowData, TValue> = Column<
+    DataTableFeatures,
+    TData,
+    TValue
+>;
+
+function isEmptyFilterOf(filter: ColumnFilter, columnId: string) {
+    return filter.id === columnId && filter.operator === 'isEmpty';
+}
+
+/**
+ * Whether the filter of the column also takes the rows without a value: an
+ * `is.empty` filter next to its plain one, added with OR by the server
+ * (`empty: true` in PHP).
+ */
+export function getEmptyFilter<TData extends RowData, TValue>(
+    column: DataTableColumn<TData, TValue>,
+): boolean {
+    return column.table.atoms.columnFilters
+        .get()
+        .some((filter) => isEmptyFilterOf(filter, column.id));
+}
+
+/** Adds or removes the rows without a value, keeping the picked values. */
+export function setEmptyFilter<TData extends RowData, TValue>(
+    column: DataTableColumn<TData, TValue>,
+    include: boolean,
+) {
+    const variant = getFilterVariant(column.columnDef.meta);
+
+    column.table.setColumnFilters((old) => {
+        const rest = old.filter(
+            (filter) => !isEmptyFilterOf(filter, column.id),
+        );
+
+        return include && variant
+            ? [
+                  ...rest,
+                  {
+                      id: column.id,
+                      value: '',
+                      variant,
+                      operator: 'isEmpty',
+                      filterId: `${column.id}-empty`,
+                  },
+              ]
+            : rest;
+    });
+}
+
+/** Removes every filter of the column, the rows without a value included. */
+export function clearColumnFilter<TData extends RowData, TValue>(
+    column: DataTableColumn<TData, TValue>,
+) {
+    column.table.setColumnFilters((old) =>
+        old.filter((filter) => filter.id !== column.id),
+    );
+}

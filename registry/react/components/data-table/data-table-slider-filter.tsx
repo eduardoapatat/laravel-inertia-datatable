@@ -5,9 +5,14 @@
 import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 import * as React from 'react';
 
-import type { DataTableFeatures } from '@/lib/data-table-features';
+import {
+    clearColumnFilter,
+    type DataTableFeatures,
+    getEmptyFilter,
+} from '@/lib/data-table-features';
 import {
     formatNumber,
+    getEmptyLabel,
     getFilterAffixes,
     getUnit,
 } from '@/lib/data-table-format';
@@ -17,6 +22,7 @@ import {
     getRangeFilterBounds,
     getValidRangeFilterBounds,
 } from '@/lib/data-table-utils';
+import { DataTableEmptyFilter } from '@/components/data-table/data-table-empty-filter';
 import { Button } from '@/components/ui/button';
 import { useDirection } from '@/components/ui/direction';
 import {
@@ -51,12 +57,16 @@ export function DataTableSliderFilter<TData extends RowData>({
     return (
         <Subscribe
             source={column.table.atoms.columnFilters}
-            selector={() => column.getFilterValue()}
+            selector={() => ({
+                value: column.getFilterValue(),
+                empty: getEmptyFilter(column),
+            })}
         >
-            {(filterValue) => (
+            {({ value, empty }) => (
                 <DataTableSliderFilterContent
                     column={column}
-                    columnFilterValue={filterValue}
+                    columnFilterValue={value}
+                    includesEmpty={empty}
                     {...props}
                 />
             )}
@@ -68,8 +78,10 @@ function DataTableSliderFilterContent<TData extends RowData>({
     column,
     title = column.columnDef.meta?.label ?? column.id,
     columnFilterValue: columnFilterValueProp,
+    includesEmpty,
 }: DataTableSliderFilterProps<TData> & {
     columnFilterValue: unknown;
+    includesEmpty: boolean;
 }) {
     const dir = useDirection();
     const id = React.useId();
@@ -216,14 +228,16 @@ function DataTableSliderFilterContent<TData extends RowData>({
         event.stopPropagation();
         setDrafts([null, null]);
         onInvalidChange(false);
-        column.setFilterValue(undefined);
+        clearColumnFilter(column);
     }
+
+    const hasFilter = Boolean(columnFilterValue) || includesEmpty;
 
     return (
         <Popover onOpenChange={onOpenChange}>
             <PopoverTrigger asChild>
                 <Button variant="outline" className="border-dashed">
-                    {columnFilterValue ? (
+                    {hasFilter ? (
                         <span
                             aria-hidden="true"
                             className="rounded-sm opacity-70 transition-opacity hover:opacity-100"
@@ -235,15 +249,21 @@ function DataTableSliderFilterContent<TData extends RowData>({
                         <CirclePlus />
                     )}
                     <span>{title}</span>
-                    {columnFilterValue ? (
+                    {hasFilter ? (
                         <>
                             <Separator
                                 orientation="vertical"
                                 className="mx-0.5 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
                             />
-                            {formatValue(columnFilterValue[0])} -{' '}
-                            {formatValue(columnFilterValue[1])}
-                            {showUnit ? ` ${unit}` : ''}
+                            {columnFilterValue && (
+                                <>
+                                    {formatValue(columnFilterValue[0])} -{' '}
+                                    {formatValue(columnFilterValue[1])}
+                                    {showUnit ? ` ${unit}` : ''}
+                                </>
+                            )}
+                            {columnFilterValue && includesEmpty && ', '}
+                            {includesEmpty && getEmptyLabel(meta, table)}
                         </>
                     ) : null}
                 </Button>
@@ -342,6 +362,12 @@ function DataTableSliderFilterContent<TData extends RowData>({
                         value={range}
                         onValueChange={onSliderValueChange}
                     />
+                    {meta?.empty && (
+                        <DataTableEmptyFilter
+                            column={column}
+                            checked={includesEmpty}
+                        />
+                    )}
                 </div>
                 <Button
                     aria-label={getMessage(table, 'clear_filter', {
