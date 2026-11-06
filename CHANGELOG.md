@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `money('CLP', cell: 'both')` shows the symbol before the number and the code after it (`$1.684.910 CLP`), for when `$` could be more than one currency. Only for the cells; the filter inputs keep `symbol`, `code` or `none`.
+
 ### Changed
 
 - The number cells show the currency code (`cell: 'code'`) and the unit (`unit('kg')`) smaller and muted after the number (`data-slot="data-table-number-suffix"`). `formatNumberCell()` gives the number and that suffix apart, for custom cells.
