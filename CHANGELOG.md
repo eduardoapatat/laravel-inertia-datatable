@@ -6,10 +6,11 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Added
 
-- `money('CLP', cell: 'both')` shows the symbol before the number and the code after it (`$1.684.910 CLP`), for when `$` could be more than one currency. Only for the cells; the filter inputs keep `symbol`, `code` or `none`.
+- `money('CLP', cell: 'both', filter: 'both')` shows the symbol before the number and the code after it (`$1.684.910 CLP`, `[ $ | 1200 | CLP ]`), for when `$` could be more than one currency.
 
 ### Changed
 
+- `getFilterAffix()` of `lib/data-table-format.ts` is now `getFilterAffixes()`, which returns a list (the symbol and the code can go on both sides), and the `affix` prop of `DataTableFilterInput` is now `affixes`.
 - `make:datatable` only proposes the model's own columns: foreign keys (`category_id`) are left out instead of becoming relation columns (`from('category.name')`), which are added by hand.
 - The number cells show the currency code (`cell: 'code'`) and the unit (`unit('kg')`) smaller and muted after the number (`data-slot="data-table-number-suffix"`). `formatNumberCell()` gives the number and that suffix apart, for custom cells.
 
