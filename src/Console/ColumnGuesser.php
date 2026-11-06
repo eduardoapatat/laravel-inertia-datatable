@@ -13,7 +13,10 @@ use ReflectionNamedType;
 use Throwable;
 
 /**
- * Proposes the columns of a table from the model casts and the database schema.
+ * Proposes the columns of a table from the model casts and the database schema:
+ * only what is needed to show them (type, relation path, enum labels, decimals),
+ * plus the global search on a `name` or `title` column. Sorting, filters and
+ * hiding are added by hand.
  */
 final class ColumnGuesser
 {
@@ -30,6 +33,11 @@ final class ColumnGuesser
      * Preferred attributes to display a related model.
      */
     private const array DISPLAY_ATTRIBUTES = ['name', 'title', 'label', 'email'];
+
+    /**
+     * Columns that get the global search, the first one found.
+     */
+    private const array SEARCH_ATTRIBUTES = ['name', 'title'];
 
     /**
      * @return list<GuessedColumn>
@@ -57,33 +65,28 @@ final class ColumnGuesser
             }
         }
 
-        return $this->lockIdentifyingColumn($columns);
+        return $this->withSearch($columns);
     }
 
     /**
-     * The column that identifies the row (name, title… or the first own text column)
-     * goes first and cannot be hidden.
+     * The global search goes on one column: `name`, else `title`.
      *
      * @param  list<GuessedColumn>  $columns
      * @return list<GuessedColumn>
      */
-    private function lockIdentifyingColumn(array $columns): array
+    private function withSearch(array $columns): array
     {
-        $candidates = array_filter($columns, fn (GuessedColumn $column): bool => ! $column->isRelation && $column->kind === 'string');
-        $preferred = array_filter($candidates, fn (GuessedColumn $column): bool => in_array($column->id, self::DISPLAY_ATTRIBUTES, true));
-        $index = array_key_first($preferred) ?? array_key_first($candidates);
+        foreach (self::SEARCH_ATTRIBUTES as $attribute) {
+            foreach ($columns as $index => $column) {
+                if ($column->id === $attribute && $column->type === 'text') {
+                    $columns[$index] = new GuessedColumn($column->id, $column->label, $column->type, [...$column->calls, 'searchable()'], $column->kind, $column->nullable);
 
-        if ($index === null) {
-            return $columns;
+                    return $columns;
+                }
+            }
         }
 
-        $locked = $columns[$index];
-        unset($columns[$index]);
-
-        return [
-            new GuessedColumn($locked->id, $locked->label, $locked->type, [...$locked->calls, 'hideable(false)'], $locked->kind, $locked->nullable),
-            ...array_values($columns),
-        ];
+        return $columns;
     }
 
     private function guessAttribute(string $name, ?string $cast, string $typeName, string $type, bool $nullable): ?GuessedColumn
@@ -92,21 +95,21 @@ final class ColumnGuesser
         $castType = $cast === null ? null : strtolower(Str::before($cast, ':'));
 
         if ($cast !== null && enum_exists($cast) && is_subclass_of($cast, BackedEnum::class)) {
-            return new GuessedColumn($name, $label, 'option', ['options('.class_basename($cast).'::class)', 'filterMultiSelect()'], 'option', $nullable, $cast);
+            return new GuessedColumn($name, $label, 'option', ['options('.class_basename($cast).'::class)'], 'option', $nullable, $cast);
         }
 
         return match (true) {
-            in_array($castType, ['bool', 'boolean'], true) => new GuessedColumn($name, $label, 'boolean', ['filterSelect()'], 'boolean', $nullable),
+            in_array($castType, ['bool', 'boolean'], true) => new GuessedColumn($name, $label, 'boolean', [], 'boolean', $nullable),
             // Without a cast, SQLite and MySQL return 1/0.
-            $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, 'boolean', ['filterSelect()'], 'boolean-or-number', $nullable),
-            in_array($castType, ['date', 'datetime', 'immutable_date', 'immutable_datetime', 'timestamp'], true) || $this->isDateType($typeName) => new GuessedColumn($name, $label, 'date', ['sortable()', 'filterRange()'], 'date', $nullable),
+            $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, 'boolean', [], 'boolean-or-number', $nullable),
+            in_array($castType, ['date', 'datetime', 'immutable_date', 'immutable_datetime', 'timestamp'], true) || $this->isDateType($typeName) => new GuessedColumn($name, $label, 'date', [], 'date', $nullable),
             // The decimal cast serializes as a string to keep the precision.
-            $castType === 'decimal' => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterRange()', ...$this->decimalsCall((string) $cast)], 'decimal', $nullable),
-            in_array($castType, ['float', 'double', 'real'], true) || $this->isFloatType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterRange()'], 'number', $nullable),
+            $castType === 'decimal' => new GuessedColumn($name, $label, 'number', $this->decimalsCall((string) $cast), 'decimal', $nullable),
+            in_array($castType, ['float', 'double', 'real'], true) || $this->isFloatType($typeName) => new GuessedColumn($name, $label, 'number', [], 'number', $nullable),
             // Without a cast, MySQL and PostgreSQL return DECIMAL/NUMERIC as a string; SQLite as a number.
-            $this->isDecimalType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterRange()'], 'number-or-string', $nullable),
-            in_array($castType, ['int', 'integer'], true) || $this->isIntegerType($typeName) => new GuessedColumn($name, $label, 'number', ['sortable()', 'filterInput()'], 'number', $nullable),
-            $this->isStringType($typeName) => new GuessedColumn($name, $label, 'text', $this->isLongText($typeName) ? ['searchable()', 'filterInput()'] : ['sortable()', 'searchable()', 'filterInput()'], 'string', $nullable),
+            $this->isDecimalType($typeName) => new GuessedColumn($name, $label, 'number', [], 'number-or-string', $nullable),
+            in_array($castType, ['int', 'integer'], true) || $this->isIntegerType($typeName) => new GuessedColumn($name, $label, 'number', [], 'number', $nullable),
+            $this->isStringType($typeName) => new GuessedColumn($name, $label, 'text', [], 'string', $nullable),
             default => null,
         };
     }
@@ -147,7 +150,7 @@ final class ColumnGuesser
             Str::snake($relationName),
             Str::headline($relationName),
             'option',
-            ["from('{$relationName}.{$attribute}')", 'sortable()', 'searchable()', 'filterMultiSelect()'],
+            ["from('{$relationName}.{$attribute}')"],
             'string',
             $nullable,
             isRelation: true,
@@ -194,10 +197,5 @@ final class ColumnGuesser
     private function isStringType(string $typeName): bool
     {
         return in_array($typeName, ['varchar', 'char', 'text', 'string', 'tinytext', 'mediumtext', 'longtext', 'citext', 'bpchar', 'nvarchar', 'nchar', 'ntext', 'character varying', 'character'], true);
-    }
-
-    private function isLongText(string $typeName): bool
-    {
-        return in_array($typeName, ['text', 'tinytext', 'mediumtext', 'longtext', 'ntext'], true);
     }
 }

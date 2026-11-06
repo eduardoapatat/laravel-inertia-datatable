@@ -29,13 +29,16 @@ it('creates a table class with the columns guessed from the model', function () 
         ->toContain('use InertiaDataTable\Tests\Fixtures\Enums\ProductStatus;')
         ->toContain('use InertiaDataTable\Tests\Fixtures\Models\Product;')
         ->toContain('return Product::query();')
-        ->toContain("Column::text('name', 'Name')->sortable()->searchable()->filterInput()->hideable(false),")
-        ->toContain("Column::option('category', 'Category')->from('category.name')->sortable()->searchable()->filterMultiSelect(),")
-        ->toContain("Column::option('status', 'Status')->options(ProductStatus::class)->filterMultiSelect(),")
-        ->toContain("Column::number('price', 'Price')->sortable()->filterInput(),")
-        ->toContain("Column::boolean('featured', 'Featured')->filterSelect(),")
-        ->toContain("Column::date('released_on', 'Released On')->sortable()->filterRange(),")
-        ->toContain("return 'name';");
+        ->toContain("Column::text('name', 'Name')->searchable(),")
+        ->toContain("Column::option('category', 'Category')->from('category.name'),")
+        ->toContain("Column::option('status', 'Status')->options(ProductStatus::class),")
+        ->toContain("Column::number('price', 'Price'),")
+        ->toContain("Column::boolean('featured', 'Featured'),")
+        ->toContain("Column::date('released_on', 'Released On'),")
+        ->not->toContain('->sortable()')
+        ->not->toContain('->filter')
+        ->not->toContain('->hideable(')
+        ->not->toContain('defaultSort');
 });
 
 it('leaves out the primary key, hidden attributes and sensitive columns', function () {
@@ -44,9 +47,9 @@ it('leaves out the primary key, hidden attributes and sensitive columns', functi
     $contents = File::get(app_path('DataTables/AccountsTable.php'));
 
     expect($contents)
-        ->toContain("Column::text('email', 'Email')->sortable()->searchable()->filterInput()->hideable(false),")
-        ->toContain("Column::text('notes', 'Notes')->searchable()->filterInput(),")
-        ->toContain("Column::date('created_at', 'Created At')->sortable()->filterRange(),")
+        ->toContain("Column::text('email', 'Email'),")
+        ->toContain("Column::text('notes', 'Notes'),")
+        ->toContain("Column::date('created_at', 'Created At'),")
         ->toContain("return '-created_at';")
         ->not->toContain("('id', 'Id')")
         ->not->toContain('password')
@@ -88,8 +91,8 @@ it('keeps the decimals of a decimal cast in the display', function () {
     artisan('make:datatable', ['name' => 'ReadingsTable', '--model' => Reading::class])->assertSuccessful();
 
     expect(File::get(app_path('DataTables/ReadingsTable.php')))
-        ->toContain("Column::number('amount', 'Amount')->sortable()->filterRange()->decimals(2),")
-        ->toContain("Column::number('total', 'Total')->sortable()->filterRange(),");
+        ->toContain("Column::number('amount', 'Amount')->decimals(2),")
+        ->toContain("Column::number('total', 'Total'),");
 });
 
 it('types the React row as the values arrive in the JSON', function () {
@@ -163,7 +166,7 @@ it('creates a table without columns with the empty option', function () {
     artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--empty' => true])->assertSuccessful();
 
     expect(File::get(app_path('DataTables/ProductsTable.php')))
-        ->toContain("// Column::text('name')->sortable()->searchable()->filterInput(),")
+        ->toContain("// Column::text('name')->searchable(),")
         ->not->toContain("Column::number('price'")
         ->not->toContain('defaultSort');
 });

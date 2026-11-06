@@ -94,7 +94,7 @@ class MakeDataTableCommand extends GeneratorCommand
         ])->unique()->sort()->map(fn (string $class): string => "use {$class};")->implode("\n");
 
         $columnLines = $columns === []
-            ? "            // Column::text('name')->sortable()->searchable()->filterInput(),"
+            ? "            // Column::text('name')->searchable(),"
             : collect($columns)->map(fn (GuessedColumn $column): string => '            '.$column->toPhp().',')->implode("\n");
 
         return str_replace(
@@ -230,7 +230,7 @@ PHP;
                         $column->nullable ? ' | null' : '',
                     ))->implode("\n"),
                     $names['prop'],
-                    $columns[0]->id ?? 'name',
+                    collect($columns)->first(fn (GuessedColumn $column): bool => in_array('searchable()', $column->calls, true))->id ?? $columns[0]->id ?? 'name',
                     $names['component'],
                     $names['title'],
                 ],
