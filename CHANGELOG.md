@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- With `validate_columns` (debug mode), `whenEmpty()` on a column that can never be empty throws, like `empty: true` (a `NOT NULL` column, or a `belongsTo` whose foreign key and related column are both `NOT NULL`). Tables with `transform()` are not checked.
+
 ## [0.9.0] - 2026-11-06
 
 ### Added

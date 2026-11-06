@@ -68,7 +68,7 @@ Methods of every type:
 | `sortable()` | Allowed in `sort` |
 | `hideable(false)` | Always visible (use for the column that identifies the row); cannot be combined with `hidden()` |
 | `hidden()` | Hidden by default; the user can show it |
-| `whenEmpty('Not published')` | Text of the cells without a value (`null` or `''`); without it, a muted `—` (the `empty` UI text); `''` leaves them blank |
+| `whenEmpty('Not published')` | Text of the cells without a value (`null` or `''`); without it, a muted `—` (the `empty` UI text); `''` leaves them blank. Only for columns that can be NULL: with `validate_columns` (debug) a `NOT NULL` column throws. It never matches a business value such as `0` ("out of stock"): use a custom `cell` for that |
 
 Format (only changes how cells look; the row keeps the raw value and the UI formats with Intl and the table locale, see Configuration) and filter of each type:
 
