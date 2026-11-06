@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace InertiaDataTable\Query;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use InertiaDataTable\Column;
 use InertiaDataTable\TableDefinition;
 use LogicException;
@@ -110,22 +111,52 @@ final class ColumnValidator
 
     /**
      * The option "without value" of a filter never matches on a NOT NULL column.
-     * Relation columns are skipped: rows without the related record are empty.
+     * On a `belongsTo` column a row is empty without the related record or
+     * without its value, so both the foreign key and the related column must be
+     * NOT NULL to fail; other relations are not checked.
      */
     private function ensureCanBeEmpty(Model $model, Column $column): void
     {
-        if (! $column->filtersEmpty() || $column->relation() !== null) {
+        if (! $column->filtersEmpty()) {
             return;
         }
 
-        if (($this->columns($model)[strtolower($column->attribute())] ?? true) === false) {
+        if ($column->relation() === null) {
+            if ($this->isNotNull($model, $column->attribute())) {
+                throw new LogicException(sprintf(
+                    'The filter of the column [%s] offers the rows without a value, but [%s.%s] is NOT NULL: no row can match. Remove empty: true or make the column nullable.',
+                    $column->id(),
+                    $model->getTable(),
+                    $column->attribute(),
+                ));
+            }
+
+            return;
+        }
+
+        $relation = $this->relations->relation($model, $column);
+
+        if (! $relation instanceof BelongsTo) {
+            return;
+        }
+
+        $related = $relation->getRelated();
+
+        if ($this->isNotNull($model, $relation->getForeignKeyName()) && $this->isNotNull($related, $column->attribute())) {
             throw new LogicException(sprintf(
-                'The filter of the column [%s] offers the rows without a value, but [%s.%s] is NOT NULL: no row can match. Remove empty: true or make the column nullable.',
+                'The filter of the column [%s] offers the rows without a value, but [%s.%s] and [%s.%s] are NOT NULL: every row has a value. Remove empty: true or make one of them nullable.',
                 $column->id(),
                 $model->getTable(),
+                $relation->getForeignKeyName(),
+                $related->getTable(),
                 $column->attribute(),
             ));
         }
+    }
+
+    private function isNotNull(Model $model, string $attribute): bool
+    {
+        return ($this->columns($model)[strtolower($attribute)] ?? true) === false;
     }
 
     /**

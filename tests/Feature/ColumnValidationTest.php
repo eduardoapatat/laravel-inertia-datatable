@@ -3,7 +3,11 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use InertiaDataTable\Column;
 use InertiaDataTable\DataTable;
 use InertiaDataTable\TableBuilder;
@@ -23,6 +27,17 @@ class ProductWithLabel extends Product
 class ProductWithAppendedLabel extends ProductWithLabel
 {
     protected $appends = ['label'];
+}
+
+class Shelf extends Model
+{
+    /**
+     * @return BelongsTo<Category, $this>
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 }
 
 /**
@@ -66,6 +81,18 @@ it('accepts the rows without a value on nullable and relation columns', function
 
     expect($response['config']['columns'][1]['filter'])->toBe(['variant' => 'select', 'empty' => true]);
 });
+
+it('fails when a belongs-to filter offers rows without a value but the key and the value are NOT NULL', function () {
+    Schema::create('shelves', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('category_id')->constrained();
+        $table->timestamps();
+    });
+
+    resolveTable(DataTable::for(Shelf::query())->columns([
+        Column::option('category')->from('category.name')->filterSelect(empty: true),
+    ]));
+})->throws(LogicException::class, 'The filter of the column [category] offers the rows without a value, but [shelves.category_id] and [categories.name] are NOT NULL: every row has a value.');
 
 it('fails when a displayed column has no value in the model', function () {
     Product::factory()->create();
