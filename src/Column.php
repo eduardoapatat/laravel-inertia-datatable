@@ -247,6 +247,16 @@ abstract class Column
     }
 
     /**
+     * Whether the cells without a value have their own text (`whenEmpty()`).
+     *
+     * @internal
+     */
+    public function hasWhenEmpty(): bool
+    {
+        return $this->whenEmpty !== null;
+    }
+
+    /**
      * Whether the filter offers the rows without a value (`empty: true`).
      *
      * @internal

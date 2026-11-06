@@ -71,7 +71,24 @@ it('checks sortable relation columns against the related table', function () {
 
 it('fails when the filter offers rows without a value on a NOT NULL column', function () {
     resolveTable(productsTable(Column::date('released_on', 'Released')->filterRange(empty: true)));
-})->throws(LogicException::class, 'The filter of the column [released_on] offers the rows without a value, but [products.released_on] is NOT NULL: no row can match.');
+})->throws(LogicException::class, 'The column [released_on] has a filter with empty: true, but [products.released_on] is NOT NULL: no row can be empty. Remove it or make the column nullable.');
+
+it('fails when whenEmpty() is on a NOT NULL column, naming every use', function () {
+    resolveTable(productsTable(Column::number('stock', 'Stock')->whenEmpty('Out of stock')->filterRange(empty: true)));
+})->throws(LogicException::class, 'The column [stock] has whenEmpty() and a filter with empty: true, but [products.stock] is NOT NULL: no row can be empty.');
+
+it('accepts whenEmpty() on nullable columns, relations, aliases and transformed tables', function () {
+    $response = resolveTable(productsTable(
+        Column::text('sku', 'SKU')->whenEmpty('No SKU'),
+        Column::option('category', 'Category')->from('category.name')->whenEmpty('No category'),
+        Column::number('orders_count', 'Orders')->whenEmpty('None'),
+    ));
+    $transformed = resolveTable(productsTable(Column::number('stock', 'Stock')->whenEmpty('—'))
+        ->transform(fn (Product $product): array => ['name' => $product->name, 'stock' => null]));
+
+    expect($response['config']['columns'])->toHaveCount(4)
+        ->and($transformed['config']['columns'])->toHaveCount(2);
+});
 
 it('accepts the rows without a value on nullable and relation columns', function () {
     $response = resolveTable(productsTable(
@@ -92,7 +109,7 @@ it('fails when a belongs-to filter offers rows without a value but the key and t
     resolveTable(DataTable::for(Shelf::query())->columns([
         Column::option('category')->from('category.name')->filterSelect(empty: true),
     ]));
-})->throws(LogicException::class, 'The filter of the column [category] offers the rows without a value, but [shelves.category_id] and [categories.name] are NOT NULL: every row has a value.');
+})->throws(LogicException::class, 'The column [category] has a filter with empty: true, but [shelves.category_id] and [categories.name] are NOT NULL: no row can be empty.');
 
 it('fails when a displayed column has no value in the model', function () {
     Product::factory()->create();

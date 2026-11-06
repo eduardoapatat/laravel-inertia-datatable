@@ -12,8 +12,9 @@ use LogicException;
 
 /**
  * Checks that the declared columns exist, so a typo or a missing migration fails
- * on the first load instead of when someone sorts or filters, and that the
- * filters with `empty: true` are on columns that can be NULL. Enabled with
+ * on the first load instead of when someone sorts or filters, and that
+ * `whenEmpty()` and the filters with `empty: true` are on columns that can be
+ * NULL. Enabled with
  * `inertia-datatable.validate_columns` (by default, only in debug mode).
  */
 final class ColumnValidator
@@ -51,7 +52,7 @@ final class ColumnValidator
                 $this->ensureColumnExists($this->owner($model, $column), $column->attribute(), sprintf('The column [%s] is %s', $column->id(), implode(', ', $usages)));
             }
 
-            $this->ensureCanBeEmpty($model, $column);
+            $this->ensureCanBeEmpty($definition, $model, $column);
         }
 
         foreach ($definition->defaultSort as $item) {
@@ -110,48 +111,63 @@ final class ColumnValidator
     }
 
     /**
-     * The option "without value" of a filter never matches on a NOT NULL column.
-     * On a `belongsTo` column a row is empty without the related record or
-     * without its value, so both the foreign key and the related column must be
-     * NOT NULL to fail; other relations are not checked.
+     * `whenEmpty()` and the option "without value" of a filter are useless when
+     * no row can be empty. On a `belongsTo` column a row is empty without the
+     * related record or without its value, so both the foreign key and the
+     * related column must be NOT NULL to fail; other relations, query aliases
+     * and appended attributes are not checked, and neither is `whenEmpty()` in
+     * tables with `transform()`, which build the values themselves.
      */
-    private function ensureCanBeEmpty(Model $model, Column $column): void
+    private function ensureCanBeEmpty(TableDefinition $definition, Model $model, Column $column): void
     {
-        if (! $column->filtersEmpty()) {
+        $uses = array_keys(array_filter([
+            'whenEmpty()' => $column->hasWhenEmpty() && $definition->transformer === null,
+            'a filter with empty: true' => $column->filtersEmpty(),
+        ]));
+
+        if ($uses === []) {
             return;
         }
 
-        if ($column->relation() === null) {
-            if ($this->isNotNull($model, $column->attribute())) {
-                throw new LogicException(sprintf(
-                    'The filter of the column [%s] offers the rows without a value, but [%s.%s] is NOT NULL: no row can match. Remove empty: true or make the column nullable.',
-                    $column->id(),
-                    $model->getTable(),
-                    $column->attribute(),
-                ));
-            }
+        $reason = $this->neverEmptyReason($model, $column);
 
-            return;
+        if ($reason !== null) {
+            throw new LogicException(sprintf(
+                'The column [%s] has %s, but %s: no row can be empty. Remove it or make the column nullable.',
+                $column->id(),
+                implode(' and ', $uses),
+                $reason,
+            ));
+        }
+    }
+
+    private function neverEmptyReason(Model $model, Column $column): ?string
+    {
+        if ($column->relation() === null) {
+            return $this->isNotNull($model, $column->attribute())
+                ? sprintf('[%s.%s] is NOT NULL', $model->getTable(), $column->attribute())
+                : null;
         }
 
         $relation = $this->relations->relation($model, $column);
 
         if (! $relation instanceof BelongsTo) {
-            return;
+            return null;
         }
 
         $related = $relation->getRelated();
 
-        if ($this->isNotNull($model, $relation->getForeignKeyName()) && $this->isNotNull($related, $column->attribute())) {
-            throw new LogicException(sprintf(
-                'The filter of the column [%s] offers the rows without a value, but [%s.%s] and [%s.%s] are NOT NULL: every row has a value. Remove empty: true or make one of them nullable.',
-                $column->id(),
-                $model->getTable(),
-                $relation->getForeignKeyName(),
-                $related->getTable(),
-                $column->attribute(),
-            ));
+        if (! $this->isNotNull($model, $relation->getForeignKeyName()) || ! $this->isNotNull($related, $column->attribute())) {
+            return null;
         }
+
+        return sprintf(
+            '[%s.%s] and [%s.%s] are NOT NULL',
+            $model->getTable(),
+            $relation->getForeignKeyName(),
+            $related->getTable(),
+            $column->attribute(),
+        );
     }
 
     private function isNotNull(Model $model, string $attribute): bool
