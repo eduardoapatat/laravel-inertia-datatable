@@ -90,7 +90,7 @@ Column::option('category', 'Category')->from('category.name')->sortable()->filte
 - The name of each filter method says the control shown in the toolbar. The URL also accepts other operators than the control uses (`filter[stock]=gt.100`, `between.10,50`, `is.empty`…, see `docs/contract.md`).
 - A column has at most one filter: calling two filter methods throws an error instead of keeping the last one. In the same way, `url()` with `email()` and `hidden()` with `hideable(false)` are errors.
 - `searchable()` exists in text, number and option columns: the global search compares text, which says nothing useful about dates or booleans.
-- The unit of `unit('kg')` goes after the number in the cells and next to the filter inputs; with `money()` the filter inputs end in the currency code (`[ 1200 | CLP ]`) while the cells keep the format (`$1.200`). `unit()` together with `money()` or `percent()` is an error, since they already say the unit.
+- The unit of `unit('kg')` goes after the number in the cells and next to the filter inputs; with `money()`, the cells and the filter inputs show the currency symbol before the number (`$1.200`, `[ $ | 1200 ]`), in any locale; `money('CLP', cell: 'code', filter: 'none')` chooses separately for the cells (and the filter label) and the inputs: `symbol`, `code` (`1.200 CLP`, `[ 1200 | CLP ]`) or `none`. `unit()` together with `money()` or `percent()` is an error, since they already say the unit.
 - An option column shows the labels of its declared options even without a filter; with a filter, the options carry the row counts.
 - Numbers and dates use the table locale (see [Language and formats](#language-and-formats)); `money()` without a currency uses `inertia-datatable.currency`, and dates without `format()` use `inertia-datatable.date_format`.
 - Dates without time (Laravel `date` casts) never move to the previous day.
@@ -116,7 +116,7 @@ The defaults come from your Laravel app and each layer can change them; the most
 'date_format' => 'long',  // date columns without ->format()
 ```
 
-- A locale with a region gives the local symbols: with `es` a CLP amount shows `CLP 1.234`, with `es-CL` it shows `$1.234`. `es_CL` is accepted too.
+- The locale gives the separators: with `es` or `es-CL` a CLP amount shows `$1.234`, with `en` it shows `$1,234`. `es_CL` is accepted too.
 - The calendar of the date filters follows the same locale (month and day names, first day of the week).
 - To translate or change the texts, publish them and edit the copy; it survives `inertia-datatable:ui --update`:
 

@@ -4,6 +4,15 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `money('CLP', cell: …, filter: …)` chooses how the currency is shown in the cells (and the filter label) and next to the filter inputs, separately: `symbol` before the number (`$1.684.910`, `[ $ | 1200 ]`), `code` after it (`1.684.910 CLP`, `[ 1200 | CLP ]`) or `none`.
+
+### Changed
+
+- By default, `money()` shows the currency symbol before the number in any locale (`es` gave `1.684.910 CLP`, now `$1.684.910`), and the filter inputs show it before the value instead of the code after it. The locale still gives the separators. A `currencyDisplay` passed to `format()` keeps the plain Intl format.
+- `getFilterUnit()` of `lib/data-table-format.ts` is now `getFilterAffix()`, which also says on which side the text goes.
+
 ## [0.7.1] - 2026-11-05
 
 ### Changed
