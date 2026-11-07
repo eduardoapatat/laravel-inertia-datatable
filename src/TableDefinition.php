@@ -51,7 +51,7 @@ final readonly class TableDefinition
         public ?Closure $transformer = null,
         public ?string $locale = null,
     ) {
-        $this->query = $query instanceof Relation ? $query->getQuery() : $query;
+        $this->query = $query instanceof Relation ? self::relationQuery($query) : $query;
 
         $indexed = [];
 
@@ -112,5 +112,24 @@ final readonly class TableDefinition
         }
 
         return false;
+    }
+
+    /**
+     * Builder of a relation, limited to the related table. getQuery() keeps the joins of
+     * through and pivot relations but not the select that Relation::get() adds: without it,
+     * `select *` lets the joined table overwrite the id and the attributes of every row.
+     *
+     * @param  Relation<covariant Model, covariant Model, mixed>  $relation
+     * @return Builder<covariant Model>
+     */
+    private static function relationQuery(Relation $relation): Builder
+    {
+        $query = clone $relation->getQuery();
+
+        if ($query->getQuery()->columns === null) {
+            $query->select($relation->getRelated()->qualifyColumn('*'));
+        }
+
+        return $query;
     }
 }
