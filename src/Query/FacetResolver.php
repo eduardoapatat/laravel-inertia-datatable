@@ -200,6 +200,14 @@ final class FacetResolver
             return null;
         }
 
-        return filter_var($value, FILTER_VALIDATE_INT) !== false ? (int) $value : (float) $value;
+        if (filter_var($value, FILTER_VALIDATE_INT) !== false) {
+            return (int) $value;
+        }
+
+        // A stored overflow (SQLite keeps '1e400' as Infinity) cannot be JSON encoded and
+        // would break every response of the table: treat it as a missing bound.
+        $number = (float) $value;
+
+        return is_finite($number) ? $number : null;
     }
 }

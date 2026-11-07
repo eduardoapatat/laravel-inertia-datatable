@@ -242,6 +242,16 @@ it('returns the bounds of range columns from the unfiltered query', function () 
     $response->assertOk()->assertJsonPath('facets.price', ['min' => 30, 'max' => 120]);
 });
 
+it('leaves out a range bound that is not a finite number', function () {
+    seedCatalog();
+    // SQLite stores an overflowing numeric literal as Infinity, even in an integer column.
+    Product::factory()->create(['name' => 'Infinito', 'price' => '1e400']);
+
+    $response = getJson('/products?filter[price]=0,100');
+
+    $response->assertOk()->assertJsonPath('facets.price', ['min' => 30, 'max' => null]);
+});
+
 it('sends the labels of option columns without a filter, without counting', function () {
     $facets = DataTable::for(Product::query())
         ->columns([
