@@ -41,6 +41,7 @@ import type {
     ColumnSelectOption,
     DataTableColumnMeta,
 } from '@/lib/data-table-types';
+import { getOwn } from '@/lib/data-table-format';
 import { normalizeColumnFilter } from '@/lib/data-table-utils';
 
 export { getOptionLabel } from '@/components/data-table/data-table-default-column';
@@ -524,7 +525,7 @@ function toOptions(
             value,
             label: own?.label ?? label,
             count,
-            icon: own?.icon ?? userMeta?.icons?.[value],
+            icon: own?.icon ?? getOwn(userMeta?.icons, value),
         };
     });
 }

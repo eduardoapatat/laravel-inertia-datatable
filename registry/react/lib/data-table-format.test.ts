@@ -344,6 +344,18 @@ describe('getOption', () => {
         ).toEqual({ value: 'active', label: 'Activo', icon: Icon });
     });
 
+    it('ignores the inherited members of meta.icons', () => {
+        const meta = {
+            variant: 'select' as const,
+            options: [],
+            icons: { active: Icon },
+        };
+
+        expect(getOption(meta, 'constructor')).toBeUndefined();
+        expect(getOption(meta, '__proto__')).toBeUndefined();
+        expect(getOption(meta, 'hasOwnProperty')).toBeUndefined();
+    });
+
     it('keeps the icon declared in meta.options', () => {
         const Own = () => null;
 

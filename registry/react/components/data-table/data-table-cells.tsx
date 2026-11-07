@@ -11,6 +11,7 @@ import {
     formatNumberCell,
     getFormatContext,
     getOption,
+    getOwn,
     isDateOnly,
     isEmptyValue,
     isEmail,
@@ -249,7 +250,7 @@ export function DataTableBooleanCell<TData extends RowData, TValue>(
                     Icon ? { value: key, label: text, icon: Icon } : undefined
                 }
                 variant={
-                    (display.variants?.[key] ??
+                    (getOwn(display.variants, key) ??
                         display.variant ??
                         'outline') as DataTableBadgeVariant
                 }
@@ -368,7 +369,7 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
                 }
 
                 if (asBadge) {
-                    const variant = (display?.variants?.[String(item)] ??
+                    const variant = (getOwn(display?.variants, String(item)) ??
                         display?.variant ??
                         'outline') as DataTableBadgeVariant;
 

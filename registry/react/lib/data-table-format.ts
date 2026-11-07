@@ -476,6 +476,17 @@ export function getOptionLabel(
 }
 
 /**
+ * Own entry of a record keyed by a server value. A plain object lookup would
+ * return inherited members for values like `constructor` or `__proto__`.
+ */
+export function getOwn<T>(
+    record: Record<string, T> | undefined,
+    key: string,
+): T | undefined {
+    return record && Object.hasOwn(record, key) ? record[key] : undefined;
+}
+
+/**
  * Option (select / multi-select) of a value, with its label, count and the
  * icon declared in the page `meta` (`meta.icons` or `meta.options`).
  */
@@ -486,7 +497,7 @@ export function getOption(
     const text = value === null || value === undefined ? '' : String(value);
     const options = meta && 'options' in meta ? meta.options : undefined;
     const option = options?.find((item) => item.value === text);
-    const icon = meta?.icons?.[text];
+    const icon = getOwn(meta?.icons, text);
 
     return icon && !option?.icon
         ? { value: text, label: text, ...option, icon }
