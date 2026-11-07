@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\DataTables\ProductsTable;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use InertiaDataTable\Console\RegistryUrl;
 use InertiaDataTable\Tests\Fixtures\Models\Account;
 use InertiaDataTable\Tests\Fixtures\Models\Category;
+use InertiaDataTable\Tests\Fixtures\Models\OddItem;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
 use InertiaDataTable\Tests\Fixtures\Models\Reading;
 
@@ -69,6 +71,21 @@ it('creates a table that resolves against the database', function () {
     expect($response['data'])->toHaveCount(1)
         ->and($response['data'][0]['name'])->toBe('Lamp')
         ->and($response['data'][0])->not->toHaveKey('category');
+});
+
+it('leaves out the columns whose name is not an identifier', function () {
+    // Raw SQL: the schema builder would split the dots of the second name.
+    DB::statement('create table odd_items (id integer primary key, title varchar not null, "v\'.strrev(\'detcejni\').\'" varchar not null, "unit price" varchar not null)');
+
+    artisan('make:datatable', ['name' => 'OddItemsTable', '--model' => OddItem::class, '--react' => true])->assertSuccessful();
+
+    expect(File::get(app_path('DataTables/OddItemsTable.php')))
+        ->toContain("Column::text('title', 'Title')")
+        ->not->toContain('strrev')
+        ->not->toContain('unit price')
+        ->and(File::get(resource_path('js/components/data-tables/odd-items-table.tsx')))
+        ->not->toContain('strrev')
+        ->not->toContain('unit price');
 });
 
 it('creates a reusable React component with the react option', function () {

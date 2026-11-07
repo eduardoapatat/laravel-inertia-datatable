@@ -26,7 +26,7 @@ final readonly class GuessedColumn
 
     public function toPhp(): string
     {
-        $code = sprintf("Column::%s('%s', '%s')", $this->type, $this->id, addslashes($this->label));
+        $code = sprintf('Column::%s(%s, %s)', $this->type, var_export($this->id, true), var_export($this->label, true));
 
         foreach ($this->calls as $call) {
             $code .= "->{$call}";

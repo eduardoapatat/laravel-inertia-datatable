@@ -48,6 +48,12 @@ final class ColumnGuesser
                 continue;
             }
 
+            // The name is written into PHP and TypeScript source: anything that is not a plain
+            // identifier is left for the developer to add by hand.
+            if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) !== 1) {
+                continue;
+            }
+
             $guessed = $this->guessAttribute($name, $casts[$name] ?? null, strtolower($column['type_name']), strtolower($column['type']), $column['nullable']);
 
             if ($guessed !== null) {
