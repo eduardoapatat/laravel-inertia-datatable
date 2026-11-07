@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-11-07
+
 ### Added
 
 - With `validate_columns` (debug mode), `whenEmpty()` on a column that can never be empty throws, like `empty: true` (a `NOT NULL` column, or a `belongsTo` whose foreign key and related column are both `NOT NULL`). Tables with `transform()` are not checked.
@@ -200,7 +202,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.9.1...HEAD
+[0.9.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.0...v0.7.1
