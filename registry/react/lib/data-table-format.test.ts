@@ -81,6 +81,16 @@ describe('formatDateValue', () => {
         );
     });
 
+    it('shows a numeric date out of range as text, also when relative', () => {
+        expect(formatDateValue(9e18, 'relative', 'es-CL')).toBe(
+            '9000000000000000000',
+        );
+        expect(formatDateValue(Number.NaN, 'relative', 'es-CL')).toBe('NaN');
+        expect(formatDateValue(1e16, 'long', 'es-CL')).toBe(
+            '10000000000000000',
+        );
+    });
+
     it('tells dates without time apart', () => {
         expect(isDateOnly('2026-01-15')).toBe(true);
         expect(isDateOnly('2026-01-15T00:00:00.000000Z')).toBe(true);

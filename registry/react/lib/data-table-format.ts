@@ -304,7 +304,10 @@ function parseDate(value: unknown): ParsedDate | null {
     }
 
     if (typeof value === 'number') {
-        return { date: new Date(value), dateOnly: false };
+        const date = new Date(value);
+
+        // Beyond ±8.64e15 ms there is no valid date: show the raw value instead.
+        return Number.isNaN(date.getTime()) ? null : { date, dateOnly: false };
     }
 
     if (typeof value !== 'string' || value.trim() === '') {
