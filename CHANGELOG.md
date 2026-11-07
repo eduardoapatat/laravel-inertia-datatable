@@ -8,6 +8,19 @@ All notable changes to this package are documented here. The format follows [Kee
 
 - With `validate_columns` (debug mode), `whenEmpty()` on a column that can never be empty throws, like `empty: true` (a `NOT NULL` column, or a `belongsTo` whose foreign key and related column are both `NOT NULL`). Tables with `transform()` are not checked.
 
+### Changed
+
+- Sorting by, or computing the facets of, a column on a `morphTo` relation throws a `LogicException`. It was never supported, and those values could come from rows outside the base query.
+
+### Fixed
+
+- A table whose base query is a `hasManyThrough`, `hasOneThrough`, `belongsToMany` or `morphToMany` relation only reads the columns of the related table. Before, the joined table overwrote the attributes of each row: the row id was the intermediate one, `hasOne` columns loaded the value of another record, and a `transform()` built on `toArray()` sent the attributes of the intermediate model, hidden ones included.
+- The sort and the facets (options, counts, range) of a relation column apply the `where` constraints of the relation method, like the data, the filters and the search already did.
+- A range facet whose minimum or maximum is not a finite number (SQLite stores an overflowing value such as `1e400` as Infinity) sends `null` for that bound instead of failing every response of the table.
+- `make:datatable` leaves out the columns whose name is not a plain identifier and writes the generated literals with `var_export()`, so a column name can no longer add code to the generated PHP or TypeScript.
+- Option cells, badges and facets ignore inherited keys of `meta.icons` and `display.variants`: a value such as `constructor` or `__proto__` no longer resolves to a member of `Object`.
+- A numeric date out of the valid range is shown as text with the `relative` format too, instead of throwing during render.
+
 ## [0.9.0] - 2026-11-06
 
 ### Added
