@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\DB;
 use InertiaDataTable\Column;
 use InertiaDataTable\DataTable;
 use InertiaDataTable\TableBuilder;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
 use InertiaDataTable\Tests\Fixtures\Models\Member;
+use InertiaDataTable\Tests\Fixtures\Models\Product;
 use InertiaDataTable\Tests\Fixtures\Models\Team;
 
 /**
@@ -83,4 +85,37 @@ it('does not change the select of the relation it receives', function () {
     DataTable::for($relation)->columns([Column::text('title')])->toDefinition();
 
     expect($relation->getQuery()->getQuery()->columns)->toBeNull();
+});
+
+it('applies the constraints of the relation method to its facets and sorting', function () {
+    $visible = Category::factory()->create(['name' => 'Visible']);
+    $middle = Category::factory()->create(['name' => 'Middle']);
+    $secret = Category::factory()->create(['name' => 'Secret']);
+    Product::factory()->for($visible)->create(['name' => 'P1']);
+    Product::factory()->for($secret)->create(['name' => 'P2']);
+    Product::factory()->for($middle)->create(['name' => 'P3']);
+
+    $table = DataTable::for(Product::query())->columns([
+        Column::text('name'),
+        Column::option('category')->from('publicCategory.name')->filterMultiSelect()->sortable(),
+    ]);
+
+    $resolved = resolveRelationTable($table, 'sort=category');
+
+    expect(collect($resolved['facets']['category'])->pluck('value')->all())->toBe(['Middle', 'Visible'])
+        ->and(collect($resolved['data'])->pluck('name')->all())->toBe(['P2', 'P3', 'P1']);
+});
+
+it('applies the constraints of a hasOne relation method to its range', function () {
+    $prototypes = Category::factory()->create(['name' => 'Prototypes']);
+    $widgets = Category::factory()->create(['name' => 'Widgets']);
+    Product::factory()->for($prototypes)->create(['name' => 'Prototype', 'price' => 9999]);
+    Product::factory()->featured()->for($widgets)->create(['name' => 'Widget', 'price' => 10]);
+
+    $table = DataTable::for(Category::query())->columns([
+        Column::text('name'),
+        Column::number('featured_price')->from('featuredProduct.price')->filterRange(),
+    ]);
+
+    expect(resolveRelationTable($table)['facets']['featured_price'])->toBe(['min' => 10, 'max' => 10]);
 });

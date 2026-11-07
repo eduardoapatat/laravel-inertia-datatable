@@ -27,6 +27,14 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * @return BelongsTo<Category, $this>
+     */
+    public function publicCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id')->where('name', 'not like', 'Secret%');
+    }
+
     protected function casts(): array
     {
         return [
