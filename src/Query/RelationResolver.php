@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use InertiaDataTable\Column;
 use LogicException;
@@ -32,6 +33,12 @@ final class RelationResolver
 
         /** @var mixed $relation */
         $relation = Relation::noConstraints(fn (): mixed => $model->{$name}());
+
+        // MorphTo extends BelongsTo, but without a parent row it resolves against the parent
+        // table itself, and the value subquery would lose its correlation to the outer row.
+        if ($relation instanceof MorphTo) {
+            throw new LogicException(sprintf('The column [%s] uses the relation [%s], which is a polymorphic morphTo relation and is not supported.', $column->id(), $name));
+        }
 
         if (! $relation instanceof BelongsTo
             && ! $relation instanceof HasOne

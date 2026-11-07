@@ -9,7 +9,9 @@ use InertiaDataTable\Column;
 use InertiaDataTable\DataTable;
 use InertiaDataTable\TableBuilder;
 use InertiaDataTable\Tests\Fixtures\Models\Category;
+use InertiaDataTable\Tests\Fixtures\Models\Comment;
 use InertiaDataTable\Tests\Fixtures\Models\Member;
+use InertiaDataTable\Tests\Fixtures\Models\Note;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
 use InertiaDataTable\Tests\Fixtures\Models\Team;
 
@@ -119,3 +121,15 @@ it('applies the constraints of a hasOne relation method to its range', function 
 
     expect(resolveRelationTable($table)['facets']['featured_price'])->toBe(['min' => 10, 'max' => 10]);
 });
+
+it('rejects a column on a morphTo relation', function () {
+    seedTeams();
+    DB::table('comments')->insert(['id' => 1, 'team_id' => 2, 'body' => 'Hi', 'commentable_type' => Note::class, 'commentable_id' => 1]);
+
+    $table = DataTable::for(Comment::query()->where('team_id', 2))->columns([
+        Column::text('body'),
+        Column::option('note')->from('commentable.title')->filterSelect(),
+    ]);
+
+    resolveRelationTable($table);
+})->throws(LogicException::class, 'The column [note] uses the relation [commentable], which is a polymorphic morphTo relation and is not supported.');
