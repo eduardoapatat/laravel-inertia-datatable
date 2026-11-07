@@ -250,7 +250,7 @@ it('leaves out a range bound that is not a finite number', function () {
     $response = getJson('/products?filter[price]=0,100');
 
     $response->assertOk()->assertJsonPath('facets.price', ['min' => 30, 'max' => null]);
-});
+})->skip(fn (): bool => DB::connection()->getDriverName() !== 'sqlite', 'Only SQLite stores an overflowing number as Infinity.');
 
 it('sends the labels of option columns without a filter, without counting', function () {
     $facets = DataTable::for(Product::query())

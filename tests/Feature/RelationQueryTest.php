@@ -104,8 +104,12 @@ it('applies the constraints of the relation method to its facets and sorting', f
 
     $resolved = resolveRelationTable($table, 'sort=category');
 
+    $names = collect($resolved['data'])->pluck('name')->all();
+
+    // P2 sorts as an empty value: first or last depending on the database, never between the others.
     expect(collect($resolved['facets']['category'])->pluck('value')->all())->toBe(['Middle', 'Visible'])
-        ->and(collect($resolved['data'])->pluck('name')->all())->toBe(['P2', 'P3', 'P1']);
+        ->and(array_values(array_diff($names, ['P2'])))->toBe(['P3', 'P1'])
+        ->and(array_search('P2', $names, true))->toBeIn([0, 2]);
 });
 
 it('applies the constraints of a hasOne relation method to its range', function () {

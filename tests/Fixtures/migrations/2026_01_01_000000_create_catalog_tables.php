@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -92,5 +93,15 @@ return new class extends Migration
             $table->string('body');
             $table->morphs('commentable');
         });
+
+        // make:datatable must leave out column names that are not identifiers. Raw SQL:
+        // the schema builder would split the dots of the second name.
+        $quote = fn (string $name): string => DB::connection()->getDriverName() === 'mysql' ? "`{$name}`" : "\"{$name}\"";
+
+        DB::statement(sprintf(
+            'create table odd_items (id integer primary key, title varchar(50) not null, %s varchar(50) not null, %s varchar(50) not null)',
+            $quote("v'.strrev('detcejni').'"),
+            $quote('unit price'),
+        ));
     }
 };
