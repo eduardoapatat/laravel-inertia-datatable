@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- `make:datatable --react` and `--page` add the missing React component and page to a table class that already exists, without overwriting the class or the files it already has.
+
 ### Fixed
 
 - The comments of `DatePreset`, the React component stub and the date cell referred to a `->dateFormat()` method that does not exist; the method is `->format()`.

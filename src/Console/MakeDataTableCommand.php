@@ -34,8 +34,13 @@ class MakeDataTableCommand extends GeneratorCommand
     {
         $model = $this->modelClass();
         $result = $model === null ? false : parent::handle();
+        $wantsReact = $this->option('react') || $this->option('page');
 
-        if ($model === null || $result === false) {
+        // An existing class still gets the React files it lacks, so they can be added later.
+        $existingTable = $model !== null && $result === false && $wantsReact
+            && $this->alreadyExists($this->getNameInput());
+
+        if ($model === null || ($result === false && ! $existingTable)) {
             // The UI does not depend on the table: --install-ui installs it even if the class is not created.
             if ($this->option('install-ui')) {
                 $this->ensureUiIsInstalled($this->laravel->make(UiInstaller::class));
@@ -43,8 +48,6 @@ class MakeDataTableCommand extends GeneratorCommand
 
             return $model === null ? self::FAILURE : false;
         }
-
-        $wantsReact = $this->option('react') || $this->option('page');
 
         if ($wantsReact) {
             $this->writeReactComponent($model);

@@ -227,6 +227,33 @@ it('installs the data table UI even when the model does not exist', function () 
     expect(File::exists(app_path('DataTables/InvoicesTable.php')))->toBeFalse();
 });
 
+it('adds the React files to a table that already exists', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class])->assertSuccessful();
+    File::put(app_path('DataTables/ProductsTable.php'), '<?php // edited by hand');
+    File::ensureDirectoryExists(resource_path('js/hooks'));
+    File::put(resource_path('js/hooks/use-server-data-table.ts'), '');
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--page' => true])
+        ->expectsOutputToContain('already exists');
+
+    expect(File::get(app_path('DataTables/ProductsTable.php')))->toBe('<?php // edited by hand')
+        ->and(File::get(resource_path('js/components/data-tables/products-table.tsx')))->toContain('export function ProductsTable({')
+        ->and(File::get(resource_path('js/pages/products/index.tsx')))->toContain('<ProductsTable products={products} />');
+});
+
+it('does not overwrite the React files of a table that already exists', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class])->assertSuccessful();
+    File::ensureDirectoryExists(resource_path('js/components/data-tables'));
+    File::put(resource_path('js/components/data-tables/products-table.tsx'), '// custom');
+    File::ensureDirectoryExists(resource_path('js/hooks'));
+    File::put(resource_path('js/hooks/use-server-data-table.ts'), '');
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--react' => true])
+        ->expectsOutputToContain('React component');
+
+    expect(File::get(resource_path('js/components/data-tables/products-table.tsx')))->toBe('// custom');
+});
+
 it('installs the data table UI even when the table already exists', function () {
     artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class])->assertSuccessful();
     Process::fake(function () {
