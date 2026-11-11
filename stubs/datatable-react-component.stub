@@ -22,12 +22,14 @@ const columnHelper = createColumnHelper<DataTableFeatures, {{ rowType }}>();
  * Declare a column here only to customize it (same id), for example:
  *
  *     columnHelper.accessor('{{ example }}', {
- *         cell: ({ cell }) => <strong>{cell.getValue()}</strong>,
+ *         cell: (context) => <strong><DataTableTextCell {...context} /></strong>,
  *     }),
  *
  * Inside a custom cell, the cells of `@/components/data-table/data-table-cells`
- * keep the declared format: `<DataTableNumberCell {...context} />`,
- * `DataTableDateCell`, `DataTableOptionCell`… The format can also be set here
+ * keep what PHP declares (`->limit()`, `->whenEmpty()`, links, formats):
+ * `<DataTableTextCell {...context} />`, `DataTableNumberCell`,
+ * `DataTableDateCell`, `DataTableOptionCell`…; `cell.getValue()` alone shows
+ * the raw value. The format can also be set here
  * with `meta: { display: { type: 'number', format: { style: 'percent' } } }`.
  *
  * Columns that only exist here (actions, selection) go at the end, or at the

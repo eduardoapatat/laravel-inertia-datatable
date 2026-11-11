@@ -7,6 +7,7 @@ All notable changes to this package are documented here. The format follows [Kee
 ### Fixed
 
 - Option cells without a badge cut a long label without "…": the label was inside an inline-flex box, which the `text-ellipsis` of the cell does not reach. Update the generic UI with `php artisan inertia-datatable:ui --update`.
+- The custom cell example of the React component stub and of the skill rendered `cell.getValue()`, which drops `->limit()`, `->whenEmpty()`, links and formats; it now wraps `DataTableTextCell`, and the skill says why.
 
 ## [0.10.0] - 2026-11-10
 

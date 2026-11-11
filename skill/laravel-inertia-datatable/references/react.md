@@ -24,6 +24,7 @@ Two levels: the shared UI (`components/data-table/*`, `hooks/use-server-data-tab
 import { Head, Link } from '@inertiajs/react';
 import { createColumnHelper } from '@tanstack/react-table';
 import { DataTable } from '@/components/data-table/data-table';
+import { DataTableTextCell } from '@/components/data-table/data-table-cells';
 import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
 import { useServerDataTable } from '@/hooks/use-server-data-table';
 import type { DataTableFeatures } from '@/lib/data-table-features';
@@ -42,7 +43,8 @@ const columnHelper = createColumnHelper<DataTableFeatures, Product>();
 // columns go here; the rest come from the PHP class with default cells.
 const columns = columnHelper.columns([
     columnHelper.accessor('name', {
-        cell: ({ cell }) => <strong>{cell.getValue()}</strong>,
+        // The type cell keeps ->limit(), ->whenEmpty() and links of PHP.
+        cell: (context) => <strong><DataTableTextCell {...context} /></strong>,
     }),
     columnHelper.display({
         id: 'actions',
@@ -88,7 +90,7 @@ columnHelper.accessor('featured', {
 
 - Badge variant of a value, first wins: the `badge` prop of `DataTableOptionCell` → `meta.display.variants` of the page (replaces the whole PHP map) → the map of `badge('…', [...])` in PHP → `badgeVariant()` of the enum → the column variant of `badge('…')` → `outline`. How each variant looks is the project's `components/ui/badge.tsx`.
 
-- To render a value differently (extra icons, other fields of the row, another component), write a custom `cell` (for a color or a class by value, `meta.cellClassName` as a function is shorter, see "Column width and classes") and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell` (each one shows `DataTableEmptyCell`, the `—` or the text of `->whenEmpty()`, for empty values). They take the cell context:
+- To render a value differently (extra icons, other fields of the row, another component), write a custom `cell` (for a color or a class by value, `meta.cellClassName` as a function is shorter, see "Column width and classes") and reuse the type cells from `@/components/data-table/data-table-cells` so the declared format is kept: `DataTableCell` (picks by type), `DataTableTextCell`, `DataTableNumberCell`, `DataTableDateCell`, `DataTableBooleanCell`, `DataTableOptionCell` (each one shows `DataTableEmptyCell`, the `—` or the text of `->whenEmpty()`, for empty values). They take the cell context. A custom cell replaces the default one, so rendering `cell.getValue()` alone drops what PHP declares for the cell (`->limit()` and its tooltip, `->whenEmpty()`, `->url()`/`->email()` links, number and date formats); wrap the type cell instead:
 
 ```tsx
 import { DataTableNumberCell } from '@/components/data-table/data-table-cells';
