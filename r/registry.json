@@ -122,11 +122,6 @@
                     "target": "~/resources/js/components/data-table/data-table-pagination.tsx"
                 },
                 {
-                    "path": "registry/react/components/data-table/data-table-range-filter.tsx",
-                    "type": "registry:component",
-                    "target": "~/resources/js/components/data-table/data-table-range-filter.tsx"
-                },
-                {
                     "path": "registry/react/components/data-table/data-table-skeleton.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-skeleton.tsx"
@@ -253,11 +248,6 @@
                     "path": "registry/react/components/data-table/data-table-pagination.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-pagination.tsx"
-                },
-                {
-                    "path": "registry/react/components/data-table/data-table-range-filter.tsx",
-                    "type": "registry:component",
-                    "target": "~/resources/js/components/data-table/data-table-range-filter.tsx"
                 },
                 {
                     "path": "registry/react/components/data-table/data-table-skeleton.tsx",

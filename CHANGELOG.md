@@ -20,6 +20,7 @@ All notable changes to this package are documented here. The format follows [Kee
 - `DataTableViewOptions`: `className` goes to the button instead of the popover (use `contentClassName` for the popover), and the button no longer has `ms-auto hidden lg:flex` built in, so it can be placed anywhere and shown on small screens. `DataTableToolbar` passes those classes itself, so the default layout does not change.
 - `DataTableFacetedFilter` with a column takes its `options` from the server (the prop is optional) and only keeps the values the server declared; `multiple` follows the variant of the column (`multi-select`) instead of `false`.
 - `DataTableDateFilter` no longer takes `multiple`: one day or a range follows the PHP filter (`filterDate()` or `filterRange()`).
+- `DataTableRangeFilter` (two inline inputs, from tablecn's filter menu) is removed: nothing in the package used it. `inertia-datatable:ui --update` does not delete it from projects that have it; delete `components/data-table/data-table-range-filter.tsx` if your code does not import it.
 
 Update the generic UI with `php artisan inertia-datatable:ui --update`.
 
