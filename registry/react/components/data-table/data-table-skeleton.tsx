@@ -43,13 +43,17 @@ interface DataTableSkeletonProps extends React.ComponentProps<'div'> {
     delay?: number;
 }
 
+function subscribeToNothing() {
+    return () => {};
+}
+
 export function DataTableSkeleton({
     config,
     columnCount: columnCountProp,
     rowCount: rowCountProp,
     filterCount: filterCountProp,
     withSearch: withSearchProp,
-    cellWidths = ['auto'],
+    cellWidths: cellWidthsProp,
     withViewOptions = true,
     withPagination = true,
     shrinkZero = false,
@@ -58,13 +62,21 @@ export function DataTableSkeleton({
     className,
     ...props
 }: DataTableSkeletonProps) {
-    const shape = config ? getSkeletonShape(config) : undefined;
+    // Empty on the server render, so it agrees with the first client one.
+    const search = React.useSyncExternalStore(
+        subscribeToNothing,
+        () => window.location.search,
+        () => '',
+    );
+    const shape = config ? getSkeletonShape(config, search) : undefined;
     const headers = columnCountProp === undefined ? shape?.columns : undefined;
     const columnCount = columnCountProp ?? shape?.columns.length ?? 1;
     const rowCount = rowCountProp ?? shape?.rowCount ?? 10;
     const filterCount = filterCountProp ?? shape?.filterCount ?? 0;
     const withSearch = withSearchProp ?? shape?.searchable ?? false;
     const label = labelProp ?? shape?.label ?? DEFAULT_MESSAGES.loading;
+    // With the columns of the table, its layout: fixed, 150px by default.
+    const cellWidths = cellWidthsProp ?? [headers ? '150px' : 'auto'];
     const [visible, setVisible] = React.useState(delay <= 0);
 
     React.useEffect(() => {
@@ -99,10 +111,19 @@ export function DataTableSkeleton({
             >
                 <div className="flex flex-1 flex-wrap items-center gap-2">
                     {withSearch ? (
-                        <Skeleton className="h-8 w-40 rounded-lg lg:w-64" />
+                        <Skeleton className="h-9 w-40 rounded-lg lg:w-64" />
                     ) : null}
                     {Array.from({ length: filterCount }).map((_, i) => (
-                        <Skeleton key={i} className="h-8 w-18 rounded-lg" />
+                        <Skeleton
+                            key={i}
+                            className={cn(
+                                'rounded-lg',
+                                filterCountProp === undefined &&
+                                    shape?.filters[i] === 'input'
+                                    ? 'h-9 w-40'
+                                    : 'h-8 w-24',
+                            )}
+                        />
                     ))}
                 </div>
                 {withViewOptions ? (
@@ -110,12 +131,17 @@ export function DataTableSkeleton({
                 ) : null}
             </div>
             <div aria-hidden="true" className="rounded-md border">
-                <Table>
+                <Table className={headers ? 'table-fixed' : undefined}>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent">
                             {Array.from({ length: columnCount }).map((_, j) => (
                                 <TableHead
                                     key={j}
+                                    className={
+                                        headers?.[j]?.align === 'end'
+                                            ? 'pe-8 text-end'
+                                            : 'text-start'
+                                    }
                                     style={{
                                         width: cozyCellWidths[j],
                                         minWidth: shrinkZero
@@ -148,7 +174,14 @@ export function DataTableSkeleton({
                                                     : 'auto',
                                             }}
                                         >
-                                            <Skeleton className="h-6 w-full" />
+                                            <Skeleton
+                                                className={cn(
+                                                    'w-full',
+                                                    headers?.[j]?.badge
+                                                        ? 'h-5.5'
+                                                        : 'h-5',
+                                                )}
+                                            />
                                         </TableCell>
                                     ),
                                 )}
@@ -160,22 +193,28 @@ export function DataTableSkeleton({
             {withPagination ? (
                 <div
                     aria-hidden="true"
-                    className="flex w-full items-center justify-between gap-4 overflow-auto p-1 sm:gap-8"
+                    className={cn(
+                        'flex w-full items-center gap-4 overflow-auto p-1 sm:gap-8',
+                        headers ? 'justify-end' : 'justify-between',
+                    )}
                 >
-                    <Skeleton className="h-8 w-40 shrink-0 rounded-lg" />
+                    {/* Selected rows: only tables with a selection column. */}
+                    {headers ? null : (
+                        <Skeleton className="h-8 w-40 shrink-0 rounded-lg" />
+                    )}
                     <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
                         <div className="flex items-center gap-2">
-                            <Skeleton className="h-8 w-24 rounded-lg" />
-                            <Skeleton className="h-8 w-18 rounded-lg" />
+                            <Skeleton className="h-9 w-24 rounded-lg" />
+                            <Skeleton className="h-9 w-18 rounded-lg" />
                         </div>
                         <div className="flex items-center justify-center text-sm font-medium">
-                            <Skeleton className="h-8 w-20 rounded-lg" />
+                            <Skeleton className="h-9 w-20 rounded-lg" />
                         </div>
                         <div className="flex items-center gap-2">
-                            <Skeleton className="hidden size-8 rounded-lg lg:block" />
-                            <Skeleton className="size-8 rounded-lg" />
-                            <Skeleton className="size-8 rounded-lg" />
-                            <Skeleton className="hidden size-8 rounded-lg lg:block" />
+                            <Skeleton className="hidden size-9 rounded-lg lg:block" />
+                            <Skeleton className="size-9 rounded-lg" />
+                            <Skeleton className="size-9 rounded-lg" />
+                            <Skeleton className="hidden size-9 rounded-lg lg:block" />
                         </div>
                     </div>
                 </div>

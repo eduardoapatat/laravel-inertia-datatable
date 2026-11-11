@@ -249,13 +249,15 @@ describe('createLoadingPhases', () => {
     function setup(skeletonDelay: number | false = 600) {
         vi.useFakeTimers();
         const phases: string[] = [];
+        const active: boolean[] = [];
         const loading = createLoadingPhases({
             loadingDelay: 150,
             skeletonDelay,
             onChange: (phase) => phases.push(phase),
+            onActiveChange: (value) => active.push(value),
         });
 
-        return { loading, phases };
+        return { loading, phases, active };
     }
 
     it('shows nothing when the response is fast', () => {
@@ -278,6 +280,7 @@ describe('createLoadingPhases', () => {
         vi.advanceTimersByTime(450);
         expect(phases).toEqual(['busy', 'slow']);
         loading.finish();
+        vi.advanceTimersByTime(0);
         expect(phases).toEqual(['busy', 'slow', 'idle']);
     });
 
@@ -287,18 +290,39 @@ describe('createLoadingPhases', () => {
         loading.start();
         vi.advanceTimersByTime(5000);
         loading.finish();
+        vi.advanceTimersByTime(0);
 
         expect(phases).toEqual(['busy', 'idle']);
     });
 
-    it('restarts the timers with a new visit and stops them on dispose', () => {
+    it('keeps the state when a visit replaces another one', () => {
+        const { loading, phases, active } = setup();
+
+        loading.start();
+        vi.advanceTimersByTime(300);
+        // The cancelled visit finishes right before the new one starts.
+        loading.finish();
+        loading.start();
+        vi.advanceTimersByTime(300);
+        expect(phases).toEqual(['busy', 'slow']);
+        // Or right after it.
+        loading.start();
+        loading.finish();
+        vi.advanceTimersByTime(300);
+        expect(phases).toEqual(['busy', 'slow']);
+        expect(active).toEqual([true]);
+
+        loading.finish();
+        vi.advanceTimersByTime(0);
+        expect(phases).toEqual(['busy', 'slow', 'idle']);
+        expect(active).toEqual([true, false]);
+    });
+
+    it('stops the timers on dispose', () => {
         const { loading, phases } = setup();
 
         loading.start();
         vi.advanceTimersByTime(100);
-        loading.start();
-        vi.advanceTimersByTime(100);
-        expect(phases).toEqual([]);
         loading.dispose();
         vi.advanceTimersByTime(5000);
         expect(phases).toEqual([]);
@@ -329,7 +353,7 @@ describe('getSkeletonShape', () => {
                 visible: false,
                 filter: { variant: 'date' },
             }),
-            column('price'),
+            column('price', { display: { type: 'number' }, hideable: false }),
         ],
         searchable: true,
         per_page: 25,
@@ -349,14 +373,39 @@ describe('getSkeletonShape', () => {
     it('takes the visible columns, the page size and the filters', () => {
         expect(getSkeletonShape(config())).toEqual({
             columns: [
-                { id: 'name', label: 'NAME' },
-                { id: 'price', label: 'PRICE' },
+                { id: 'name', label: 'NAME', align: 'start', badge: false },
+                { id: 'price', label: 'PRICE', align: 'end', badge: false },
             ],
             rowCount: 25,
+            filters: ['input', 'button'],
             filterCount: 2,
             searchable: true,
             label: undefined,
         });
+    });
+
+    it('takes the page size and the visible columns of the URL', () => {
+        const shape = getSkeletonShape(
+            config(),
+            '?per_page=10&columns=sku,nope&page=3',
+        );
+
+        // `price` is not hideable: always shown, like on the server.
+        expect(shape.columns.map((column) => column.id)).toEqual([
+            'sku',
+            'price',
+        ]);
+        expect(shape.rowCount).toBe(10);
+    });
+
+    it('ignores a page size out of the list and the keys of another table', () => {
+        expect(getSkeletonShape(config(), '?per_page=7').rowCount).toBe(25);
+        expect(
+            getSkeletonShape(
+                config(),
+                '?users_per_page=10&users_columns=sku',
+            ).columns.map((column) => column.id),
+        ).toEqual(['name', 'price']);
     });
 
     it('takes the loading text of the server', () => {

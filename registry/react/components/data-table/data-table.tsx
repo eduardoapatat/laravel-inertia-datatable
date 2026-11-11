@@ -18,7 +18,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import type { DataTableLoadingPhase } from '@/lib/data-table-types';
+import type {
+    DataTableColumnMeta,
+    DataTableLoadingPhase,
+} from '@/lib/data-table-types';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -63,10 +66,10 @@ interface DataTableProps<
      */
     rowClassName?: DataTableRowClassName<TData>;
     /**
-     * Shows that a visit is loading: after `loadingDelay` the rows dim and a
-     * progress bar appears, after `skeletonDelay` the rows turn into
-     * skeletons (both options of `useServerDataTable`). With `false`, nothing
-     * is shown; handle it yourself with the `loading` the hook returns.
+     * Shows that a visit is loading: after `loadingDelay` the rows dim, after
+     * `skeletonDelay` they turn into skeletons (both options of
+     * `useServerDataTable`). With `false`, nothing is shown; handle it
+     * yourself with the `loading` the hook returns.
      */
     loading?: 'auto' | false;
 }
@@ -108,15 +111,8 @@ export function DataTable<TData extends RowData>({
             <div
                 aria-busy={isLoading || undefined}
                 data-loading={isLoading ? phase : undefined}
-                className="relative isolate overflow-hidden rounded-md border"
+                className="isolate overflow-hidden rounded-md border"
             >
-                {isLoading ? (
-                    <div
-                        aria-hidden="true"
-                        data-slot="data-table-progress"
-                        className="absolute inset-x-0 top-0 z-20 h-0.5 animate-pulse bg-primary motion-reduce:animate-none"
-                    />
-                ) : null}
                 <DataTableLayout
                     table={table}
                     aria-label={ariaLabel}
@@ -343,7 +339,15 @@ function DataTableSkeletonRows<TData extends RowData>({
                                             pinned,
                                         )}
                                     >
-                                        <Skeleton className="h-5 w-full" />
+                                        <Skeleton
+                                            className={cn(
+                                                'w-full',
+                                                // A badge is a bit taller than a line of text.
+                                                hasBadge(column.columnDef.meta)
+                                                    ? 'h-5.5'
+                                                    : 'h-5',
+                                            )}
+                                        />
                                     </TableCell>
                                 );
                             })}
@@ -352,6 +356,14 @@ function DataTableSkeletonRows<TData extends RowData>({
                 </TableBody>
             )}
         </table.Subscribe>
+    );
+}
+
+function hasBadge(meta: DataTableColumnMeta | undefined) {
+    const display = meta?.display;
+
+    return (
+        display !== undefined && 'badge' in display && display.badge === true
     );
 }
 

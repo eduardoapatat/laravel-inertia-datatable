@@ -87,8 +87,8 @@ export interface UseServerDataTableOptions<TData extends RowData> {
     /** Texts of the UI to change, over the ones of the server lang files. */
     messages?: Partial<DataTableMessages>;
     /**
-     * Wait before showing that a visit is loading (dimmed rows and a progress
-     * bar), so fast responses do not flicker. 150 ms by default.
+     * Wait before showing that a visit is loading (dimmed rows), so a fast
+     * response shows nothing. 150 ms by default.
      */
     loadingDelay?: number;
     /**
@@ -128,6 +128,7 @@ export function useServerDataTable<TData extends RowData>({
             loadingDelay,
             skeletonDelay,
             onChange: setLoading,
+            onActiveChange: setIsLoading,
         }),
     );
     const timeoutRef = React.useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -172,15 +173,9 @@ export function useServerDataTable<TData extends RowData>({
                 preserveState: true,
                 preserveScroll: true,
                 replace,
-                onStart: () => {
-                    setIsLoading(true);
-                    loadingPhases.start();
-                },
+                onStart: () => loadingPhases.start(),
                 // Also after a cancelled or failed visit.
-                onFinish: () => {
-                    setIsLoading(false);
-                    loadingPhases.finish();
-                },
+                onFinish: () => loadingPhases.finish(),
             },
         );
     }

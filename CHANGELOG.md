@@ -6,10 +6,13 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Changed
 
+- `<DataTable>` no longer draws its own progress bar while a visit loads: Inertia already shows one at the top of the page. The rows still dim with a fade after `loadingDelay` and turn into skeleton rows after `skeletonDelay`.
 - `make:datatable` writes better labels: known acronyms in capitals (`sku` is "SKU", `site_url` is "Site URL") and boolean columns without the "Is" (`is_featured` is "Featured").
 
 ### Fixed
 
+- `DataTableSkeleton config` did not look like the table it stood for, so the page jumped when the data arrived: its columns took the width of their label instead of the 150px of the table, numbers were not aligned to the end, the filters were all the same small box, the pagination had a "selected rows" placeholder and the heights differed. It also ignored the URL: with `?per_page=25` or `?columns=…` it drew the default rows and columns. It now reads both from the URL with the rules of the server.
+- With several visits in a row (clicking "next page" quickly), each cancelled visit turned the loading state off and the next one started it again, so the rows blinked between dimmed and normal. The state now holds until the last visit ends; `isLoading` too.
 - `inertia-datatable:ui` and `--install-ui` used `npx` in a pnpm project without a lockfile yet (a starter kit just created with `--pnpm`); `pnpm-workspace.yaml` now also counts as pnpm.
 
 ## [0.11.0] - 2026-11-11
