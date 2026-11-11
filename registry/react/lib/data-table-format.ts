@@ -263,6 +263,15 @@ export function formatDateValue(
     }
 }
 
+const TIME_OPTIONS = ['timeStyle', 'hour', 'minute', 'second'] as const;
+const TIME_ONLY_OPTIONS = [
+    'fractionalSecondDigits',
+    'dayPeriod',
+    'hour12',
+    'hourCycle',
+    'timeZoneName',
+] as const;
+
 /**
  * A date without time has no hour to show and no time zone to move it: its
  * time parts are left out and it is formatted in UTC, also with a format that
@@ -276,21 +285,12 @@ function getDateOptions(
         return options;
     }
 
-    const {
-        timeStyle,
-        hour,
-        minute,
-        second,
-        fractionalSecondDigits,
-        dayPeriod,
-        hour12,
-        hourCycle,
-        timeZoneName,
-        ...date
-    } = options;
-    const hadTime = [timeStyle, hour, minute, second].some(
-        (part) => part !== undefined,
-    );
+    const date: Intl.DateTimeFormatOptions = { ...options };
+    const hadTime = TIME_OPTIONS.some((key) => options[key] !== undefined);
+
+    for (const key of [...TIME_OPTIONS, ...TIME_ONLY_OPTIONS]) {
+        delete date[key];
+    }
 
     return {
         // Only a time was asked for: the date is all there is to show.

@@ -63,7 +63,8 @@ export function DataTableNumberFilter<TData extends RowData>({
         <ColumnInputFilter
             component="DataTableNumberFilter"
             type="number"
-            inputMode="numeric"
+            // `numeric` gives a keypad without a decimal separator on iOS.
+            inputMode="decimal"
             className={cn('w-30', className)}
             {...props}
         />

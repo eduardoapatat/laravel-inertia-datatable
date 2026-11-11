@@ -261,8 +261,14 @@ function DataTableBody<TData extends RowData>({
     phase,
 }: DataTableBodyProps<TData>) {
     const rows = table.getRowModel().rows;
+    // With the focus on a row (a link, a checkbox, its actions) the rows stay,
+    // dimmed: turning them into skeletons would drop the focus.
+    const [body, setBody] = React.useState<HTMLTableSectionElement | null>(
+        null,
+    );
+    const hasFocus = body?.contains(document.activeElement) ?? false;
 
-    if (phase === 'slow') {
+    if (phase === 'slow' && !hasFocus) {
         return <DataTableSkeletonRows table={table} count={rows.length} />;
     }
 
@@ -289,9 +295,10 @@ function DataTableBody<TData extends RowData>({
 
     return (
         <TableBody
+            ref={setBody}
             className={cn(
                 'transition-opacity duration-200 motion-reduce:transition-none',
-                phase === 'busy' && 'opacity-60',
+                phase !== 'idle' && 'opacity-60',
             )}
         >
             {rows.map((row) => (

@@ -11,6 +11,9 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Fixed
 
+- A visit that failed or was cancelled (network down, a 500, the visit of another table) left the table on the state it had shown ahead of the response: "Page 2" with the rows of page 1. It now goes back to the state of the last response.
+- The number filter and the fields of the range filter asked iOS for a keypad without a decimal separator, so `19.99` could not be typed.
+- When a slow visit turned the rows into skeletons, the focus on a link, a checkbox or the actions of a row was lost. The rows now stay, dimmed, while the focus is on one of them.
 - In Postgres a filter value that passed the normalization still failed with a 500: a decimal or a number over the range on an integer column (`filter[stock]=1.5`, `filter[stock]=99999999999999`), a number that is not finite (`1e999`), the date `0000-01-01`, or a text on a number column filtered as an option without declared options (`filter[stock]=abc`). Numbers that are not finite and that date are now ignored, and the rest compare without failing.
 - A select filter without declared options let through a value that is not valid UTF-8 (`filter[status]=%FF`), which broke the query in Postgres and the JSON of the response elsewhere. It is ignored, as is a value over 255 characters.
 - Sorting, filtering or searching on a `hasOneThrough` relation failed with "ambiguous column name" when the related table and the one in between had a column with the same name.

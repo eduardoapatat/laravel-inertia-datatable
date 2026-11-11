@@ -133,6 +133,8 @@ export function useServerDataTable<TData extends RowData>({
         }),
     );
     const timeoutRef = React.useRef<ReturnType<typeof setTimeout>>(undefined);
+    const visitRef = React.useRef(0);
+    const serverStateRef = React.useRef(serverState);
     const chainRef = React.useRef<{
         base: LocalTableState;
         next: LocalTableState;
@@ -156,6 +158,10 @@ export function useServerDataTable<TData extends RowData>({
         );
     }
 
+    React.useEffect(() => {
+        serverStateRef.current = serverState;
+    }, [serverState]);
+
     React.useEffect(
         () => () => {
             clearTimeout(timeoutRef.current);
@@ -166,6 +172,8 @@ export function useServerDataTable<TData extends RowData>({
 
     function visit(next: LocalTableState, replace: boolean) {
         const pairs = stateToQuery(toQueryState(next, config), config);
+        const id = ++visitRef.current;
+        let succeeded = false;
 
         router.get(
             buildTableUrl(window.location.href, pairs, config.query),
@@ -176,14 +184,31 @@ export function useServerDataTable<TData extends RowData>({
                 preserveScroll: true,
                 replace,
                 onStart: () => loadingPhases.start(),
+                onSuccess: () => {
+                    succeeded = true;
+                },
                 // Also after a cancelled or failed visit.
-                onFinish: () => loadingPhases.finish(),
+                onFinish: () => {
+                    loadingPhases.finish();
+
+                    // The state changed before the response (page 2 at once): without
+                    // one, and with no newer visit on its way, it goes back to what
+                    // the server last sent, which is what the rows and the URL show.
+                    if (
+                        !succeeded &&
+                        visitRef.current === id &&
+                        timeoutRef.current === undefined
+                    ) {
+                        setState(toLocalState(serverStateRef.current));
+                    }
+                },
             },
         );
     }
 
     function visitNow(next: LocalTableState, replace = true) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = undefined;
         setSentVersion(draftVersion);
         visit(next, replace);
     }
@@ -191,6 +216,7 @@ export function useServerDataTable<TData extends RowData>({
     function visitLater(next: LocalTableState, version: number) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
+            timeoutRef.current = undefined;
             setSentVersion(version);
             visit(next, true);
         }, debounceMs);

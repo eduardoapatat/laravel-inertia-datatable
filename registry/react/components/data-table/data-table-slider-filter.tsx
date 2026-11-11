@@ -324,8 +324,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                                     (showInvalid && drafts[0] !== null) ||
                                     undefined
                                 }
-                                inputMode="numeric"
-                                pattern="[0-9]*"
+                                inputMode="decimal"
                                 placeholder={min.toString()}
                                 min={min}
                                 max={max}
@@ -359,8 +358,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                                     (showInvalid && drafts[1] !== null) ||
                                     undefined
                                 }
-                                inputMode="numeric"
-                                pattern="[0-9]*"
+                                inputMode="decimal"
                                 placeholder={max.toString()}
                                 min={min}
                                 max={max}
