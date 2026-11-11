@@ -18,7 +18,7 @@ const columnHelper = createColumnHelper<DataTableFeatures, {{ rowType }}>();
 
 /**
  * The table class decides which columns are shown, in which order, how they
- * filter and how they are formatted (`->money('CLP')`, `->dateFormat('long')`…).
+ * filter and how they are formatted (`->money('CLP')`, `->format('long')`…).
  * Declare a column here only to customize it (same id), for example:
  *
  *     columnHelper.accessor('{{ example }}', {

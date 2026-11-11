@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace InertiaDataTable\Enums;
 
 /**
- * Date formats with a name, for `->dateFormat()` and `inertia-datatable.date_format`.
+ * Date formats with a name, for `DateColumn::format()` and `inertia-datatable.date_format`.
  */
 enum DatePreset: string
 {

@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- The comments of `DatePreset`, the React component stub and the date cell referred to a `->dateFormat()` method that does not exist; the method is `->format()`.
+
 ## [0.9.1] - 2026-11-07
 
 ### Added

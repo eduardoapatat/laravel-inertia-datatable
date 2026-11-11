@@ -71,7 +71,7 @@ export interface DataTableTableMeta {
     searchable?: boolean;
     /** Locale to format numbers and dates; the browser's when missing. */
     locale?: string;
-    /** Format of the date cells without `->dateFormat()`; `long` by default. */
+    /** Format of the date cells without `->format()`; `long` by default. */
     dateFormat?: DatePreset;
     /** Texts of the UI (see `getMessage`); the English ones when missing. */
     messages?: Partial<DataTableMessages>;

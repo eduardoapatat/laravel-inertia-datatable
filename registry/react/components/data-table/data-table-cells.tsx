@@ -179,7 +179,7 @@ export function DataTableNumberCell<TData extends RowData, TValue>(
 }
 
 /**
- * Date with the preset or Intl options of `->dateFormat()`; relative dates
+ * Date with the preset or Intl options of `->format()`; relative dates
  * keep the full date in the tooltip.
  */
 export function DataTableDateCell<TData extends RowData, TValue>(
