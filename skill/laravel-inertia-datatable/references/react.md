@@ -4,10 +4,11 @@
 - Page structure
 - Columns and cells
 - Toolbar, pagination and loading state
-- Column width and classes
-- Layout: reorder the pieces
 - Language and texts
+- Column width and classes
+- Layout: place and customize the pieces
 - Custom meta (icons, labels)
+- Readable URLs
 - Several tables on one page
 - Files installed by the registry
 
@@ -143,8 +144,8 @@ columnHelper.accessor('category', {
 
 ## Toolbar, pagination and loading state
 
-- `<DataTableToolbar table={table} />` renders the global search (when the server allows it) and one control per filterable column: text/number inputs, faceted filters with counts, range slider, date pickers, Yes/No for booleans (with `empty: true` in PHP, a "without value" option or check, `DataTableEmptyFilter`), plus Reset and the column visibility menu. Props: `searchPlaceholder`, `searchable` (override), `children` (extra buttons on the right). For another arrangement, see the next section.
-- Pagination is part of `<DataTable>` (below the table; `pagination={false}` to place it yourself); page sizes come from the server.
+- `<DataTableToolbar table={table} />` renders the global search (when the server allows it) and one control per filterable column: text/number inputs, faceted filters with counts, range slider, date pickers, Yes/No for booleans (with `empty: true` in PHP, a "without value" option or check, `DataTableEmptyFilter`), plus Reset and the column visibility menu (hidden below `lg`). Props: `searchPlaceholder`, `searchable` (override), `children` (extra buttons on the right). For another arrangement or to customize a filter, see "Layout: place and customize the pieces".
+- Pagination is part of `<DataTable>` (below the table; `pagination={false}` to place it or its pieces yourself); page sizes come from the server.
 - `isLoading` is true while a visit is in flight; use it for a subtle opacity or a spinner, never to unmount the table (that would lose input focus).
 - Text filters and the search are debounced (300 ms, `debounceMs` option); paging, sorting and visibility navigate immediately.
 
@@ -194,36 +195,67 @@ function rowClassName(row: Row<DataTableFeatures, Product>) {
 
 - `rowClassName` is a string or a function of the row; `meta.cellClassName: 'py-4'` makes rows taller from a single column.
 
-## Layout: reorder the pieces
+## Layout: place and customize the pieces
 
-The toolbar and the pagination are made of exported pieces. To change the layout, compose them in the per-table component instead of editing `components/data-table/*`:
+Every piece of the toolbar and the pagination is its own component. To change the layout or how a filter looks, place them yourself instead of editing `components/data-table/*`. Inside `<DataTableProvider table={table}>` they take the table from the context, so they can go anywhere in the page (a sidebar, a header, above the table); outside it, pass `table` to each one.
+
+**Filters by type.** Each one takes `column` (the id of the column in the PHP class) and only works when the class declared that kind of filter: on another variant it renders nothing and warns in the console outside production, because the server would drop the values it sends.
+
+| Component | PHP filter | Own props |
+|---|---|---|
+| `DataTableFacetedFilter` | `filterSelect()`, `filterMultiSelect()` (and booleans) | `options` (relabel, reorder or leave out server options by `value`; values the server did not declare are ignored), `counts`, `searchable`, `multiple` (from the variant by default) |
+| `DataTableBooleanFilter` | `filterSelect()` on a boolean | `labels={{ true: 'On', false: 'Off' }}` (those of `->labels()` by default) |
+| `DataTableSliderFilter` | `filterRange()` on a number | `step` |
+| `DataTableDateFilter` | `filterDate()`, `filterRange()` on a date | one day or a range, from the variant |
+| `DataTableTextFilter` | `filterInput()` on text | any `<input>` prop; `className` on the input |
+| `DataTableNumberFilter` | `filterInput()` on a number | any `<input>` prop; the unit or currency of the column next to it |
+
+The popover filters also take `title` (the column label by default), `icon` (`null` hides it), `className` (the button), `contentClassName` (the popover), `align` and `disabled`. Faceted, slider and date filters import from `data-table-faceted-filter`, `data-table-slider-filter` and `data-table-date-filter`; text and number from `data-table-input-filter`.
+
+**Other pieces.**
 
 | Piece | Import from | Notes |
 |---|---|---|
+| `DataTableProvider` | `data-table-context` | `table`; `useDataTable()` reads it in your own components. |
 | `DataTableSearch` | `data-table-toolbar` | Hidden when the PHP class has no `searchable()` column (force with `searchable`); `placeholder`, `className`. |
-| `DataTableFilters` | `data-table-toolbar` | One control per filterable column; `columns={['status', 'price']}` shows only those, in that order. Renders no wrapper. |
-| `DataTableFilter` | `data-table-toolbar` | A single filter: `column="status"`. |
-| `DataTableResetButton` | `data-table-toolbar` | Only visible while a filter or the search is active. |
-| `DataTableViewOptions` | `data-table-view-options` | Column visibility menu; `align`. |
-| `DataTablePagination` | `data-table-pagination` | Use with `<DataTable pagination={false}>`. |
+| `DataTableFilters` | `data-table-toolbar` | One control per filterable column, with the component of its type; `columns={['status', 'price']}` shows only those, in that order. Renders no wrapper. |
+| `DataTableFilter` | `data-table-toolbar` | A single filter with the component of its type, without props: `column="status"`. Use the component of the type to customize it. |
+| `DataTableResetButton` | `data-table-toolbar` | Only visible while a filter or the search is active. `children` replace the text and are its accessible name; `icon` (`null` hides it). |
+| `DataTableViewOptions` | `data-table-view-options` | Column visibility menu: `className` (the button), `contentClassName`, `align`, `icon`. Visible at every width; the toolbar hides it below `lg`. |
+| `DataTablePagination` | `data-table-pagination` | All the pagination; use with `<DataTable pagination={false}>`. |
+| `DataTablePageSize` | `data-table-pagination` | Rows per page: `pageSizeOptions`, `side`, `hideLabel`. |
+| `DataTablePageInfo` | `data-table-pagination` | "Page 2 of 31". |
+| `DataTablePageNav` | `data-table-pagination` | Page buttons; `firstLast` (`true`, `false` or `'lg'`, the default: from `lg` up). |
+| `DataTableSelectedRows` | `data-table-pagination` | "2 rows selected"; empty without a selection. |
 
 ```tsx
-// Pagination on top, View menu first, two filters, and the status filter apart on the right.
-<DataTable table={table} pagination={false}>
-    <DataTablePagination table={table} />
-    <div className="flex flex-wrap items-center gap-2">
-        <DataTableViewOptions table={table} />
-        <DataTableSearch table={table} />
-        <DataTableFilters table={table} columns={['created_at', 'name']} />
-        <DataTableResetButton table={table} />
-        <div className="ml-auto">
-            <DataTableFilter table={table} column="status" />
+// Filters in a sidebar, View and page buttons over the table, page size below.
+<DataTableProvider table={table}>
+    <div className="flex gap-4">
+        <aside className="flex w-64 flex-col items-start gap-2">
+            <DataTableFacetedFilter column="status" icon={Tag} counts={false} className="w-full justify-start" />
+            <DataTableSliderFilter column="price" step={1000} className="w-full justify-start" />
+            <DataTableDateFilter column="published_at" className="w-full justify-start" />
+            <DataTableTextFilter column="sku" className="w-full" />
+            <DataTableResetButton>Clear all</DataTableResetButton>
+        </aside>
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+            <div className="flex items-center gap-2">
+                <DataTableViewOptions />
+                <DataTableSearch className="flex-1" />
+                <DataTablePageNav firstLast={false} />
+            </div>
+            <DataTable pagination={false} aria-label="Products" />
+            <div className="flex items-center justify-between">
+                <DataTablePageSize side="bottom" />
+                <DataTablePageInfo />
+            </div>
         </div>
     </div>
-</DataTable>
+</DataTableProvider>
 ```
 
-Children of `<DataTable>` render above the table; anything else (titles, tabs, buttons) can sit between the pieces.
+Children of `<DataTable>` render above the table, so a toolbar made of pieces can also stay inside it. The kind of filter is decided in PHP: to change it (for example, a select instead of a text input), change the column in the table class, not the component.
 
 ## Custom meta (icons, labels)
 
@@ -266,6 +298,7 @@ Call the hook once per table with its own prop and give each backend table a `na
 - `hooks/use-server-data-table.ts` — the hook and `getOptionLabel`.
 - `components/data-table/data-table-default-column.tsx` — default header and cell for columns the component does not customize.
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
+- `components/data-table/data-table-context.tsx` — `DataTableProvider` and `useDataTable`.
 - `lib/data-table-{features,filters,types,utils,format,messages}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
 
 These files belong to the project after installation: adapt styles there (texts are translated with the lang files, see above). `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.

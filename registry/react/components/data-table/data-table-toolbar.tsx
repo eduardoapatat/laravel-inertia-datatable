@@ -12,31 +12,30 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import { getFilterAffixes, type FilterAffix } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
-import {
-    getColumnSelectOptions,
-    getFilterVariant,
-} from '@/lib/data-table-utils';
+import { getFilterVariant } from '@/lib/data-table-utils';
+import { useDataTable } from '@/components/data-table/data-table-context';
 import { DataTableDateFilter } from '@/components/data-table/data-table-date-filter';
-import { DataTableFacetedFilter } from '@/components/data-table/data-table-faceted-filter';
+import {
+    DataTableBooleanFilter,
+    DataTableFacetedFilter,
+} from '@/components/data-table/data-table-faceted-filter';
+import {
+    DataTableNumberFilter,
+    DataTableTextFilter,
+} from '@/components/data-table/data-table-input-filter';
 import { DataTableSliderFilter } from '@/components/data-table/data-table-slider-filter';
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-    InputGroup,
-    InputGroupAddon,
-    InputGroupInput,
-    InputGroupText,
-} from '@/components/ui/input-group';
 import { X } from 'lucide-react';
 
 interface DataTableToolbarProps<
     TData extends RowData,
 > extends React.ComponentProps<'div'> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Not needed inside `DataTableProvider`. */
+    table?: ReactTable<DataTableFeatures, TData, unknown>;
     /** Shows the global search; by default, when the server allows it. */
     searchable?: boolean;
     searchPlaceholder?: string;
@@ -44,18 +43,21 @@ interface DataTableToolbarProps<
 
 /**
  * Default layout: search, filters and Reset on the left; `children` and the
- * column menu on the right. For another order, compose the pieces
- * (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`,
- * `DataTableResetButton`, `DataTableViewOptions`) in your own container.
+ * column menu on the right. For another layout, place the pieces yourself
+ * (`DataTableSearch`, `DataTableFilters`, `DataTableFilter`, the filters of
+ * each type, `DataTableResetButton`, `DataTableViewOptions`), anywhere inside a
+ * `DataTableProvider`.
  */
 export function DataTableToolbar<TData extends RowData>({
-    table,
+    table: tableProp,
     searchable,
     searchPlaceholder,
     children,
     className,
     ...props
 }: DataTableToolbarProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTableToolbar');
+
     return (
         <div
             data-slot="data-table-toolbar"
@@ -76,7 +78,11 @@ export function DataTableToolbar<TData extends RowData>({
             </div>
             <div className="flex items-center gap-2">
                 {children}
-                <DataTableViewOptions table={table} align="end" />
+                <DataTableViewOptions
+                    table={table}
+                    align="end"
+                    className="ms-auto hidden lg:flex"
+                />
             </div>
         </div>
     );
@@ -85,7 +91,8 @@ export function DataTableToolbar<TData extends RowData>({
 interface DataTableSearchProps<
     TData extends RowData,
 > extends React.ComponentProps<'input'> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Not needed inside `DataTableProvider`. */
+    table?: ReactTable<DataTableFeatures, TData, unknown>;
     /** Shows the global search; by default, when the server allows it. */
     searchable?: boolean;
 }
@@ -95,12 +102,14 @@ interface DataTableSearchProps<
  * `searchable()` column, unless forced with `searchable`.
  */
 export function DataTableSearch<TData extends RowData>({
-    table,
+    table: tableProp,
     searchable,
     placeholder: placeholderProp,
     className,
     ...props
 }: DataTableSearchProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTableSearch');
+
     if (!(searchable ?? table.options.meta?.searchable)) {
         return null;
     }
@@ -127,7 +136,8 @@ export function DataTableSearch<TData extends RowData>({
 }
 
 interface DataTableFiltersProps<TData extends RowData> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Not needed inside `DataTableProvider`. */
+    table?: ReactTable<DataTableFeatures, TData, unknown>;
     /** Ids of the columns to show, in this order; all of them by default. */
     columns?: string[];
 }
@@ -137,9 +147,10 @@ interface DataTableFiltersProps<TData extends RowData> {
  * `columns`. No wrapper: they are laid out inside the parent container.
  */
 export function DataTableFilters<TData extends RowData>({
-    table,
+    table: tableProp,
     columns,
 }: DataTableFiltersProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTableFilters');
     const filterable = table
         .getAllColumns()
         .filter((column) => column.getCanFilter());
@@ -159,18 +170,21 @@ export function DataTableFilters<TData extends RowData>({
 }
 
 interface DataTableFilterProps<TData extends RowData> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Not needed inside `DataTableProvider`. */
+    table?: ReactTable<DataTableFeatures, TData, unknown>;
     /** Id of the column in the table class. */
     column: string;
 }
 
 /**
- * The filter of a single column, to place it apart from the rest.
+ * The filter of a single column, with the component of its type. To pass
+ * props to it, use that component (`DataTableFacetedFilter`…) instead.
  */
 export function DataTableFilter<TData extends RowData>({
-    table,
+    table: tableProp,
     column,
 }: DataTableFilterProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTableFilter');
     const found = table
         .getAllColumns()
         .find((item) => item.id === column && item.getCanFilter());
@@ -181,17 +195,24 @@ export function DataTableFilter<TData extends RowData>({
 interface DataTableResetButtonProps<
     TData extends RowData,
 > extends React.ComponentProps<typeof Button> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Not needed inside `DataTableProvider`. */
+    table?: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Icon before the text; `null` hides it. */
+    icon?: React.ComponentType<React.ComponentProps<'svg'>> | null;
 }
 
 /**
  * Clears the filters and the search; only shown while one of them is active.
+ * With `children`, they are also its accessible name.
  */
 export function DataTableResetButton<TData extends RowData>({
-    table,
+    table: tableProp,
+    icon: Icon = X,
     children,
     ...props
 }: DataTableResetButtonProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTableResetButton');
+
     function onReset() {
         table.resetColumnFilters(true);
         table.resetGlobalFilter(true);
@@ -208,12 +229,16 @@ export function DataTableResetButton<TData extends RowData>({
             {(isFiltered) =>
                 isFiltered && (
                     <Button
-                        aria-label={getMessage(table, 'reset_filters')}
+                        aria-label={
+                            children === undefined
+                                ? getMessage(table, 'reset_filters')
+                                : undefined
+                        }
                         variant="outline"
                         onClick={onReset}
                         {...props}
                     >
-                        <X />
+                        {Icon && <Icon />}
                         {children ?? getMessage(table, 'reset')}
                     </Button>
                 )
@@ -222,161 +247,34 @@ export function DataTableResetButton<TData extends RowData>({
     );
 }
 
-/**
- * Yes / No of the table texts, or the labels of `->booleanLabels()`.
- */
-function booleanOptions<TData extends RowData>(
-    column: Column<DataTableFeatures, TData>,
-) {
-    const display = column.columnDef.meta?.display;
-    const labels =
-        display?.type === 'boolean' && display.labels
-            ? display.labels
-            : {
-                  true: getMessage(column.table, 'yes'),
-                  false: getMessage(column.table, 'no'),
-              };
-
-    const icons = column.columnDef.meta?.icons;
-
-    return [
-        { label: labels.true, value: 'true', icon: icons?.true },
-        { label: labels.false, value: 'false', icon: icons?.false },
-    ];
-}
-
 interface DataTableToolbarFilterProps<TData extends RowData> {
     column: Column<DataTableFeatures, TData>;
 }
 
+/**
+ * Filter of a column with the component of its server variant.
+ */
 function DataTableToolbarFilter<TData extends RowData>({
     column,
 }: DataTableToolbarFilterProps<TData>) {
-    const columnMeta = column.columnDef.meta;
-    if (!columnMeta?.variant) return null;
+    if (!column.columnDef.meta?.variant) return null;
 
-    const title = columnMeta.label ?? column.id;
-    const placeholder = columnMeta.placeholder ?? columnMeta.label;
-    const filterVariant = getFilterVariant(columnMeta);
-
-    switch (filterVariant) {
+    switch (getFilterVariant(column.columnDef.meta)) {
         case 'text':
-            return (
-                <DataTableFilterInput
-                    column={column}
-                    placeholder={placeholder}
-                    className="w-40 lg:w-56"
-                />
-            );
-
+            return <DataTableTextFilter column={column} />;
         case 'number':
-            return (
-                <DataTableFilterInput
-                    column={column}
-                    type="number"
-                    inputMode="numeric"
-                    placeholder={placeholder}
-                    affixes={getFilterAffixes(columnMeta)}
-                    className="w-30"
-                />
-            );
-
+            return <DataTableNumberFilter column={column} />;
         case 'range':
-            return <DataTableSliderFilter column={column} title={title} />;
-
+            return <DataTableSliderFilter column={column} />;
         case 'date':
         case 'date-range':
-            return (
-                <DataTableDateFilter
-                    column={column}
-                    title={title}
-                    multiple={filterVariant === 'date-range'}
-                />
-            );
-
+            return <DataTableDateFilter column={column} />;
         case 'boolean':
-            return (
-                <DataTableFacetedFilter
-                    column={column}
-                    title={title}
-                    options={booleanOptions(column)}
-                />
-            );
-
+            return <DataTableBooleanFilter column={column} />;
         case 'select':
         case 'multi-select':
-            return (
-                <DataTableFacetedFilter
-                    column={column}
-                    title={title}
-                    options={getColumnSelectOptions(columnMeta)}
-                    multiple={filterVariant === 'multi-select'}
-                />
-            );
-
+            return <DataTableFacetedFilter column={column} />;
         default:
             return null;
     }
-}
-
-interface DataTableFilterInputProps<
-    TData extends RowData,
-> extends React.ComponentProps<'input'> {
-    column: Column<DataTableFeatures, TData>;
-    /** Unit or currency next to the value (`getFilterAffixes`). */
-    affixes?: FilterAffix[];
-}
-
-function DataTableFilterInput<TData extends RowData>({
-    column,
-    type = 'text',
-    affixes = [],
-    className,
-    ...props
-}: DataTableFilterInputProps<TData>) {
-    return (
-        <Subscribe
-            source={column.table.atoms.columnFilters}
-            selector={() => column.getFilterValue()}
-        >
-            {(filterValue) => {
-                const inputProps = {
-                    type,
-                    ...props,
-                    value: readFilterInputValue(filterValue),
-                    onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-                        column.setFilterValue(event.target.value || undefined),
-                };
-
-                if (affixes.length === 0)
-                    return <Input {...inputProps} className={className} />;
-
-                return (
-                    <InputGroup className={className}>
-                        <InputGroupInput {...inputProps} />
-                        {affixes.map((affix) => (
-                            <InputGroupAddon
-                                key={affix.align}
-                                align={affix.align}
-                            >
-                                <InputGroupText>{affix.text}</InputGroupText>
-                            </InputGroupAddon>
-                        ))}
-                    </InputGroup>
-                );
-            }}
-        </Subscribe>
-    );
-}
-
-function readFilterInputValue(value: unknown) {
-    if (typeof value === 'string' || typeof value === 'number') {
-        return String(value);
-    }
-
-    if (Array.isArray(value)) {
-        return value.join(',');
-    }
-
-    return '';
 }

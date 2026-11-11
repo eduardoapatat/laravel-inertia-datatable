@@ -13,6 +13,7 @@ import * as React from 'react';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getMessage } from '@/lib/data-table-messages';
 
+import { useDataTable } from '@/components/data-table/data-table-context';
 import { Button } from '@/components/ui/button';
 import { useDirection } from '@/components/ui/direction';
 import {
@@ -28,19 +29,33 @@ import {
 } from '@/components/ui/faceted';
 import { Settings2 } from 'lucide-react';
 
-interface DataTableViewOptionsProps<
-    TData extends RowData,
-> extends React.ComponentProps<typeof FacetedContent> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+interface DataTableViewOptionsProps<TData extends RowData> extends Omit<
+    React.ComponentProps<typeof FacetedContent>,
+    'className'
+> {
+    /** Not needed inside `DataTableProvider`. */
+    table?: ReactTable<DataTableFeatures, TData, unknown>;
     disabled?: boolean;
+    /** Classes of the button (the toolbar adds `ms-auto hidden lg:flex`). */
+    className?: string;
+    /** Classes of the popover. */
+    contentClassName?: string;
+    /** Icon of the button; `null` hides it. */
+    icon?: React.ComponentType<React.ComponentProps<'svg'>> | null;
 }
 
+/**
+ * Column menu: shows and hides the columns the PHP class allows to hide.
+ */
 export function DataTableViewOptions<TData extends RowData>({
-    table,
+    table: tableProp,
     disabled,
     className,
+    contentClassName,
+    icon: Icon = Settings2,
     ...props
 }: DataTableViewOptionsProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTableViewOptions');
     const dir = useDirection();
     const columns = React.useMemo(
         () =>
@@ -68,10 +83,10 @@ export function DataTableViewOptions<TData extends RowData>({
                         <Button
                             aria-label={getMessage(table, 'view_columns')}
                             variant="outline"
-                            className="ms-auto hidden lg:flex"
+                            className={className}
                             disabled={disabled}
                         >
-                            <Settings2 className="text-muted-foreground" />
+                            {Icon && <Icon className="text-muted-foreground" />}
                             {getMessage(table, 'view')}
                         </Button>
                     </FacetedTrigger>
@@ -79,7 +94,7 @@ export function DataTableViewOptions<TData extends RowData>({
                         aria-label={getMessage(table, 'columns')}
                         dir={dir}
                         align="center"
-                        className={cn('w-44', className)}
+                        className={cn('w-44', contentClassName)}
                         {...props}
                     >
                         <FacetedInput

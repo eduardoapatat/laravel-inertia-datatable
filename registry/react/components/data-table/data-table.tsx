@@ -27,6 +27,7 @@ import {
     getColumnSizingStyle,
     getVisibleSelectedRows,
 } from '@/lib/data-table-utils';
+import { useDataTable } from '@/components/data-table/data-table-context';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { useDirection } from '@/components/ui/direction';
 import {
@@ -41,11 +42,12 @@ import {
 interface DataTableProps<
     TData extends RowData,
 > extends React.ComponentProps<'div'> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Not needed inside `DataTableProvider`. */
+    table?: ReactTable<DataTableFeatures, TData, unknown>;
     actionBar?: React.ReactNode;
     /**
      * Renders the pagination below the table. With `false`, place
-     * `<DataTablePagination table={table} />` wherever you want (e.g. on top).
+     * `<DataTablePagination />` or its pieces wherever you want (e.g. on top).
      */
     pagination?: boolean;
     /**
@@ -65,7 +67,7 @@ type DataTableRowClassName<TData extends RowData> =
     | ((row: Row<DataTableFeatures, TData>) => string | undefined);
 
 export function DataTable<TData extends RowData>({
-    table,
+    table: tableProp,
     actionBar,
     pagination = true,
     headerClassName,
@@ -76,6 +78,7 @@ export function DataTable<TData extends RowData>({
     'aria-labelledby': ariaLabelledBy,
     ...props
 }: DataTableProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTable');
     const dir = useDirection();
 
     return (

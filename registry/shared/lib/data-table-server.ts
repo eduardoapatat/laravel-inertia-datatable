@@ -112,7 +112,7 @@ export type ServerColumnDisplay = (
     empty?: string;
 };
 
-/** Filter of a column (`->filter()`, `->range()`…). */
+/** Filter of a column (`->filterInput()`, `->filterSelect()`, `->filterRange()`…). */
 export interface ServerColumnFilter {
     variant: FilterVariant;
     placeholder?: string;

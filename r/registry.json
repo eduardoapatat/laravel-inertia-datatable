@@ -92,6 +92,11 @@
                     "target": "~/resources/js/components/data-table/data-table-default-column.tsx"
                 },
                 {
+                    "path": "registry/react/components/data-table/data-table-context.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-context.tsx"
+                },
+                {
                     "path": "registry/react/components/data-table/data-table-date-filter.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-date-filter.tsx"
@@ -105,6 +110,11 @@
                     "path": "registry/react/components/data-table/data-table-faceted-filter.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-faceted-filter.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-input-filter.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-input-filter.tsx"
                 },
                 {
                     "path": "registry/react/components/data-table/data-table-pagination.tsx",
@@ -215,6 +225,11 @@
                     "target": "~/resources/js/components/data-table/data-table-default-column.tsx"
                 },
                 {
+                    "path": "registry/react/components/data-table/data-table-context.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-context.tsx"
+                },
+                {
                     "path": "registry/react/components/data-table/data-table-date-filter.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-date-filter.tsx"
@@ -228,6 +243,11 @@
                     "path": "registry/react/components/data-table/data-table-faceted-filter.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-faceted-filter.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-input-filter.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-input-filter.tsx"
                 },
                 {
                     "path": "registry/react/components/data-table/data-table-pagination.tsx",

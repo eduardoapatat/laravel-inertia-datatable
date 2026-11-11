@@ -4,13 +4,40 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `DataTableProvider` (`components/data-table/data-table-context.tsx`) shares the table with the pieces inside it, so the filters, the search, Reset, View and the pagination can go anywhere in the page (a sidebar, a header) without a `table` prop each. `useDataTable()` reads it in your own components, and every piece still accepts `table`.
+- A filter component per type, with props and the column id: `DataTableFacetedFilter`, `DataTableBooleanFilter`, `DataTableSliderFilter`, `DataTableDateFilter`, `DataTableTextFilter` and `DataTableNumberFilter` (`column="status"`). The popover filters take `title`, `icon`, `className` (the button), `contentClassName` (the popover), `align` and `disabled`; the faceted filter also `options` (relabel, reorder or leave out the server options), `counts` and `searchable`; the slider `step`; the boolean filter `labels`. A filter component on a column whose PHP class declares another kind of filter renders nothing and warns in the console outside production, since the server would drop its values. The toolbar renders these same components.
+- The pagination in pieces: `DataTablePageSize` (`pageSizeOptions`, `side`, `hideLabel`), `DataTablePageInfo`, `DataTablePageNav` (`firstLast`: `true`, `false` or `'lg'`) and `DataTableSelectedRows`. `DataTablePagination` is made of them and looks the same.
+- `DataTableViewOptions` and `DataTableResetButton` take `icon` (`null` hides it).
+
 ### Changed
 
 - `make:datatable --react` and `--page` add the missing React component and page to a table class that already exists, without overwriting the class or the files it already has.
 
+### Changed (breaking)
+
+- `DataTableViewOptions`: `className` goes to the button instead of the popover (use `contentClassName` for the popover), and the button no longer has `ms-auto hidden lg:flex` built in, so it can be placed anywhere and shown on small screens. `DataTableToolbar` passes those classes itself, so the default layout does not change.
+- `DataTableFacetedFilter` with a column takes its `options` from the server (the prop is optional) and only keeps the values the server declared; `multiple` follows the variant of the column (`multi-select`) instead of `false`.
+- `DataTableDateFilter` no longer takes `multiple`: one day or a range follows the PHP filter (`filterDate()` or `filterRange()`).
+
+Update the generic UI with `php artisan inertia-datatable:ui --update`.
+
+Migration:
+
+| Before | Now |
+|---|---|
+| `<DataTableViewOptions table={table} className="w-60" />` (popover width) | `<DataTableViewOptions table={table} contentClassName="w-60" />` |
+| `<DataTableViewOptions table={table} />` outside the toolbar, hidden below `lg` | `<DataTableViewOptions table={table} className="hidden lg:flex" />` to keep hiding it |
+| `<DataTableFacetedFilter column={column} options={getColumnSelectOptions(meta)} multiple />` | `<DataTableFacetedFilter column="status" />` |
+| `<DataTableDateFilter column={column} multiple />` | `<DataTableDateFilter column="published_at" />` |
+
 ### Fixed
 
 - The comments of `DatePreset`, the React component stub and the date cell referred to a `->dateFormat()` method that does not exist; the method is `->format()`.
+- A `DataTableResetButton` with its own text (`children`) kept "Reset filters" as its accessible name; the text is now its name.
+- The text and number filters of the toolbar had no accessible name besides the placeholder; they now take the label of the column.
+- The comments of the toolbar and of `ServerColumnFilter` named PHP methods that do not exist (`->booleanLabels()`, `->filter()`, `->range()`).
 
 ## [0.9.1] - 2026-11-07
 

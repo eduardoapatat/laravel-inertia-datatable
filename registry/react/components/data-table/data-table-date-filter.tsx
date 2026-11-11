@@ -5,6 +5,7 @@
 import type { DateRange } from 'react-day-picker';
 
 import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
+import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import {
@@ -19,6 +20,11 @@ import {
     getWeekStartsOn,
     type TableWithMeta,
 } from '@/lib/data-table-messages';
+import { getFilterVariant } from '@/lib/data-table-utils';
+import {
+    type DataTableFilterPieceProps,
+    useDataTableFilterColumn,
+} from '@/components/data-table/data-table-context';
 import { DataTableEmptyFilter } from '@/components/data-table/data-table-empty-filter';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -33,16 +39,28 @@ import { CalendarIcon, CircleX } from 'lucide-react';
 
 type DateSelection = Date[] | DateRange;
 
-interface DataTableDateFilterProps<TData extends RowData> {
-    column: Column<DataTableFeatures, TData>;
-    title?: string;
-    multiple?: boolean;
-}
+type DataTableDateFilterProps<TData extends RowData> =
+    DataTableFilterPieceProps<TData>;
 
+/**
+ * Calendar filter of a date column: one day with `->filterDate()`, a range
+ * with `->filterRange()`.
+ */
 export function DataTableDateFilter<TData extends RowData>({
-    column,
+    table,
+    column: columnProp,
     ...props
 }: DataTableDateFilterProps<TData>) {
+    const column = useDataTableFilterColumn(
+        'DataTableDateFilter',
+        columnProp,
+        table,
+    );
+
+    if (!column) return null;
+
+    const multiple = getFilterVariant(column.columnDef.meta) === 'date-range';
+
     return (
         <Subscribe
             source={column.table.atoms.columnFilters}
@@ -54,6 +72,7 @@ export function DataTableDateFilter<TData extends RowData>({
             {({ value, empty }) => (
                 <DataTableDateFilterContent
                     column={column}
+                    multiple={multiple}
                     columnFilterValue={value}
                     includesEmpty={empty}
                     {...props}
@@ -67,9 +86,16 @@ function DataTableDateFilterContent<TData extends RowData>({
     column,
     title = column.columnDef.meta?.label ?? column.id,
     multiple,
+    icon: Icon = CalendarIcon,
+    className,
+    contentClassName,
+    align = 'start',
+    disabled,
     columnFilterValue,
     includesEmpty,
-}: DataTableDateFilterProps<TData> & {
+}: Omit<DataTableDateFilterProps<TData>, 'column' | 'table'> & {
+    column: Column<DataTableFeatures, TData>;
+    multiple: boolean;
     columnFilterValue: unknown;
     includesEmpty: boolean;
 }) {
@@ -159,7 +185,11 @@ function DataTableDateFilterContent<TData extends RowData>({
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" className="border-dashed">
+                <Button
+                    variant="outline"
+                    className={cn('border-dashed', className)}
+                    disabled={disabled}
+                >
                     {hasValue ? (
                         <span
                             aria-hidden="true"
@@ -169,7 +199,7 @@ function DataTableDateFilterContent<TData extends RowData>({
                             <CircleX />
                         </span>
                     ) : (
-                        <CalendarIcon />
+                        Icon && <Icon />
                     )}
                     {label}
                 </Button>
@@ -177,8 +207,8 @@ function DataTableDateFilterContent<TData extends RowData>({
             <PopoverContent
                 aria-label={getMessage(table, 'filter', { label: title })}
                 dir={dir}
-                className="w-auto p-0"
-                align="start"
+                className={cn('w-auto p-0', contentClassName)}
+                align={align}
             >
                 {multiple ? (
                     <Calendar

@@ -12,6 +12,7 @@ import { formatNumber } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 
 import { getVisibleSelectedRows } from '@/lib/data-table-utils';
+import { useDataTable } from '@/components/data-table/data-table-context';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -29,82 +30,38 @@ import {
     ChevronsRight,
 } from 'lucide-react';
 
-interface DataTablePaginationProps<
+type Table<TData extends RowData> = ReactTable<
+    DataTableFeatures,
+    TData,
+    unknown
+>;
+
+interface DataTablePieceProps<
     TData extends RowData,
 > extends React.ComponentProps<'div'> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Not needed inside `DataTableProvider`. */
+    table?: Table<TData>;
+}
+
+interface DataTablePaginationProps<
+    TData extends RowData,
+> extends DataTablePieceProps<TData> {
     pageSizeOptions?: number[];
 }
 
+/**
+ * Default pagination: selected rows on one side; rows per page, current page
+ * and the buttons on the other. For another layout, place the pieces
+ * (`DataTableSelectedRows`, `DataTablePageSize`, `DataTablePageInfo`,
+ * `DataTablePageNav`) yourself, with `<DataTable pagination={false}>`.
+ */
 export function DataTablePagination<TData extends RowData>({
-    table,
+    table: tableProp,
     pageSizeOptions,
     className,
     ...props
 }: DataTablePaginationProps<TData>) {
-    return (
-        <table.Subscribe
-            selector={(state) => ({
-                pageIndex: state.pagination.pageIndex,
-                pageSize: state.pagination.pageSize,
-                selectedRowCount: table.getSelectedRowIds().length,
-                visibleSelectedRowCount: getVisibleSelectedRows(table).length,
-            })}
-        >
-            {({
-                pageIndex,
-                pageSize,
-                selectedRowCount,
-                visibleSelectedRowCount,
-            }) => (
-                <DataTablePaginationContent
-                    table={table}
-                    pageIndex={pageIndex}
-                    pageSize={pageSize}
-                    selectedRowCount={selectedRowCount}
-                    visibleSelectedRowCount={visibleSelectedRowCount}
-                    pageSizeOptions={
-                        pageSizeOptions ??
-                        table.options.meta?.pageSizeOptions ?? [
-                            10, 20, 30, 40, 50,
-                        ]
-                    }
-                    className={className}
-                    {...props}
-                />
-            )}
-        </table.Subscribe>
-    );
-}
-
-interface DataTablePaginationContentProps<
-    TData extends RowData,
-> extends React.ComponentProps<'div'> {
-    table: ReactTable<DataTableFeatures, TData, unknown>;
-    pageIndex: number;
-    pageSize: number;
-    selectedRowCount: number;
-    visibleSelectedRowCount: number;
-    pageSizeOptions: number[];
-}
-
-function DataTablePaginationContent<TData extends RowData>({
-    table,
-    pageIndex,
-    pageSize,
-    selectedRowCount,
-    visibleSelectedRowCount,
-    pageSizeOptions,
-    className,
-    ...props
-}: DataTablePaginationContentProps<TData>) {
-    const pageSizeLabelId = React.useId();
-    const pageCount = table.getPageCount();
-    const canPreviousPage = table.getCanPreviousPage();
-    const canNextPage = table.getCanNextPage();
-    const locale = table.options.meta?.locale;
-    const count = (value: number) => formatNumber(value, {}, locale);
-    const hiddenCount = selectedRowCount - visibleSelectedRowCount;
+    const table = useDataTable(tableProp, 'DataTablePagination');
 
     return (
         <div
@@ -115,34 +72,118 @@ function DataTablePaginationContent<TData extends RowData>({
             )}
             {...props}
         >
-            <div
-                role="status"
-                className="flex-1 text-sm whitespace-nowrap text-muted-foreground"
-            >
-                {selectedRowCount > 0 &&
-                    [
-                        getMessage(
-                            table,
-                            selectedRowCount === 1
-                                ? 'row_selected'
-                                : 'rows_selected',
-                            { count: count(selectedRowCount) },
-                        ),
-                        hiddenCount > 0
-                            ? getMessage(table, 'not_shown', {
-                                  count: count(hiddenCount),
-                              })
-                            : null,
-                    ]
-                        .filter(Boolean)
-                        .join(' ')}
-            </div>
+            <DataTableSelectedRows table={table} className="flex-1" />
             <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
-                <div className="flex items-center gap-2">
+                <DataTablePageSize
+                    table={table}
+                    pageSizeOptions={pageSizeOptions}
+                />
+                <DataTablePageInfo table={table} />
+                <DataTablePageNav table={table} />
+            </div>
+        </div>
+    );
+}
+
+/**
+ * "2 rows selected" (and how many of them are on other pages); empty without
+ * a selection.
+ */
+export function DataTableSelectedRows<TData extends RowData>({
+    table: tableProp,
+    className,
+    ...props
+}: DataTablePieceProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTableSelectedRows');
+
+    return (
+        <table.Subscribe
+            selector={() => ({
+                selected: table.getSelectedRowIds().length,
+                visible: getVisibleSelectedRows(table).length,
+            })}
+        >
+            {({ selected, visible }) => {
+                const count = (value: number) =>
+                    formatNumber(value, {}, table.options.meta?.locale);
+                const hidden = selected - visible;
+
+                return (
+                    <div
+                        role="status"
+                        data-slot="data-table-selected-rows"
+                        className={cn(
+                            'text-sm whitespace-nowrap text-muted-foreground',
+                            className,
+                        )}
+                        {...props}
+                    >
+                        {selected > 0 &&
+                            [
+                                getMessage(
+                                    table,
+                                    selected === 1
+                                        ? 'row_selected'
+                                        : 'rows_selected',
+                                    { count: count(selected) },
+                                ),
+                                hidden > 0
+                                    ? getMessage(table, 'not_shown', {
+                                          count: count(hidden),
+                                      })
+                                    : null,
+                            ]
+                                .filter(Boolean)
+                                .join(' ')}
+                    </div>
+                );
+            }}
+        </table.Subscribe>
+    );
+}
+
+interface DataTablePageSizeProps<
+    TData extends RowData,
+> extends DataTablePieceProps<TData> {
+    /** Sizes to pick from; those of the PHP class by default. */
+    pageSizeOptions?: number[];
+    /** Side where the list opens. */
+    side?: 'top' | 'bottom';
+    /** Hides the "Rows per page" text (it stays for screen readers). */
+    hideLabel?: boolean;
+}
+
+/**
+ * "Rows per page" select.
+ */
+export function DataTablePageSize<TData extends RowData>({
+    table: tableProp,
+    pageSizeOptions,
+    side = 'top',
+    hideLabel = false,
+    className,
+    ...props
+}: DataTablePageSizeProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTablePageSize');
+    const labelId = React.useId();
+    const options = pageSizeOptions ??
+        table.options.meta?.pageSizeOptions ?? [10, 20, 30, 40, 50];
+
+    return (
+        <table.Subscribe selector={(state) => state.pagination.pageSize}>
+            {(pageSize) => (
+                <div
+                    data-slot="data-table-page-size"
+                    className={cn('flex items-center gap-2', className)}
+                    {...props}
+                >
                     <Label
-                        id={pageSizeLabelId}
-                        htmlFor={`${pageSizeLabelId}-trigger`}
-                        className="whitespace-nowrap"
+                        id={labelId}
+                        htmlFor={`${labelId}-trigger`}
+                        className={cn(
+                            'whitespace-nowrap',
+                            hideLabel && 'sr-only',
+                        )}
                     >
                         {getMessage(table, 'rows_per_page')}
                     </Label>
@@ -153,76 +194,153 @@ function DataTablePaginationContent<TData extends RowData>({
                         }}
                     >
                         <SelectTrigger
-                            id={`${pageSizeLabelId}-trigger`}
-                            aria-labelledby={pageSizeLabelId}
+                            id={`${labelId}-trigger`}
+                            aria-labelledby={labelId}
                             className="w-18"
                         >
                             <SelectValue placeholder={pageSize} />
                         </SelectTrigger>
-                        <SelectContent side="top">
+                        <SelectContent side={side}>
                             <SelectGroup>
-                                {pageSizeOptions.map((pageSize) => (
+                                {options.map((option) => (
                                     <SelectItem
-                                        key={pageSize}
-                                        value={`${pageSize}`}
+                                        key={option}
+                                        value={`${option}`}
                                     >
-                                        {pageSize}
+                                        {option}
                                     </SelectItem>
                                 ))}
                             </SelectGroup>
                         </SelectContent>
                     </Select>
                 </div>
-                <div
-                    role="status"
-                    className="flex items-center justify-center text-sm font-medium"
-                >
-                    {getMessage(table, 'page_of', {
-                        page: count(pageIndex + 1),
-                        pages: count(pageCount),
-                    })}
-                </div>
-                <div className="flex items-center gap-2">
-                    <Button
-                        aria-label={getMessage(table, 'first_page')}
-                        variant="outline"
-                        size="icon"
-                        className="hidden lg:flex"
-                        onClick={() => table.setPageIndex(0)}
-                        disabled={!canPreviousPage}
+            )}
+        </table.Subscribe>
+    );
+}
+
+/**
+ * "Page 2 of 31".
+ */
+export function DataTablePageInfo<TData extends RowData>({
+    table: tableProp,
+    className,
+    ...props
+}: DataTablePieceProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTablePageInfo');
+
+    return (
+        <table.Subscribe selector={(state) => state.pagination.pageIndex}>
+            {(pageIndex) => {
+                // From the server response (rowCount), not from the state.
+                const pageCount = table.getPageCount();
+                const count = (value: number) =>
+                    formatNumber(value, {}, table.options.meta?.locale);
+
+                return (
+                    <div
+                        role="status"
+                        data-slot="data-table-page-info"
+                        className={cn(
+                            'flex items-center justify-center text-sm font-medium whitespace-nowrap',
+                            className,
+                        )}
+                        {...props}
                     >
-                        <ChevronsLeft className="rtl:rotate-180" />
-                    </Button>
-                    <Button
-                        aria-label={getMessage(table, 'previous_page')}
-                        variant="outline"
-                        size="icon"
-                        onClick={() => table.previousPage()}
-                        disabled={!canPreviousPage}
+                        {getMessage(table, 'page_of', {
+                            page: count(pageIndex + 1),
+                            pages: count(pageCount),
+                        })}
+                    </div>
+                );
+            }}
+        </table.Subscribe>
+    );
+}
+
+interface DataTablePageNavProps<
+    TData extends RowData,
+> extends DataTablePieceProps<TData> {
+    /**
+     * First and last page buttons: always, never, or from the `lg` breakpoint
+     * (the default).
+     */
+    firstLast?: boolean | 'lg';
+}
+
+/**
+ * Buttons to go to the first, previous, next and last page.
+ */
+export function DataTablePageNav<TData extends RowData>({
+    table: tableProp,
+    firstLast = 'lg',
+    className,
+    ...props
+}: DataTablePageNavProps<TData>) {
+    const table = useDataTable(tableProp, 'DataTablePageNav');
+    const edgeClassName = firstLast === 'lg' ? 'hidden lg:flex' : undefined;
+
+    return (
+        <table.Subscribe selector={(state) => state.pagination.pageIndex}>
+            {(pageIndex) => {
+                // From the server response (rowCount), not from the state.
+                const pageCount = table.getPageCount();
+                const canPreviousPage = pageIndex > 0;
+                const canNextPage = pageIndex < pageCount - 1;
+
+                return (
+                    <div
+                        data-slot="data-table-page-nav"
+                        className={cn('flex items-center gap-2', className)}
+                        {...props}
                     >
-                        <ChevronLeft className="rtl:rotate-180" />
-                    </Button>
-                    <Button
-                        aria-label={getMessage(table, 'next_page')}
-                        variant="outline"
-                        size="icon"
-                        onClick={() => table.nextPage()}
-                        disabled={!canNextPage}
-                    >
-                        <ChevronRight className="rtl:rotate-180" />
-                    </Button>
-                    <Button
-                        aria-label={getMessage(table, 'last_page')}
-                        variant="outline"
-                        size="icon"
-                        className="hidden lg:flex"
-                        onClick={() => table.setPageIndex(pageCount - 1)}
-                        disabled={!canNextPage}
-                    >
-                        <ChevronsRight className="rtl:rotate-180" />
-                    </Button>
-                </div>
-            </div>
-        </div>
+                        {firstLast !== false && (
+                            <Button
+                                aria-label={getMessage(table, 'first_page')}
+                                variant="outline"
+                                size="icon"
+                                className={edgeClassName}
+                                onClick={() => table.setPageIndex(0)}
+                                disabled={!canPreviousPage}
+                            >
+                                <ChevronsLeft className="rtl:rotate-180" />
+                            </Button>
+                        )}
+                        <Button
+                            aria-label={getMessage(table, 'previous_page')}
+                            variant="outline"
+                            size="icon"
+                            onClick={() => table.previousPage()}
+                            disabled={!canPreviousPage}
+                        >
+                            <ChevronLeft className="rtl:rotate-180" />
+                        </Button>
+                        <Button
+                            aria-label={getMessage(table, 'next_page')}
+                            variant="outline"
+                            size="icon"
+                            onClick={() => table.nextPage()}
+                            disabled={!canNextPage}
+                        >
+                            <ChevronRight className="rtl:rotate-180" />
+                        </Button>
+                        {firstLast !== false && (
+                            <Button
+                                aria-label={getMessage(table, 'last_page')}
+                                variant="outline"
+                                size="icon"
+                                className={edgeClassName}
+                                onClick={() =>
+                                    table.setPageIndex(pageCount - 1)
+                                }
+                                disabled={!canNextPage}
+                            >
+                                <ChevronsRight className="rtl:rotate-180" />
+                            </Button>
+                        )}
+                    </div>
+                );
+            }}
+        </table.Subscribe>
     );
 }

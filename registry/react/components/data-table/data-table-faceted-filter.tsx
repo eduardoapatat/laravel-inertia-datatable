@@ -5,6 +5,7 @@
 import type * as React from 'react';
 
 import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
+import { cn } from '@/lib/utils';
 
 import {
     clearColumnFilter,
@@ -15,6 +16,17 @@ import {
 import { formatNumber, getEmptyLabel } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 import type { ColumnSelectOption } from '@/lib/data-table-types';
+import {
+    type FilterComponentName,
+    getBooleanFilterOptions,
+    getColumnSelectOptions,
+    getFacetedFilterOptions,
+} from '@/lib/data-table-utils';
+
+import {
+    type DataTableFilterPieceProps,
+    useDataTableFilterColumn,
+} from '@/components/data-table/data-table-context';
 
 import { Button } from '@/components/ui/button';
 import { useDirection } from '@/components/ui/direction';
@@ -44,20 +56,108 @@ import { CirclePlus, CircleX } from 'lucide-react';
  */
 const EMPTY_VALUE = '\u0000empty';
 
-interface DataTableFacetedFilterProps<TData extends RowData, TValue> {
-    column?: Column<DataTableFeatures, TData, TValue>;
-    title?: string;
-    options: ColumnSelectOption[];
+interface DataTableFacetedFilterProps<TData extends RowData> extends Omit<
+    DataTableFilterPieceProps<TData>,
+    'column'
+> {
+    /**
+     * Id of a `select`, `multi-select` or `boolean` column of the PHP class.
+     * Without it, the filter only shows `options` (no table needed).
+     */
+    column?: DataTableFilterPieceProps<TData>['column'];
+    /**
+     * Relabels, reorders or leaves out the server options (matched by
+     * `value`); values the server did not declare are ignored.
+     */
+    options?: ColumnSelectOption[];
+    /** Several values at once; by default, when the column is `multi-select`. */
     multiple?: boolean;
+    /** Shows the number of rows of each option. */
+    counts?: boolean;
+    /** Shows the search box of the list. */
+    searchable?: boolean;
 }
 
-export function DataTableFacetedFilter<TData extends RowData, TValue>({
+/**
+ * List filter for `select`, `multi-select` and `boolean` columns: one popover
+ * with the options of the server and their counts.
+ */
+export function DataTableFacetedFilter<TData extends RowData>({
     column,
     ...props
-}: DataTableFacetedFilterProps<TData, TValue>) {
-    if (!column) {
-        return <DataTableFacetedFilterContent column={column} {...props} />;
+}: DataTableFacetedFilterProps<TData>) {
+    if (column === undefined) {
+        return (
+            <DataTableFacetedFilterContent
+                {...props}
+                options={props.options ?? []}
+            />
+        );
     }
+
+    return (
+        <ColumnFacetedFilter
+            component="DataTableFacetedFilter"
+            column={column}
+            {...props}
+        />
+    );
+}
+
+interface DataTableBooleanFilterProps<TData extends RowData> extends Omit<
+    DataTableFacetedFilterProps<TData>,
+    'column' | 'options' | 'multiple'
+> {
+    column: DataTableFilterPieceProps<TData>['column'];
+    /** Texts of `true` and `false`; those of `->labels()` by default. */
+    labels?: { true: string; false: string };
+}
+
+/**
+ * Yes / No filter of a `boolean` column (`->filterSelect()` in PHP).
+ */
+export function DataTableBooleanFilter<TData extends RowData>({
+    labels,
+    ...props
+}: DataTableBooleanFilterProps<TData>) {
+    return (
+        <ColumnFacetedFilter
+            component="DataTableBooleanFilter"
+            labels={labels}
+            {...props}
+        />
+    );
+}
+
+function ColumnFacetedFilter<TData extends RowData>({
+    component,
+    table: tableProp,
+    column: columnProp,
+    options,
+    multiple,
+    labels,
+    ...props
+}: DataTableFacetedFilterProps<TData> & {
+    component: FilterComponentName;
+    column: DataTableFilterPieceProps<TData>['column'];
+    labels?: { true: string; false: string };
+}) {
+    const column = useDataTableFilterColumn(component, columnProp, tableProp);
+
+    if (!column) return null;
+
+    const meta = column.columnDef.meta;
+    const isBoolean = meta?.variant === 'boolean';
+    const serverOptions = isBoolean
+        ? getBooleanFilterOptions(
+              meta,
+              {
+                  yes: getMessage(column.table, 'yes'),
+                  no: getMessage(column.table, 'no'),
+              },
+              labels,
+          )
+        : getColumnSelectOptions(meta);
 
     return (
         <Subscribe
@@ -72,6 +172,8 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
                     column={column}
                     columnFilterValue={value}
                     includesEmpty={empty}
+                    options={getFacetedFilterOptions(serverOptions, options)}
+                    multiple={multiple ?? meta?.variant === 'multi-select'}
                     {...props}
                 />
             )}
@@ -81,20 +183,28 @@ export function DataTableFacetedFilter<TData extends RowData, TValue>({
 
 interface DataTableFacetedFilterContentProps<
     TData extends RowData,
-    TValue,
-> extends DataTableFacetedFilterProps<TData, TValue> {
+> extends Omit<DataTableFacetedFilterProps<TData>, 'column' | 'table'> {
+    column?: Column<DataTableFeatures, TData>;
+    options: ColumnSelectOption[];
     columnFilterValue?: unknown;
     includesEmpty?: boolean;
 }
 
-function DataTableFacetedFilterContent<TData extends RowData, TValue>({
+function DataTableFacetedFilterContent<TData extends RowData>({
     column,
     title = column?.columnDef.meta?.label ?? column?.id,
     options,
     multiple = false,
+    counts = true,
+    searchable = true,
+    icon: Icon = CirclePlus,
+    className,
+    contentClassName,
+    align,
+    disabled,
     columnFilterValue,
     includesEmpty = false,
-}: DataTableFacetedFilterContentProps<TData, TValue>) {
+}: DataTableFacetedFilterContentProps<TData>) {
     const table = column?.table;
     const meta = column?.columnDef.meta;
     const dir = useDirection();
@@ -150,7 +260,11 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
             multiple={multiple}
         >
             <FacetedTrigger asChild>
-                <Button variant="outline" className="border-dashed">
+                <Button
+                    variant="outline"
+                    className={cn('border-dashed', className)}
+                    disabled={disabled}
+                >
                     {hasSelection ? (
                         <span
                             aria-hidden="true"
@@ -160,7 +274,7 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                             <CircleX />
                         </span>
                     ) : (
-                        <CirclePlus />
+                        Icon && <Icon />
                     )}
                     {title}
                     {hasSelection && (
@@ -199,9 +313,10 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                     label: title ?? '',
                 })}
                 dir={dir}
-                className="w-50"
+                align={align}
+                className={cn('w-50', contentClassName)}
             >
-                <FacetedInput placeholder={title} />
+                {searchable && <FacetedInput placeholder={title} />}
                 <FacetedList className="max-h-full">
                     <FacetedEmpty>
                         {getMessage(table, 'no_options')}
@@ -219,7 +334,7 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                                 <span className="flex-1 truncate">
                                     {option.label}
                                 </span>
-                                {option.count !== undefined && (
+                                {counts && option.count !== undefined && (
                                     <FacetedItemCount>
                                         {formatNumber(
                                             option.count,
@@ -240,15 +355,16 @@ function DataTableFacetedFilterContent<TData extends RowData, TValue>({
                                     <span className="flex-1 truncate">
                                         {emptyOption.label}
                                     </span>
-                                    {emptyOption.count !== undefined && (
-                                        <FacetedItemCount>
-                                            {formatNumber(
-                                                emptyOption.count,
-                                                {},
-                                                table?.options.meta?.locale,
-                                            )}
-                                        </FacetedItemCount>
-                                    )}
+                                    {counts &&
+                                        emptyOption.count !== undefined && (
+                                            <FacetedItemCount>
+                                                {formatNumber(
+                                                    emptyOption.count,
+                                                    {},
+                                                    table?.options.meta?.locale,
+                                                )}
+                                            </FacetedItemCount>
+                                        )}
                                 </FacetedItem>
                             </FacetedGroup>
                         </>

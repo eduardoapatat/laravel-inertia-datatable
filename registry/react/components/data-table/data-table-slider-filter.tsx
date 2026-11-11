@@ -3,6 +3,7 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
 import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
+import { cn } from '@/lib/utils';
 import * as React from 'react';
 
 import {
@@ -22,6 +23,10 @@ import {
     getRangeFilterBounds,
     getValidRangeFilterBounds,
 } from '@/lib/data-table-utils';
+import {
+    type DataTableFilterPieceProps,
+    useDataTableFilterColumn,
+} from '@/components/data-table/data-table-context';
 import { DataTableEmptyFilter } from '@/components/data-table/data-table-empty-filter';
 import { Button } from '@/components/ui/button';
 import { useDirection } from '@/components/ui/direction';
@@ -45,15 +50,30 @@ const INVALID_RING_DELAY_MS = 500;
 
 type RangeValue = [number, number];
 
-interface DataTableSliderFilterProps<TData extends RowData> {
-    column: Column<DataTableFeatures, TData>;
-    title?: string;
+interface DataTableSliderFilterProps<
+    TData extends RowData,
+> extends DataTableFilterPieceProps<TData> {
+    /** Step of the slider; by default about 50 steps between the bounds. */
+    step?: number;
 }
 
+/**
+ * Range filter of a number column with `->filterRange()`: a popover with the
+ * two bounds and a slider between the min and max of the server.
+ */
 export function DataTableSliderFilter<TData extends RowData>({
-    column,
+    table,
+    column: columnProp,
     ...props
 }: DataTableSliderFilterProps<TData>) {
+    const column = useDataTableFilterColumn(
+        'DataTableSliderFilter',
+        columnProp,
+        table,
+    );
+
+    if (!column) return null;
+
     return (
         <Subscribe
             source={column.table.atoms.columnFilters}
@@ -77,9 +97,16 @@ export function DataTableSliderFilter<TData extends RowData>({
 function DataTableSliderFilterContent<TData extends RowData>({
     column,
     title = column.columnDef.meta?.label ?? column.id,
+    step: stepProp,
+    icon: Icon = CirclePlus,
+    className,
+    contentClassName,
+    align = 'start',
+    disabled,
     columnFilterValue: columnFilterValueProp,
     includesEmpty,
-}: DataTableSliderFilterProps<TData> & {
+}: Omit<DataTableSliderFilterProps<TData>, 'column' | 'table'> & {
+    column: Column<DataTableFeatures, TData>;
     columnFilterValue: unknown;
     includesEmpty: boolean;
 }) {
@@ -98,7 +125,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
     );
     const min = declaredMin ?? facetedRange[0];
     const max = declaredMax ?? facetedRange[1];
-    const step = getRangeStep(min, max);
+    const step = stepProp ?? getRangeStep(min, max);
 
     function onOpenChange(open: boolean) {
         if (open) setFacetedRange(getFacetedRange(column));
@@ -236,7 +263,11 @@ function DataTableSliderFilterContent<TData extends RowData>({
     return (
         <Popover onOpenChange={onOpenChange}>
             <PopoverTrigger asChild>
-                <Button variant="outline" className="border-dashed">
+                <Button
+                    variant="outline"
+                    className={cn('border-dashed', className)}
+                    disabled={disabled}
+                >
                     {hasFilter ? (
                         <span
                             aria-hidden="true"
@@ -246,7 +277,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
                             <CircleX />
                         </span>
                     ) : (
-                        <CirclePlus />
+                        Icon && <Icon />
                     )}
                     <span>{title}</span>
                     {hasFilter ? (
@@ -271,8 +302,8 @@ function DataTableSliderFilterContent<TData extends RowData>({
             <PopoverContent
                 aria-label={getMessage(table, 'filter', { label: title })}
                 dir={dir}
-                align="start"
-                className="flex w-auto flex-col gap-4"
+                align={align}
+                className={cn('flex w-auto flex-col gap-4', contentClassName)}
             >
                 <div className="flex flex-col gap-3">
                     <Label>{title}</Label>
