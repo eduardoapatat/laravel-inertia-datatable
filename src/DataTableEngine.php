@@ -108,23 +108,35 @@ final class DataTableEngine
                 ),
             ],
             'facets' => $this->facets->resolve($definition, $state),
-            'config' => [
-                'columns' => array_values(array_map(fn (Column $column): array => $column->toConfig(), $definition->columns)),
-                'searchable' => $definition->isSearchable(),
-                'locale' => $this->locale($definition),
-                'date_format' => $this->dateFormat(),
-                'messages' => $this->messages(),
-                'per_page' => $definition->perPage,
-                'per_page_options' => $definition->perPageOptions,
-                'default_sorting' => array_map(fn (SortItem $item): array => $item->toArray(), $definition->defaultSort),
-                'query' => [
-                    'page' => $definition->queryKey('page'),
-                    'per_page' => $definition->queryKey('per_page'),
-                    'sort' => $definition->queryKey('sort'),
-                    'filter' => $definition->queryKey('filter'),
-                    'search' => $definition->queryKey('search'),
-                    'columns' => $definition->queryKey('columns'),
-                ],
+            'config' => $this->config($definition),
+        ];
+    }
+
+    /**
+     * Configuration of the table (columns, texts, locale, page sizes and query
+     * keys) without running any query: enough to draw a skeleton of the table
+     * while its data is deferred.
+     *
+     * @return array<string, mixed>
+     */
+    public function config(TableDefinition $definition): array
+    {
+        return [
+            'columns' => array_values(array_map(fn (Column $column): array => $column->toConfig(), $definition->columns)),
+            'searchable' => $definition->isSearchable(),
+            'locale' => $this->locale($definition),
+            'date_format' => $this->dateFormat(),
+            'messages' => $this->messages(),
+            'per_page' => $definition->perPage,
+            'per_page_options' => $definition->perPageOptions,
+            'default_sorting' => array_map(fn (SortItem $item): array => $item->toArray(), $definition->defaultSort),
+            'query' => [
+                'page' => $definition->queryKey('page'),
+                'per_page' => $definition->queryKey('per_page'),
+                'sort' => $definition->queryKey('sort'),
+                'filter' => $definition->queryKey('filter'),
+                'search' => $definition->queryKey('search'),
+                'columns' => $definition->queryKey('columns'),
             ],
         ];
     }

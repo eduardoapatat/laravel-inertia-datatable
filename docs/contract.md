@@ -147,6 +147,8 @@ return Inertia::render('users/index', [
 
 Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closure avoids resolving the table when a partial reload does not request it (`router.get(url, {}, { only: ['users'] })`).
 
+`config()` returns only the `config` key of the response (2.1) without running any query, not even the column validation. It is meant for a deferred first load: the table goes in `Inertia::defer(fn () => UsersTable::make())` and its config in another prop, so the frontend draws a skeleton with the real columns while the data arrives.
+
 ### 2.1 Shape
 
 ```json

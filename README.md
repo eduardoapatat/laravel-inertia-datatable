@@ -48,6 +48,7 @@ With these repositories: `composer require eduardoapatat/laravel-inertia-datatab
 php artisan make:datatable ProductsTable                 # only the class (guessed model: App\Models\Product)
 php artisan make:datatable ProductsTable --react         # + component components/data-tables/products-table.tsx
 php artisan make:datatable ProductsTable --page          # + component + page pages/products/index.tsx
+php artisan make:datatable ProductsTable --defer         # the same page, with the table deferred and a skeleton
 php artisan make:datatable ProductsTable --react --install-ui   # also installs the generic UI if missing
 php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
 ```

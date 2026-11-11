@@ -34,7 +34,7 @@ class MakeDataTableCommand extends GeneratorCommand
     {
         $model = $this->modelClass();
         $result = $model === null ? false : parent::handle();
-        $wantsReact = $this->option('react') || $this->option('page');
+        $wantsReact = $this->option('react') || $this->wantsPage();
 
         // An existing class still gets the React files it lacks, so they can be added later.
         $existingTable = $model !== null && $result === false && $wantsReact
@@ -53,7 +53,7 @@ class MakeDataTableCommand extends GeneratorCommand
             $this->writeReactComponent($model);
         }
 
-        if ($this->option('page')) {
+        if ($this->wantsPage()) {
             $this->writeReactPage($model);
         }
 
@@ -116,6 +116,7 @@ class MakeDataTableCommand extends GeneratorCommand
             ['model', 'm', InputOption::VALUE_REQUIRED, 'The model of the table (defaults to the singular of the class name)'],
             ['react', null, InputOption::VALUE_NONE, 'Also create a React component with the columns of the table'],
             ['page', null, InputOption::VALUE_NONE, 'Also create the React component and an Inertia page that renders it'],
+            ['defer', null, InputOption::VALUE_NONE, 'Create the page with the table deferred and a skeleton meanwhile (implies --page)'],
             ['install-ui', null, InputOption::VALUE_NONE, 'Install the data-table-react registry item if the project does not have it'],
             ['empty', null, InputOption::VALUE_NONE, 'Do not guess the columns from the model'],
             ['force', 'f', InputOption::VALUE_NONE, 'Overwrite the files if they already exist'],
@@ -257,7 +258,7 @@ PHP;
             str_replace(
                 ['{{ component }}', '{{ file }}', '{{ rowType }}', '{{ prop }}', '{{ page }}', '{{ title }}', '{{ url }}'],
                 [$names['component'], $names['file'], $names['row'], $names['prop'], $names['page'], $names['title'], '/'.$names['resource']],
-                $this->files->get($this->resolveStubPath('datatable-react-page.stub')),
+                $this->files->get($this->resolveStubPath($this->option('defer') ? 'datatable-react-page-deferred.stub' : 'datatable-react-page.stub')),
             ),
             'React page',
         );
@@ -324,6 +325,11 @@ PHP;
         ];
     }
 
+    private function wantsPage(): bool
+    {
+        return (bool) ($this->option('page') || $this->option('defer'));
+    }
+
     /**
      * @param  class-string<Model>  $model
      */
@@ -332,12 +338,16 @@ PHP;
         $names = $this->resourceNames($model);
         $class = class_basename($this->qualifyClass($this->getNameInput()));
 
+        $props = $this->option('defer')
+            ? "['{$names['prop']}' => Inertia::defer(fn () => {$class}::make()), '{$names['prop']}Config' => fn () => {$class}::make()->config()]"
+            : "['{$names['prop']}' => fn () => {$class}::make()]";
+
         $steps = [
-            "Return it from a controller: Inertia::render('{$names['resource']}/index', ['{$names['prop']}' => fn () => {$class}::make()])",
+            "Return it from a controller: Inertia::render('{$names['resource']}/index', {$props})",
             "Register a route: Route::get('{$names['resource']}', [{$names['row']}Controller::class, 'index'])->name('{$names['resource']}.index')",
         ];
 
-        if ($this->option('react') && ! $this->option('page')) {
+        if ($this->option('react') && ! $this->wantsPage()) {
             $steps[] = "Render it in a page: <{$names['component']} {$names['prop']}={{$names['prop']}} /> from '@/components/data-tables/{$names['file']}'";
         }
 

@@ -14,9 +14,11 @@ import {
     type TableState,
 } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
+import type { DataTableLoadingPhase } from '@/lib/data-table-types';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -60,6 +62,13 @@ interface DataTableProps<
      * Declare the function outside the component so rows keep their memo.
      */
     rowClassName?: DataTableRowClassName<TData>;
+    /**
+     * Shows that a visit is loading: after `loadingDelay` the rows dim and a
+     * progress bar appears, after `skeletonDelay` the rows turn into
+     * skeletons (both options of `useServerDataTable`). With `false`, nothing
+     * is shown; handle it yourself with the `loading` the hook returns.
+     */
+    loading?: 'auto' | false;
 }
 
 type DataTableRowClassName<TData extends RowData> =
@@ -72,6 +81,7 @@ export function DataTable<TData extends RowData>({
     pagination = true,
     headerClassName,
     rowClassName,
+    loading = 'auto',
     children,
     className,
     'aria-label': ariaLabel,
@@ -80,6 +90,9 @@ export function DataTable<TData extends RowData>({
 }: DataTableProps<TData>) {
     const table = useDataTable(tableProp, 'DataTable');
     const dir = useDirection();
+    const phase: DataTableLoadingPhase =
+        loading === false ? 'idle' : (table.options.meta?.loading ?? 'idle');
+    const isLoading = phase !== 'idle';
 
     return (
         <div
@@ -92,7 +105,18 @@ export function DataTable<TData extends RowData>({
             {...props}
         >
             {children}
-            <div className="isolate overflow-hidden rounded-md border">
+            <div
+                aria-busy={isLoading || undefined}
+                data-loading={isLoading ? phase : undefined}
+                className="relative isolate overflow-hidden rounded-md border"
+            >
+                {isLoading ? (
+                    <div
+                        aria-hidden="true"
+                        data-slot="data-table-progress"
+                        className="absolute inset-x-0 top-0 z-20 h-0.5 animate-pulse bg-primary motion-reduce:animate-none"
+                    />
+                ) : null}
                 <DataTableLayout
                     table={table}
                     aria-label={ariaLabel}
@@ -102,7 +126,11 @@ export function DataTable<TData extends RowData>({
                         table={table}
                         className={headerClassName}
                     />
-                    <DataTableBody table={table} rowClassName={rowClassName} />
+                    <DataTableBody
+                        table={table}
+                        rowClassName={rowClassName}
+                        phase={phase}
+                    />
                 </DataTableLayout>
             </div>
             {pagination || actionBar ? (
@@ -228,13 +256,19 @@ function getCellClassName(pinned: ColumnPinningPosition) {
 interface DataTableBodyProps<TData extends RowData> {
     table: ReactTable<DataTableFeatures, TData, unknown>;
     rowClassName?: DataTableRowClassName<TData>;
+    phase: DataTableLoadingPhase;
 }
 
 function DataTableBody<TData extends RowData>({
     table,
     rowClassName,
+    phase,
 }: DataTableBodyProps<TData>) {
     const rows = table.getRowModel().rows;
+
+    if (phase === 'slow') {
+        return <DataTableSkeletonRows table={table} count={rows.length} />;
+    }
 
     if (!rows.length) {
         return (
@@ -258,11 +292,66 @@ function DataTableBody<TData extends RowData>({
     }
 
     return (
-        <TableBody>
+        <TableBody
+            className={cn(
+                'transition-opacity duration-200 motion-reduce:transition-none',
+                phase === 'busy' && 'opacity-60',
+            )}
+        >
             {rows.map((row) => (
                 <DataTableRow key={row.id} row={row} className={rowClassName} />
             ))}
         </TableBody>
+    );
+}
+
+interface DataTableSkeletonRowsProps<TData extends RowData> {
+    table: ReactTable<DataTableFeatures, TData, unknown>;
+    /** Rows on screen; with none, the page size, so the height stays. */
+    count: number;
+}
+
+/**
+ * Placeholder rows while a slow visit loads, with the classes and styles of
+ * the real cells so widths, alignment and pinned columns stay put.
+ */
+function DataTableSkeletonRows<TData extends RowData>({
+    table,
+    count,
+}: DataTableSkeletonRowsProps<TData>) {
+    return (
+        <table.Subscribe selector={selectSkeletonState}>
+            {({ pageSize }) => (
+                <TableBody>
+                    {Array.from({ length: count || pageSize }, (_, i) => (
+                        <TableRow key={i} className="hover:bg-transparent">
+                            {table.getVisibleLeafColumns().map((column) => {
+                                const pinned = column.getIsPinned();
+
+                                return (
+                                    <TableCell
+                                        key={column.id}
+                                        className={cn(
+                                            getCellClassName(pinned),
+                                            ...getColumnClassName(
+                                                column.columnDef.meta,
+                                                'cell',
+                                            ),
+                                        )}
+                                        style={getColumnPinningStyle(
+                                            column,
+                                            pinned,
+                                        )}
+                                    >
+                                        <Skeleton className="h-5 w-full" />
+                                    </TableCell>
+                                );
+                            })}
+                        </TableRow>
+                    ))}
+                </TableBody>
+            )}
+        </table.Subscribe>
     );
 }
 
@@ -367,6 +456,13 @@ function selectLayoutState(state: TableState<DataTableFeatures>) {
         columnPinning: state.columnPinning,
         columnSizing: state.columnSizing,
         columnVisibility: state.columnVisibility,
+    };
+}
+
+function selectSkeletonState(state: TableState<DataTableFeatures>) {
+    return {
+        ...selectHeaderState(state),
+        pageSize: state.pagination.pageSize,
     };
 }
 

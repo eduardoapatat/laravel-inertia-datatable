@@ -4,6 +4,17 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `->config()` on a table (and `DataTableEngine::config()`) returns the `config` of the response without running any query, to draw a skeleton while a deferred table loads: `'products' => Inertia::defer(fn () => ProductsTable::make())` and `'productsConfig' => fn () => ProductsTable::make()->config()`.
+- `DataTableSkeleton config={productsConfig}` draws the visible columns with their labels, `per_page` rows, the search and one placeholder per filter. Its manual props (`columnCount`, `rowCount`, `filterCount`, the new `withSearch`, `label`) win over the config. It waits `delay` (150 ms, `0` shows it at once) before showing, keeping its space, so a fast deferred load does not flash it.
+- `make:datatable --defer` writes the page with the table inside `<Deferred>` and that skeleton as fallback (it implies `--page`), and shows the controller with `Inertia::defer` and `config()`.
+- `<DataTable>` shows slow visits on its own: nothing on fast ones, after `loadingDelay` (150 ms) dimmed rows and a thin progress bar, after `skeletonDelay` (600 ms, `false` turns it off) skeleton rows with the same column widths. The toolbar stays usable, the container gets `aria-busy` and `data-loading`, and `prefers-reduced-motion` turns the animations off. Both delays are options of `useServerDataTable`, which also returns `loading` (`'idle' | 'busy' | 'slow'`); `<DataTable loading={false}>` turns the indicator off.
+
+### Changed
+
+- The React component stub no longer applies `cn(isLoading && 'opacity-60', className)`, since `<DataTable>` shows the loading state itself. In components generated before, replace it with `className={className}` after updating the generic UI with `php artisan inertia-datatable:ui --update`; otherwise the whole table, toolbar included, also dims.
+
 ### Fixed
 
 - Option cells without a badge cut a long label without "…": the label was inside an inline-flex box, which the `text-ellipsis` of the cell does not reach. Update the generic UI with `php artisan inertia-datatable:ui --update`.

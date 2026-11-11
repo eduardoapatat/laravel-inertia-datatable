@@ -127,7 +127,28 @@ it('creates a page that renders the component with the page option', function ()
         ->toContain("import { ProductsTable } from '@/components/data-tables/products-table';")
         ->toContain('export default function ProductsIndex({ products }: Props) {')
         ->toContain('<ProductsTable products={products} />')
-        ->toContain("href: '/products',");
+        ->toContain("href: '/products',")
+        ->not->toContain('Deferred');
+});
+
+it('creates a deferred page with a skeleton with the defer option', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--defer' => true])
+        ->expectsOutputToContain("'productsConfig' => fn () => ProductsTable::make()->config()")
+        ->assertSuccessful();
+
+    expect(File::exists(resource_path('js/components/data-tables/products-table.tsx')))->toBeTrue()
+        ->and(File::get(resource_path('js/pages/products/index.tsx')))
+        ->toContain("import { Deferred, Head } from '@inertiajs/react';")
+        ->toContain('    products?: ServerDataTable<Product>;')
+        ->toContain('    productsConfig: ServerTableConfig;')
+        ->toContain('fallback={<DataTableSkeleton config={productsConfig} />}')
+        ->toContain('products ? <ProductsTable products={products} /> : null');
+});
+
+it('tells to defer the table in the controller with the defer option', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--defer' => true])
+        ->expectsOutputToContain("'products' => Inertia::defer(fn () => ProductsTable::make())")
+        ->assertSuccessful();
 });
 
 it('shows the install command when the data table UI is missing', function () {

@@ -40,9 +40,13 @@ import type {
     ColumnDisplay,
     ColumnSelectOption,
     DataTableColumnMeta,
+    DataTableLoadingPhase,
 } from '@/lib/data-table-types';
 import { getOwn } from '@/lib/data-table-format';
-import { normalizeColumnFilter } from '@/lib/data-table-utils';
+import {
+    createLoadingPhases,
+    normalizeColumnFilter,
+} from '@/lib/data-table-utils';
 
 export { getOptionLabel } from '@/components/data-table/data-table-default-column';
 
@@ -82,6 +86,16 @@ export interface UseServerDataTableOptions<TData extends RowData> {
     locale?: string;
     /** Texts of the UI to change, over the ones of the server lang files. */
     messages?: Partial<DataTableMessages>;
+    /**
+     * Wait before showing that a visit is loading (dimmed rows and a progress
+     * bar), so fast responses do not flicker. 150 ms by default.
+     */
+    loadingDelay?: number;
+    /**
+     * Wait before replacing the rows with skeleton rows of the same columns;
+     * `false` keeps the dimmed rows. 600 ms by default.
+     */
+    skeletonDelay?: number | false;
     getRowId?: TableOptions<DataTableFeatures, TData>['getRowId'];
 }
 
@@ -97,6 +111,8 @@ export function useServerDataTable<TData extends RowData>({
     getRowId = getDefaultRowId,
     locale,
     messages,
+    loadingDelay = 150,
+    skeletonDelay = 600,
 }: UseServerDataTableOptions<TData>) {
     const { config, data, facets, meta, state: serverState } = serverTable;
 
@@ -106,6 +122,14 @@ export function useServerDataTable<TData extends RowData>({
     const [draftVersion, setDraftVersion] = React.useState(0);
     const [sentVersion, setSentVersion] = React.useState(0);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [loading, setLoading] = React.useState<DataTableLoadingPhase>('idle');
+    const [loadingPhases] = React.useState(() =>
+        createLoadingPhases({
+            loadingDelay,
+            skeletonDelay,
+            onChange: setLoading,
+        }),
+    );
     const timeoutRef = React.useRef<ReturnType<typeof setTimeout>>(undefined);
     const chainRef = React.useRef<{
         base: LocalTableState;
@@ -129,7 +153,13 @@ export function useServerDataTable<TData extends RowData>({
         );
     }
 
-    React.useEffect(() => () => clearTimeout(timeoutRef.current), []);
+    React.useEffect(
+        () => () => {
+            clearTimeout(timeoutRef.current);
+            loadingPhases.dispose();
+        },
+        [loadingPhases],
+    );
 
     function visit(next: LocalTableState, replace: boolean) {
         const pairs = stateToQuery(toQueryState(next, config), config);
@@ -142,8 +172,15 @@ export function useServerDataTable<TData extends RowData>({
                 preserveState: true,
                 preserveScroll: true,
                 replace,
-                onStart: () => setIsLoading(true),
-                onFinish: () => setIsLoading(false),
+                onStart: () => {
+                    setIsLoading(true);
+                    loadingPhases.start();
+                },
+                // Also after a cancelled or failed visit.
+                onFinish: () => {
+                    setIsLoading(false);
+                    loadingPhases.finish();
+                },
             },
         );
     }
@@ -260,6 +297,7 @@ export function useServerDataTable<TData extends RowData>({
             locale: resolveLocale(locale ?? config.locale),
             dateFormat: config.date_format,
             messages: tableMessages,
+            loading,
         },
         rowCount: meta.total,
         // Without rows the server reports 1 page, not 0.
@@ -275,7 +313,11 @@ export function useServerDataTable<TData extends RowData>({
         manualFiltering: true,
     });
 
-    return { table, isLoading };
+    /**
+     * `isLoading`: a visit is in flight, right away. `loading`: the delayed
+     * phase `DataTable` shows (`idle`, `busy`, `slow`).
+     */
+    return { table, isLoading, loading };
 }
 
 /** `'browser'` or nothing: the browser locale (Intl without a locale). */

@@ -9,6 +9,7 @@ use InertiaDataTable\Column;
 use InertiaDataTable\DataTable;
 use InertiaDataTable\Tests\Fixtures\Models\Category;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
+use InertiaDataTable\Tests\Fixtures\Tables\ProductsTable;
 use InertiaDataTable\Tests\Fixtures\Tables\ProductsWithUrlTable;
 
 use function Pest\Laravel\assertDatabaseCount;
@@ -320,6 +321,34 @@ it('echoes the applied filters in the ColumnFilterItem shape', function () {
         ['id' => 'price', 'filterId' => 'price-0', 'variant' => 'range', 'operator' => 'gte', 'value' => '10'],
         ['id' => 'price', 'filterId' => 'price-1', 'variant' => 'range', 'operator' => 'lte', 'value' => '50'],
     ]);
+});
+
+it('gives the config of the response without running any query', function () {
+    seedCatalog();
+    config()->set('inertia-datatable.validate_columns', true);
+    $table = ProductsTable::make()->withRequest(Request::create('/', 'GET', ['filter' => ['status' => 'draft']]));
+    $expected = $table->toArray()['config'];
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $config = $table->config();
+    $queries = DB::getQueryLog();
+    DB::disableQueryLog();
+
+    expect($config)->toBe($expected)
+        ->and($queries)->toBe([]);
+});
+
+it('gives the config of a quick table with its prefixed query keys', function () {
+    $table = DataTable::for(Product::query())
+        ->name('products')
+        ->columns([Column::text('name')->searchable()])
+        ->perPage(25);
+
+    expect($table->config())
+        ->toMatchArray(['searchable' => true, 'per_page' => 25])
+        ->and($table->config()['query'])->toMatchArray(['page' => 'products_page', 'search' => 'products_search'])
+        ->and($table->config())->toBe($table->withRequest(Request::create('/'))->toArray()['config']);
 });
 
 it('describes columns, options and query parameters in config', function () {

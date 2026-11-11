@@ -38,6 +38,18 @@ trait ResolvesDataTable
     }
 
     /**
+     * Only the `config` of the response, without running any query: pass it as
+     * a separate prop to draw `<DataTableSkeleton config={...}>` while the table
+     * itself is a deferred prop.
+     *
+     * @return array<string, mixed>
+     */
+    public function config(): array
+    {
+        return app(DataTableEngine::class)->config($this->toDefinition());
+    }
+
+    /**
      * @return DataTableResponse
      */
     public function jsonSerialize(): array

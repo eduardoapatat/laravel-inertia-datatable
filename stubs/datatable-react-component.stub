@@ -4,7 +4,6 @@ import { DataTableToolbar } from '@/components/data-table/data-table-toolbar';
 import { useServerDataTable } from '@/hooks/use-server-data-table';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type { ServerDataTable } from '@/lib/data-table-server';
-import { cn } from '@/lib/utils';
 
 /**
  * Rows only include the visible columns, so most fields are optional.
@@ -49,7 +48,7 @@ export function {{ component }}({
     prop = '{{ prop }}',
     className,
 }: {{ component }}Props) {
-    const { table, isLoading } = useServerDataTable({
+    const { table } = useServerDataTable({
         table: {{ prop }},
         prop,
         columns,
@@ -59,7 +58,7 @@ export function {{ component }}({
         <DataTable
             table={table}
             aria-label="{{ title }}"
-            className={cn(isLoading && 'opacity-60', className)}
+            className={className}
         >
             {/* To change the layout, replace the toolbar with its pieces
                 (anywhere inside <DataTableProvider table={table}>):

@@ -4,6 +4,7 @@
 - Page structure
 - Columns and cells
 - Toolbar, pagination and loading state
+- First load with a skeleton
 - Language and texts
 - Column width and classes
 - Layout: place and customize the pieces
@@ -53,12 +54,12 @@ const columns = columnHelper.columns([
 ]);
 
 export default function ProductsIndex({ products }: { products: ServerDataTable<Product> }) {
-    const { table, isLoading } = useServerDataTable({ table: products, prop: 'products', columns });
+    const { table } = useServerDataTable({ table: products, prop: 'products', columns });
 
     return (
         <>
             <Head title="Products" />
-            <DataTable table={table} className={isLoading ? 'opacity-60' : undefined}>
+            <DataTable table={table}>
                 <DataTableToolbar table={table} />
             </DataTable>
         </>
@@ -148,7 +149,33 @@ columnHelper.accessor('category', {
 
 - `<DataTableToolbar table={table} />` renders the global search (when the server allows it) and one control per filterable column: text/number inputs, faceted filters with counts, range slider, date pickers, Yes/No for booleans (with `empty: true` in PHP, a "without value" option or check, `DataTableEmptyFilter`), plus Reset and the column visibility menu (hidden below `lg`). Props: `searchPlaceholder`, `searchable` (override), `children` (extra buttons on the right). For another arrangement or to customize a filter, see "Layout: place and customize the pieces".
 - Pagination is part of `<DataTable>` (below the table; `pagination={false}` to place it or its pieces yourself); page sizes come from the server.
-- `isLoading` is true while a visit is in flight; use it for a subtle opacity or a spinner, never to unmount the table (that would lose input focus).
+- `<DataTable>` shows a slow visit on its own, without flicker on fast ones: after `loadingDelay` (150 ms) the rows dim and a thin progress bar appears, after `skeletonDelay` (600 ms; `false` turns it off) the rows turn into skeleton rows with the same column widths. The toolbar stays usable, the table container gets `aria-busy` and `data-loading="busy" | "slow"`, and with `prefers-reduced-motion` nothing animates. Both delays are options of `useServerDataTable`.
+- The hook also returns `isLoading` (true as soon as a visit starts) and `loading` (`'idle' | 'busy' | 'slow'`). To show the state yourself, use `<DataTable loading={false}>` and one of them; never unmount the table while loading (that would lose input focus). Generated components older than v0.11 apply `cn(isLoading && 'opacity-60', className)`: replace it with `className`.
+
+## First load with a skeleton
+
+To show the page at once and load the table after it, defer the prop and send the table config, which runs no query, for the skeleton (`make:datatable --defer` generates this page):
+
+```php
+return Inertia::render('products/index', [
+    'products' => Inertia::defer(fn () => ProductsTable::make()),
+    'productsConfig' => fn () => ProductsTable::make()->config(),
+]);
+```
+
+```tsx
+type Props = { products?: ServerDataTable<Product>; productsConfig: ServerTableConfig };
+
+export default function ProductsIndex({ products, productsConfig }: Props) {
+    return (
+        <Deferred data="products" fallback={<DataTableSkeleton config={productsConfig} />}>
+            {() => (products ? <ProductsTable products={products} /> : null)}
+        </Deferred>
+    );
+}
+```
+
+`DataTableSkeleton config` draws the visible columns with their labels, `per_page` rows, the search and one placeholder per filter, with the screen-reader text of `messages.loading`; its manual props (`columnCount`, `rowCount`, `filterCount`, `withSearch`, `label`) win over the config. It waits `delay` (150 ms; `0` shows it at once) before showing, keeping its space, so a fast load does not flash it. Client-only columns (actions, selection) are not in the config: pass `columnCount` to count them. Filters, paging and sorting are partial reloads of `products`, so they do not show the deferred fallback again.
 - Text filters and the search are debounced (300 ms, `debounceMs` option); paging, sorting and visibility navigate immediately.
 
 ## Language and texts
@@ -156,7 +183,7 @@ columnHelper.accessor('category', {
 - Every text of the UI (search, Reset, Rows per page, Page 1 of 25, Yes/No, filter and calendar labels) comes from `config.messages`, translated by Laravel in the app language. Translate or change them in PHP (`php artisan vendor:publish --tag=inertia-datatable-lang`), not in the components: those are overwritten by `inertia-datatable:ui --update`.
 - Per table in React: `useServerDataTable({ table, prop, columns, locale: 'en-US', messages: { search: 'Find products…' } })`. `locale: 'browser'` uses the browser's.
 - In your own components, `getMessage(table, 'page_of', { page: 1, pages: 25 })` from `@/lib/data-table-messages` (keys = `DEFAULT_MESSAGES`).
-- `DataTableSkeleton` has no table: pass `label` for its screen-reader text.
+- `DataTableSkeleton` has no table: pass `config` (its `messages.loading`) or `label` for its screen-reader text.
 - The calendar of the date filters takes the month and day names and the first day of the week from the table locale with Intl; no date-fns locale is needed.
 
 ## Column width and classes

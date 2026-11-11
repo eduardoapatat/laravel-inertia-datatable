@@ -1,0 +1,42 @@
+import { Deferred, Head } from '@inertiajs/react';
+import { {{ component }} } from '@/components/data-tables/{{ file }}';
+import type { {{ rowType }} } from '@/components/data-tables/{{ file }}';
+import { DataTableSkeleton } from '@/components/data-table/data-table-skeleton';
+import type {
+    ServerDataTable,
+    ServerTableConfig,
+} from '@/lib/data-table-server';
+
+type Props = {
+    /** Deferred: it arrives after the page, with the skeleton meanwhile. */
+    {{ prop }}?: ServerDataTable<{{ rowType }}>;
+    /** Config of the table, without a query, to draw the skeleton. */
+    {{ prop }}Config: ServerTableConfig;
+};
+
+export default function {{ page }}({ {{ prop }}, {{ prop }}Config }: Props) {
+    return (
+        <>
+            <Head title="{{ title }}" />
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <Deferred
+                    data="{{ prop }}"
+                    fallback={<DataTableSkeleton config={{{ prop }}Config} />}
+                >
+                    {() =>
+                        {{ prop }} ? <{{ component }} {{ prop }}={{{ prop }}} /> : null
+                    }
+                </Deferred>
+            </div>
+        </>
+    );
+}
+
+{{ page }}.layout = {
+    breadcrumbs: [
+        {
+            title: '{{ title }}',
+            href: '{{ url }}',
+        },
+    ],
+};

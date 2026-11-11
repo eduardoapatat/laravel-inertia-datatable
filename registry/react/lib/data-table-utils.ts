@@ -16,12 +16,14 @@ import type {
     ColumnVariantMeta,
     DataTableAlign,
     DataTableColumnMeta,
+    DataTableLoadingPhase,
     FilterOperator,
     FilterOperatorOption,
     FilterVariant,
 } from '@/lib/data-table-types';
 
 import { formatDate } from '@/lib/data-table-format';
+import type { ServerTableConfig } from '@/lib/data-table-server';
 
 export const FILTER_VARIANTS = [
     'text',
@@ -409,6 +411,62 @@ export function getFacetedFilterOptions(
     });
 }
 
+interface LoadingPhasesOptions {
+    /** Before it, a fast response shows nothing (no flicker). */
+    loadingDelay: number;
+    /** After it, the rows become skeleton rows; `false` never. */
+    skeletonDelay: number | false;
+    onChange: (phase: DataTableLoadingPhase) => void;
+}
+
+/**
+ * Timers of the loading state of a visit: `start()` when it begins (`busy`
+ * after `loadingDelay`, `slow` after `skeletonDelay`), `finish()` when it ends
+ * or is cancelled (`idle`), `dispose()` on unmount.
+ */
+export function createLoadingPhases({
+    loadingDelay,
+    skeletonDelay,
+    onChange,
+}: LoadingPhasesOptions) {
+    let timers: ReturnType<typeof setTimeout>[] = [];
+    let phase: DataTableLoadingPhase = 'idle';
+
+    function set(next: DataTableLoadingPhase) {
+        if (next === phase) return;
+        phase = next;
+        onChange(next);
+    }
+
+    function clear() {
+        timers.forEach((timer) => clearTimeout(timer));
+        timers = [];
+    }
+
+    return {
+        start() {
+            clear();
+            timers.push(
+                setTimeout(() => set('busy'), Math.max(0, loadingDelay)),
+            );
+
+            if (skeletonDelay !== false) {
+                timers.push(
+                    setTimeout(
+                        () => set('slow'),
+                        Math.max(loadingDelay, skeletonDelay),
+                    ),
+                );
+            }
+        },
+        finish() {
+            clear();
+            set('idle');
+        },
+        dispose: clear,
+    };
+}
+
 /**
  * A click on the calendar of a date range filter: the first one only marks
  * the start (nothing is sent yet), the second one gives the range, in order.
@@ -758,4 +816,32 @@ function getFilterValueStringifier(
 function stringifyFilterDate(value: unknown) {
     const date = parseFilterDate(value);
     return date ? formatFilterDate(date) : '';
+}
+
+export interface DataTableSkeletonShape {
+    /** Visible columns, in the server order. */
+    columns: { id: string; label: string }[];
+    rowCount: number;
+    /** Columns with a filter, also the hidden ones (their filter shows). */
+    filterCount: number;
+    searchable: boolean;
+    label: string | undefined;
+}
+
+/**
+ * Shape of the first-load skeleton from the table config (`->config()` in
+ * PHP), so it looks like the table that is coming.
+ */
+export function getSkeletonShape(
+    config: ServerTableConfig,
+): DataTableSkeletonShape {
+    return {
+        columns: config.columns
+            .filter((column) => column.visible)
+            .map(({ id, label }) => ({ id, label })),
+        rowCount: config.per_page,
+        filterCount: config.columns.filter((column) => column.filter).length,
+        searchable: config.searchable,
+        label: config.messages?.loading,
+    };
 }

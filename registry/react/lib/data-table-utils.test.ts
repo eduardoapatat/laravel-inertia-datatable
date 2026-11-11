@@ -1,14 +1,20 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    createLoadingPhases,
     getBooleanFilterOptions,
     getColumnAlign,
     getColumnClassName,
     getFacetedFilterOptions,
     getFilterColumnIssue,
     getFilterComponentName,
+    getSkeletonShape,
     pickDateRangeDay,
 } from './data-table-utils';
+import type {
+    ServerColumnConfig,
+    ServerTableConfig,
+} from '@/lib/data-table-server';
 
 describe('getColumnClassName', () => {
     it('gives the width class and the classes of the column', () => {
@@ -232,5 +238,133 @@ describe('pickDateRangeDay', () => {
         expect(pickDateRangeDay(day(5), day(5))).toEqual({
             range: [day(5), day(5)],
         });
+    });
+});
+
+describe('createLoadingPhases', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    function setup(skeletonDelay: number | false = 600) {
+        vi.useFakeTimers();
+        const phases: string[] = [];
+        const loading = createLoadingPhases({
+            loadingDelay: 150,
+            skeletonDelay,
+            onChange: (phase) => phases.push(phase),
+        });
+
+        return { loading, phases };
+    }
+
+    it('shows nothing when the response is fast', () => {
+        const { loading, phases } = setup();
+
+        loading.start();
+        vi.advanceTimersByTime(100);
+        loading.finish();
+        vi.advanceTimersByTime(1000);
+
+        expect(phases).toEqual([]);
+    });
+
+    it('dims after the loading delay and shows the skeleton after the skeleton delay', () => {
+        const { loading, phases } = setup();
+
+        loading.start();
+        vi.advanceTimersByTime(150);
+        expect(phases).toEqual(['busy']);
+        vi.advanceTimersByTime(450);
+        expect(phases).toEqual(['busy', 'slow']);
+        loading.finish();
+        expect(phases).toEqual(['busy', 'slow', 'idle']);
+    });
+
+    it('never shows the skeleton when it is disabled', () => {
+        const { loading, phases } = setup(false);
+
+        loading.start();
+        vi.advanceTimersByTime(5000);
+        loading.finish();
+
+        expect(phases).toEqual(['busy', 'idle']);
+    });
+
+    it('restarts the timers with a new visit and stops them on dispose', () => {
+        const { loading, phases } = setup();
+
+        loading.start();
+        vi.advanceTimersByTime(100);
+        loading.start();
+        vi.advanceTimersByTime(100);
+        expect(phases).toEqual([]);
+        loading.dispose();
+        vi.advanceTimersByTime(5000);
+        expect(phases).toEqual([]);
+    });
+});
+
+describe('getSkeletonShape', () => {
+    const column = (
+        id: string,
+        overrides: Partial<ServerColumnConfig> = {},
+    ): ServerColumnConfig => ({
+        id,
+        label: id.toUpperCase(),
+        sortable: false,
+        hideable: true,
+        visible: true,
+        display: { type: 'text' },
+        filter: null,
+        ...overrides,
+    });
+    const config = (
+        overrides: Partial<ServerTableConfig> = {},
+    ): ServerTableConfig => ({
+        columns: [
+            column('name', { filter: { variant: 'text' } }),
+            column('sku', { visible: false }),
+            column('created_at', {
+                visible: false,
+                filter: { variant: 'date' },
+            }),
+            column('price'),
+        ],
+        searchable: true,
+        per_page: 25,
+        per_page_options: [10, 25],
+        default_sorting: [],
+        query: {
+            page: 'page',
+            per_page: 'per_page',
+            sort: 'sort',
+            filter: 'filter',
+            search: 'search',
+            columns: 'columns',
+        },
+        ...overrides,
+    });
+
+    it('takes the visible columns, the page size and the filters', () => {
+        expect(getSkeletonShape(config())).toEqual({
+            columns: [
+                { id: 'name', label: 'NAME' },
+                { id: 'price', label: 'PRICE' },
+            ],
+            rowCount: 25,
+            filterCount: 2,
+            searchable: true,
+            label: undefined,
+        });
+    });
+
+    it('takes the loading text of the server', () => {
+        const shape = getSkeletonShape(
+            config({ searchable: false, messages: { loading: 'Cargando…' } }),
+        );
+
+        expect(shape.searchable).toBe(false);
+        expect(shape.label).toBe('Cargando…');
     });
 });
