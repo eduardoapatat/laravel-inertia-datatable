@@ -40,6 +40,14 @@ test -f resources/js/components/data-tables/users-table.tsx
 test -f resources/js/pages/users/index.tsx
 echo "::endgroup::"
 
+echo "::group::Check the page and generate the deferred one"
+# The same table with each kind of page: both must pass the format and the types as generated.
+"$package_manager" run check
+"$package_manager" run types:check
+php artisan make:datatable UsersTable --defer --force
+grep -q '<Deferred data="users"' resources/js/pages/users/index.tsx
+echo "::endgroup::"
+
 echo "::group::Build"
 npm run build
 echo "::endgroup::"

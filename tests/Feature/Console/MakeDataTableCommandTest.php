@@ -141,8 +141,9 @@ it('creates a deferred page with a skeleton with the defer option', function () 
         ->toContain("import { Deferred, Head } from '@inertiajs/react';")
         ->toContain('    products?: ServerDataTable<Product>;')
         ->toContain('    productsConfig: ServerTableConfig;')
-        ->toContain('fallback={<DataTableSkeleton config={productsConfig} />}')
-        ->toContain('products ? <ProductsTable products={products} /> : null');
+        ->toContain('const skeleton = <DataTableSkeleton config={productsConfig} />;')
+        ->toContain('<Deferred data="products" fallback={skeleton}>')
+        ->toContain('{products && <ProductsTable products={products} />}');
 });
 
 it('tells to defer the table in the controller with the defer option', function () {

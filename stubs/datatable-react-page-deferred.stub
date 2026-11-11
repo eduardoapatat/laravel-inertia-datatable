@@ -14,18 +14,16 @@ type Props = {
     {{ prop }}Config: ServerTableConfig;
 };
 
-export default function {{ page }}({ {{ prop }}, {{ prop }}Config }: Props) {
+export default function {{ page }}(props: Props) {
+    const { {{ prop }}, {{ prop }}Config } = props;
+    const skeleton = <DataTableSkeleton config={{{ prop }}Config} />;
+
     return (
         <>
             <Head title="{{ title }}" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <Deferred
-                    data="{{ prop }}"
-                    fallback={<DataTableSkeleton config={{{ prop }}Config} />}
-                >
-                    {() =>
-                        {{ prop }} ? <{{ component }} {{ prop }}={{{ prop }}} /> : null
-                    }
+                <Deferred data="{{ prop }}" fallback={skeleton}>
+                    {{{ prop }} && <{{ component }} {{ prop }}={{{ prop }}} />}
                 </Deferred>
             </div>
         </>

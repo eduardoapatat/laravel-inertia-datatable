@@ -167,9 +167,11 @@ return Inertia::render('products/index', [
 type Props = { products?: ServerDataTable<Product>; productsConfig: ServerTableConfig };
 
 export default function ProductsIndex({ products, productsConfig }: Props) {
+    const skeleton = <DataTableSkeleton config={productsConfig} />;
+
     return (
-        <Deferred data="products" fallback={<DataTableSkeleton config={productsConfig} />}>
-            {() => (products ? <ProductsTable products={products} /> : null)}
+        <Deferred data="products" fallback={skeleton}>
+            {products && <ProductsTable products={products} />}
         </Deferred>
     );
 }
