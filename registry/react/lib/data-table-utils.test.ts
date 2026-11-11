@@ -9,6 +9,7 @@ import {
     getFilterColumnIssue,
     getFilterComponentName,
     getSkeletonShape,
+    keepTypedSpaces,
     pickDateRangeDay,
 } from './data-table-utils';
 import type {
@@ -408,6 +409,16 @@ describe('getSkeletonShape', () => {
         ).toEqual(['name', 'price']);
     });
 
+    it('reads the columns of the URL like the server', () => {
+        const ids = (search: string) =>
+            getSkeletonShape(config(), search).columns.map(({ id }) => id);
+
+        // An empty list is no list: the default columns.
+        expect(ids('?columns=')).toEqual(['name', 'price']);
+        expect(ids('?columns=%20')).toEqual(['name', 'price']);
+        expect(ids('?columns=name,%20sku')).toEqual(['name', 'sku', 'price']);
+    });
+
     it('takes the loading text of the server', () => {
         const shape = getSkeletonShape(
             config({ searchable: false, messages: { loading: 'Cargando…' } }),
@@ -415,5 +426,32 @@ describe('getSkeletonShape', () => {
 
         expect(shape.searchable).toBe(false);
         expect(shape.label).toBe('Cargando…');
+    });
+});
+
+describe('keepTypedSpaces', () => {
+    const state = (globalFilter: string, name?: unknown) => ({
+        page: 1,
+        globalFilter,
+        columnFilters: name === undefined ? [] : [{ id: 'name', value: name }],
+    });
+
+    it('keeps the space typed after a word the server trimmed', () => {
+        expect(
+            keepTypedSpaces(state('ana', 'luz'), state('ana ', ' luz ')),
+        ).toEqual(state('ana ', ' luz '));
+    });
+
+    it('takes the server value when it is another text', () => {
+        expect(
+            keepTypedSpaces(state('ana', 'luz'), state('an', 'lu ')),
+        ).toEqual(state('ana', 'luz'));
+        // Cut by the server, a filter it dropped, or a value that is not text.
+        expect(keepTypedSpaces(state('a'), state('a b', ' '))).toEqual(
+            state('a'),
+        );
+        expect(
+            keepTypedSpaces(state('', ['1', '2']), state('', ['1', '2'])),
+        ).toEqual(state('', ['1', '2']));
     });
 });

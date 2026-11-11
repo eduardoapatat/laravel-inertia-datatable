@@ -443,3 +443,40 @@ describe('getEmptyLabel', () => {
         ).toBe('N/A');
     });
 });
+
+describe('formatDateValue with a date without time and a format with time', () => {
+    it('shows the same day, without an hour', () => {
+        for (const value of ['2026-01-15', '2026-01-15T00:00:00.000000Z']) {
+            expect(formatDateValue(value, 'datetime', 'en-US')).toBe(
+                'Jan 15, 2026',
+            );
+            expect(
+                formatDateValue(
+                    value,
+                    { day: 'numeric', month: 'short', hour: 'numeric' },
+                    'en-US',
+                ),
+            ).toBe('Jan 15');
+            expect(
+                formatDateValue(value, { timeStyle: 'short' }, 'en-US'),
+            ).toBe('Jan 15, 2026');
+        }
+    });
+
+    it('keeps the hour of a date with time', () => {
+        expect(
+            formatDateValue('2026-01-15T15:30:00Z', 'datetime', 'en-US'),
+        ).toMatch(/Jan 15, 2026, \d{1,2}:30/);
+    });
+
+    it('falls back to the browser locale in a relative date', () => {
+        expect(
+            formatDateValue(
+                '2026-01-14',
+                'relative',
+                'zz_not-a-locale!',
+                new Date(2026, 0, 15),
+            ),
+        ).not.toBe('');
+    });
+});

@@ -180,6 +180,22 @@ export interface FilterAffix {
  * the symbol before (`$`, by default), the code after (`CLP`) or both, as
  * chosen with `filter:`. Percentages and Intl units have none.
  */
+/** Undefined with a currency Intl does not know: the filter shows no symbol. */
+function getCurrencySymbol(
+    format: Intl.NumberFormatOptions,
+): string | undefined {
+    try {
+        return new Intl.NumberFormat(undefined, {
+            ...format,
+            currencyDisplay: 'narrowSymbol',
+        })
+            .formatToParts(0)
+            .find((part) => part.type === 'currency')?.value;
+    } catch {
+        return undefined;
+    }
+}
+
 export function getFilterAffixes(
     meta: DataTableColumnMeta | undefined,
 ): FilterAffix[] {
@@ -191,12 +207,7 @@ export function getFilterAffixes(
         const affixes: FilterAffix[] = [];
 
         if (shown === 'symbol' || shown === 'both') {
-            const symbol = new Intl.NumberFormat(undefined, {
-                ...format,
-                currencyDisplay: 'narrowSymbol',
-            })
-                .formatToParts(0)
-                .find((part) => part.type === 'currency')?.value;
+            const symbol = getCurrencySymbol(format);
 
             if (symbol) {
                 affixes.push({ text: symbol, align: 'inline-start' });
@@ -240,22 +251,54 @@ export function formatDateValue(
         return formatRelativeDate(parsed, now, locale);
     }
 
-    const options = typeof format === 'string' ? DATE_PRESETS[format] : format;
-    const hasTime =
-        options.timeStyle !== undefined ||
-        options.hour !== undefined ||
-        options.minute !== undefined ||
-        options.second !== undefined;
-    const timeZone =
-        options.timeZone ?? (parsed.dateOnly && !hasTime ? 'UTC' : undefined);
+    const options = getDateOptions(
+        typeof format === 'string' ? DATE_PRESETS[format] : format,
+        parsed.dateOnly,
+    );
 
     try {
-        return new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(
-            parsed.date,
-        );
+        return new Intl.DateTimeFormat(locale, options).format(parsed.date);
     } catch {
         return toText(value);
     }
+}
+
+/**
+ * A date without time has no hour to show and no time zone to move it: its
+ * time parts are left out and it is formatted in UTC, also with a format that
+ * has time (`datetime`), which would show the evening of the day before.
+ */
+function getDateOptions(
+    options: Intl.DateTimeFormatOptions,
+    dateOnly: boolean,
+): Intl.DateTimeFormatOptions {
+    if (!dateOnly || options.timeZone !== undefined) {
+        return options;
+    }
+
+    const {
+        timeStyle,
+        hour,
+        minute,
+        second,
+        fractionalSecondDigits,
+        dayPeriod,
+        hour12,
+        hourCycle,
+        timeZoneName,
+        ...date
+    } = options;
+    const hadTime = [timeStyle, hour, minute, second].some(
+        (part) => part !== undefined,
+    );
+
+    return {
+        // Only a time was asked for: the date is all there is to show.
+        ...(hadTime && Object.keys(date).length === 0
+            ? { dateStyle: 'medium' as const }
+            : date),
+        timeZone: 'UTC',
+    };
 }
 
 type ColumnDisplayDateFormat = Extract<
@@ -268,7 +311,7 @@ function formatRelativeDate(
     now: Date,
     locale?: string,
 ): string {
-    const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    const formatter = createRelativeTimeFormat(locale);
     // A date without time is compared by days: "yesterday", not "in 21 hours".
     const seconds = dateOnly
         ? (date.getTime() -
@@ -282,6 +325,15 @@ function formatRelativeDate(
         units[units.length - 1] ?? ['second', 1];
 
     return formatter.format(Math.round(seconds / size), unit);
+}
+
+/** An unknown locale falls back to the browser's, like the other formats. */
+function createRelativeTimeFormat(locale?: string): Intl.RelativeTimeFormat {
+    try {
+        return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    } catch {
+        return new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    }
 }
 
 /**

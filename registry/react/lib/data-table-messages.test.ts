@@ -7,6 +7,7 @@ import {
     getMessage,
     getWeekStartsOn,
     mergeMessages,
+    replacePlaceholders,
 } from './data-table-messages';
 
 const table = (messages: Record<string, string>, locale?: string) => ({
@@ -102,5 +103,22 @@ describe('getFormatContext', () => {
                 context,
             ),
         ).toBe('Inactivo');
+    });
+});
+
+describe('replacePlaceholders', () => {
+    it('does not read the value as a pattern nor replace it again', () => {
+        expect(
+            replacePlaceholders('Clear :label filter', { label: 'Price $$' }),
+        ).toBe('Clear Price $$ filter');
+        expect(
+            replacePlaceholders('Clear :label filter', { label: 'A $& B' }),
+        ).toBe('Clear A $& B filter');
+        expect(
+            replacePlaceholders(':label (:count)', {
+                label: ':count',
+                count: 3,
+            }),
+        ).toBe(':count (3)');
     });
 });

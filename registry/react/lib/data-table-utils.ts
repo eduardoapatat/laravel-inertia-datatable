@@ -845,6 +845,41 @@ function stringifyFilterDate(value: unknown) {
     return date ? formatFilterDate(date) : '';
 }
 
+interface TypedTextState {
+    globalFilter: string;
+    columnFilters: { id: string; value: unknown }[];
+}
+
+/**
+ * The state of a response, keeping the spaces around a text the user typed:
+ * the server trims the search and the text filters, and writing its value
+ * back into the input would eat the space before the next word.
+ */
+export function keepTypedSpaces<TState extends TypedTextState>(
+    fromServer: TState,
+    local: TypedTextState,
+): TState {
+    const typed = (server: unknown, mine: unknown) =>
+        typeof server === 'string' &&
+        typeof mine === 'string' &&
+        mine !== server &&
+        mine.trim() === server;
+
+    return {
+        ...fromServer,
+        globalFilter: typed(fromServer.globalFilter, local.globalFilter)
+            ? local.globalFilter
+            : fromServer.globalFilter,
+        columnFilters: fromServer.columnFilters.map((filter) => {
+            const mine = local.columnFilters.find(({ id }) => id === filter.id);
+
+            return typed(filter.value, mine?.value)
+                ? { ...filter, value: mine?.value }
+                : filter;
+        }),
+    };
+}
+
 export interface DataTableSkeletonShape {
     /** Visible columns, in the server order. */
     columns: {
@@ -877,7 +912,11 @@ export function getSkeletonShape(
 ): DataTableSkeletonShape {
     const params = new URLSearchParams(search);
     const perPage = Number(params.get(config.query.per_page));
-    const visible = params.get(config.query.columns)?.split(',');
+    // Like the server: an empty list is no list, and the ids are trimmed.
+    const columns = params.get(config.query.columns)?.trim();
+    const visible = columns
+        ? columns.split(',').map((id) => id.trim())
+        : undefined;
     const filters = config.columns.flatMap((column) =>
         column.filter
             ? [

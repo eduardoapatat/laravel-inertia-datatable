@@ -88,13 +88,18 @@ export function replacePlaceholders(
     text: string,
     replacements: Replacements,
 ): string {
-    return Object.keys(replacements)
-        .sort((a, b) => b.length - a.length)
-        .reduce(
-            (result, name) =>
-                result.replaceAll(`:${name}`, String(replacements[name])),
-            text,
-        );
+    const names = Object.keys(replacements).sort((a, b) => b.length - a.length);
+
+    if (names.length === 0) {
+        return text;
+    }
+
+    // One pass and a function: a value is neither read as a pattern (`$&`)
+    // nor replaced again when it holds another placeholder.
+    return text.replace(
+        new RegExp(`:(${names.map(escapeRegExp).join('|')})`, 'g'),
+        (_, name: string) => String(replacements[name]),
+    );
 }
 
 /**
@@ -161,4 +166,8 @@ export function getWeekStartsOn(locale?: string): WeekDay {
     } catch {
         return 0;
     }
+}
+
+function escapeRegExp(text: string): string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

@@ -45,6 +45,7 @@ import type {
 import { getOwn } from '@/lib/data-table-format';
 import {
     createLoadingPhases,
+    keepTypedSpaces,
     normalizeColumnFilter,
 } from '@/lib/data-table-utils';
 
@@ -139,13 +140,14 @@ export function useServerDataTable<TData extends RowData>({
 
     // Every response brings the normalized state: it is the source of truth. If
     // the user kept typing after the request, their filters and search are kept
-    // so what they are typing is not overwritten.
+    // so what they are typing is not overwritten; so is a space they just typed,
+    // which the server trims ("ana " would lose it before "ana perez").
     if (syncedServerState !== serverState) {
         setSyncedServerState(serverState);
         const fromServer = toLocalState(serverState);
         setState((current) =>
             draftVersion === sentVersion
-                ? fromServer
+                ? keepTypedSpaces(fromServer, current)
                 : {
                       ...fromServer,
                       columnFilters: current.columnFilters,
@@ -318,7 +320,7 @@ export function useServerDataTable<TData extends RowData>({
 /** `'browser'` or nothing: the browser locale (Intl without a locale). */
 function resolveLocale(locale: string | null | undefined): string | undefined {
     return locale && locale !== 'browser'
-        ? locale.replace('_', '-')
+        ? locale.replaceAll('_', '-')
         : undefined;
 }
 
