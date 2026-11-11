@@ -17,6 +17,9 @@ use Illuminate\Support\Str;
  */
 final class ColumnGuesser
 {
+    /** Words written in capitals in a label. */
+    private const array ACRONYMS = ['api', 'id', 'ip', 'isbn', 'pdf', 'sku', 'sms', 'url', 'uuid', 'vat'];
+
     /**
      * Columns that are never proposed, even when they are not in `$hidden`.
      */
@@ -85,9 +88,27 @@ final class ColumnGuesser
         return $columns;
     }
 
+    /**
+     * Label of a column from its name: `sku` is "SKU", `site_url` is
+     * "Site URL" and a boolean `is_featured` is "Featured".
+     */
+    public static function label(string $name, bool $boolean = false): string
+    {
+        $words = explode(' ', Str::headline($name));
+
+        if ($boolean && count($words) > 1 && $words[0] === 'Is') {
+            array_shift($words);
+        }
+
+        return implode(' ', array_map(
+            fn (string $word): string => in_array(strtolower($word), self::ACRONYMS, true) ? strtoupper($word) : $word,
+            $words,
+        ));
+    }
+
     private function guessAttribute(string $name, ?string $cast, string $typeName, string $type, bool $nullable): ?GuessedColumn
     {
-        $label = Str::headline($name);
+        $label = self::label($name);
         $castType = $cast === null ? null : strtolower(Str::before($cast, ':'));
 
         if ($cast !== null && enum_exists($cast) && is_subclass_of($cast, BackedEnum::class)) {
@@ -95,9 +116,9 @@ final class ColumnGuesser
         }
 
         return match (true) {
-            in_array($castType, ['bool', 'boolean'], true) => new GuessedColumn($name, $label, 'boolean', [], 'boolean', $nullable),
+            in_array($castType, ['bool', 'boolean'], true) => new GuessedColumn($name, self::label($name, boolean: true), 'boolean', [], 'boolean', $nullable),
             // Without a cast, SQLite and MySQL return 1/0.
-            $this->isBooleanType($typeName, $type) => new GuessedColumn($name, $label, 'boolean', [], 'boolean-or-number', $nullable),
+            $this->isBooleanType($typeName, $type) => new GuessedColumn($name, self::label($name, boolean: true), 'boolean', [], 'boolean-or-number', $nullable),
             in_array($castType, ['date', 'datetime', 'immutable_date', 'immutable_datetime', 'timestamp'], true) || $this->isDateType($typeName) => new GuessedColumn($name, $label, 'date', [], 'date', $nullable),
             // The decimal cast serializes as a string to keep the precision.
             $castType === 'decimal' => new GuessedColumn($name, $label, 'number', $this->decimalsCall((string) $cast), 'decimal', $nullable),

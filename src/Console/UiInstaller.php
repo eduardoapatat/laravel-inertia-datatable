@@ -84,7 +84,8 @@ final class UiInstaller
     private function packageRunner(): array
     {
         return match (true) {
-            $this->files->exists($this->app->basePath('pnpm-lock.yaml')) => ['pnpm', 'dlx'],
+            // A project just created with pnpm may have no lockfile yet.
+            $this->files->exists($this->app->basePath('pnpm-lock.yaml')), $this->files->exists($this->app->basePath('pnpm-workspace.yaml')) => ['pnpm', 'dlx'],
             $this->files->exists($this->app->basePath('bun.lock')), $this->files->exists($this->app->basePath('bun.lockb')) => ['bunx'],
             $this->files->exists($this->app->basePath('yarn.lock')) => ['yarn', 'dlx'],
             default => ['npx'],

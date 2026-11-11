@@ -4,6 +4,14 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- `make:datatable` writes better labels: known acronyms in capitals (`sku` is "SKU", `site_url` is "Site URL") and boolean columns without the "Is" (`is_featured` is "Featured").
+
+### Fixed
+
+- `inertia-datatable:ui` and `--install-ui` used `npx` in a pnpm project without a lockfile yet (a starter kit just created with `--pnpm`); `pnpm-workspace.yaml` now also counts as pnpm.
+
 ## [0.11.0] - 2026-11-11
 
 ### Added

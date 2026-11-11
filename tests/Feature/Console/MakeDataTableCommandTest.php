@@ -19,7 +19,7 @@ afterEach(function () {
     File::deleteDirectory(app_path('DataTables'));
     File::deleteDirectory(resource_path('js/pages/products'));
     File::deleteDirectory(resource_path('js/components/data-tables'));
-    File::delete([resource_path('js/hooks/use-server-data-table.ts'), base_path('pnpm-lock.yaml')]);
+    File::delete([resource_path('js/hooks/use-server-data-table.ts'), base_path('pnpm-lock.yaml'), base_path('pnpm-workspace.yaml')]);
 });
 
 it('creates a table class with the columns guessed from the model', function () {
@@ -149,6 +149,20 @@ it('tells to defer the table in the controller with the defer option', function 
     artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--defer' => true])
         ->expectsOutputToContain("'products' => Inertia::defer(fn () => ProductsTable::make())")
         ->assertSuccessful();
+});
+
+it('uses pnpm when the project only has its workspace file', function () {
+    File::put(base_path('pnpm-workspace.yaml'), '');
+    Process::fake(function () {
+        File::ensureDirectoryExists(resource_path('js/hooks'));
+        File::put(resource_path('js/hooks/use-server-data-table.ts'), '');
+
+        return Process::result();
+    });
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--install-ui' => true])->assertSuccessful();
+
+    Process::assertRan(fn ($process) => array_slice($process->command, 0, 2) === ['pnpm', 'dlx']);
 });
 
 it('shows the install command when the data table UI is missing', function () {
