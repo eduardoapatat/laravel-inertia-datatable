@@ -35,6 +35,7 @@ Migration:
 ### Fixed
 
 - The comments of `DatePreset`, the React component stub and the date cell referred to a `->dateFormat()` method that does not exist; the method is `->format()`.
+- The date range filter searched with the first click of the calendar (a one-day range) before the second date was picked; the first click now only marks the start.
 - A `DataTableResetButton` with its own text (`children`) kept "Reset filters" as its accessible name; the text is now its name.
 - The text and number filters of the toolbar had no accessible name besides the placeholder; they now take the label of the column.
 - The comments of the toolbar and of `ServerColumnFilter` named PHP methods that do not exist (`->booleanLabels()`, `->filter()`, `->range()`).

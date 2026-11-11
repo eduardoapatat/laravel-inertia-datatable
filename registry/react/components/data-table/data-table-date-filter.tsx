@@ -20,7 +20,7 @@ import {
     getWeekStartsOn,
     type TableWithMeta,
 } from '@/lib/data-table-messages';
-import { getFilterVariant } from '@/lib/data-table-utils';
+import { getFilterVariant, pickDateRangeDay } from '@/lib/data-table-utils';
 import {
     type DataTableFilterPieceProps,
     useDataTableFilterColumn,
@@ -120,27 +120,37 @@ function DataTableDateFilterContent<TData extends RowData>({
         return date ? [date] : [];
     }, [columnFilterValue, multiple]);
 
-    const onSelect = React.useCallback(
-        (date: Date | DateRange | undefined) => {
-            if (!date) {
-                column.setFilterValue(undefined);
-                return;
-            }
+    // Start of a range picked with the first click; the filter only changes
+    // with the second one, so the table does not search a one-day range.
+    const [rangeStart, setRangeStart] = React.useState<Date>();
 
-            if (multiple && !('getTime' in date)) {
-                const from = date.from?.getTime();
-                const to = date.to?.getTime();
-                column.setFilterValue(from || to ? [from, to] : undefined);
-            } else if (!multiple && 'getTime' in date) {
-                column.setFilterValue(date.getTime());
+    const onSelect = React.useCallback(
+        (date: Date | undefined) => {
+            column.setFilterValue(date ? date.getTime() : undefined);
+        },
+        [column],
+    );
+
+    const onRangeSelect = React.useCallback(
+        (_range: DateRange | undefined, day: Date) => {
+            const picked = pickDateRangeDay(rangeStart, day);
+
+            setRangeStart(picked.start);
+
+            if (picked.range) {
+                column.setFilterValue([
+                    picked.range[0].getTime(),
+                    picked.range[1].getTime(),
+                ]);
             }
         },
-        [column, multiple],
+        [column, rangeStart],
     );
 
     const onReset = React.useCallback(
         (event: React.MouseEvent) => {
             event.stopPropagation();
+            setRangeStart(undefined);
             clearColumnFilter(column);
         },
         [column],
@@ -183,7 +193,7 @@ function DataTableDateFilterContent<TData extends RowData>({
     );
 
     return (
-        <Popover>
+        <Popover onOpenChange={() => setRangeStart(undefined)}>
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
@@ -217,11 +227,13 @@ function DataTableDateFilterContent<TData extends RowData>({
                         captionLayout="dropdown"
                         mode="range"
                         selected={
-                            getIsDateRange(selectedDates)
-                                ? selectedDates
-                                : { from: undefined, to: undefined }
+                            rangeStart
+                                ? { from: rangeStart, to: undefined }
+                                : getIsDateRange(selectedDates)
+                                  ? selectedDates
+                                  : { from: undefined, to: undefined }
                         }
-                        onSelect={onSelect}
+                        onSelect={onRangeSelect}
                     />
                 ) : (
                     <Calendar

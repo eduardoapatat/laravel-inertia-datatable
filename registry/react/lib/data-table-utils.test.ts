@@ -7,6 +7,7 @@ import {
     getFacetedFilterOptions,
     getFilterColumnIssue,
     getFilterComponentName,
+    pickDateRangeDay,
 } from './data-table-utils';
 
 describe('getColumnClassName', () => {
@@ -211,5 +212,25 @@ describe('getFacetedFilterOptions', () => {
             { value: 'active', label: 'Activo', count: 5 },
             { value: 'draft', label: 'Borrador', count: 3 },
         ]);
+    });
+});
+
+describe('pickDateRangeDay', () => {
+    const day = (date: number) => new Date(2026, 10, date);
+
+    it('only marks the start with the first click', () => {
+        expect(pickDateRangeDay(undefined, day(5))).toEqual({ start: day(5) });
+    });
+
+    it('gives the range in order with the second click', () => {
+        expect(pickDateRangeDay(day(5), day(20))).toEqual({
+            range: [day(5), day(20)],
+        });
+        expect(pickDateRangeDay(day(20), day(5))).toEqual({
+            range: [day(5), day(20)],
+        });
+        expect(pickDateRangeDay(day(5), day(5))).toEqual({
+            range: [day(5), day(5)],
+        });
     });
 });

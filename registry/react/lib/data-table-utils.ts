@@ -409,6 +409,24 @@ export function getFacetedFilterOptions(
     });
 }
 
+/**
+ * A click on the calendar of a date range filter: the first one only marks
+ * the start (nothing is sent yet), the second one gives the range, in order.
+ * The same day twice is a one-day range.
+ */
+export function pickDateRangeDay(
+    start: Date | undefined,
+    day: Date,
+):
+    | { start: Date; range?: undefined }
+    | { start?: undefined; range: [Date, Date] } {
+    if (!start) return { start: day };
+
+    return {
+        range: start.getTime() <= day.getTime() ? [start, day] : [day, start],
+    };
+}
+
 export function getDefaultFilter<TData extends RowData>(
     column: Column<DataTableFeatures, TData>,
 ) {
