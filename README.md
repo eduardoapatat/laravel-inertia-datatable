@@ -5,7 +5,7 @@
 
 Reusable DataTable for **Laravel + Inertia + React**, built on shadcn/ui and TanStack Table, with pagination, sorting, filters, global search and column visibility **resolved on the server**.
 
-> Version 0.9: backend and React UI. The Vue version is in progress. Changes in [`CHANGELOG.md`](CHANGELOG.md).
+> Version 0.11: backend and React UI. The Vue version is in progress. Changes in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## What this repo contains
 
