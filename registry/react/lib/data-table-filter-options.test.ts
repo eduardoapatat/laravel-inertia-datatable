@@ -14,7 +14,7 @@ describe('getFilterColumnIssue', () => {
     });
 
     it('accepts the variants the component edits', () => {
-        const status = column({ variant: 'multi-select', options: [] });
+        const status = column({ filterVariant: 'multi-select' });
 
         expect(
             getFilterColumnIssue('DataTableFacetedFilter', 'status', status),
@@ -23,21 +23,21 @@ describe('getFilterColumnIssue', () => {
             getFilterColumnIssue(
                 'DataTableSliderFilter',
                 'price',
-                column({ variant: 'number', filter: 'range' }),
+                column({ filterVariant: 'range' }),
             ),
         ).toBeUndefined();
         expect(
             getFilterColumnIssue(
                 'DataTableDateFilter',
                 'published_at',
-                column({ variant: 'date', filter: 'range' }),
+                column({ filterVariant: 'date-range' }),
             ),
         ).toBeUndefined();
         expect(
             getFilterColumnIssue(
                 'DataTableFacetedFilter',
                 'featured',
-                column({ variant: 'boolean' }),
+                column({ filterVariant: 'boolean' }),
             ),
         ).toBeUndefined();
     });
@@ -47,7 +47,7 @@ describe('getFilterColumnIssue', () => {
             getFilterColumnIssue(
                 'DataTableSliderFilter',
                 'status',
-                column({ variant: 'multi-select', options: [] }),
+                column({ filterVariant: 'multi-select' }),
             ),
         ).toBe(
             'DataTableSliderFilter: column "status" filters as "multi-select" on the server; use DataTableFacetedFilter.',
@@ -56,7 +56,7 @@ describe('getFilterColumnIssue', () => {
             getFilterColumnIssue(
                 'DataTableNumberFilter',
                 'price',
-                column({ variant: 'number', filter: 'range' }),
+                column({ filterVariant: 'range' }),
             ),
         ).toContain('use DataTableSliderFilter');
     });
@@ -69,7 +69,7 @@ describe('getFilterColumnIssue', () => {
             getFilterColumnIssue(
                 'DataTableTextFilter',
                 'sku',
-                column({ variant: 'text' }, false),
+                column({ filterVariant: 'text' }, false),
             ),
         ).toContain('column "sku" has no filter');
         expect(

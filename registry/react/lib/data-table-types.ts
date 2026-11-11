@@ -18,34 +18,6 @@ export interface ColumnSelectOption {
     icon?: React.ComponentType<React.ComponentProps<'svg'>>;
 }
 
-export type PlainColumnVariant = 'text' | 'boolean';
-
-export interface ColumnVariantOptions {
-    number: {
-        filter?: 'range';
-        min?: number;
-        max?: number;
-        unit?: string;
-    };
-    date: {
-        filter?: 'range';
-    };
-    select: {
-        options?: ColumnSelectOption[];
-    };
-    'multi-select': {
-        options?: ColumnSelectOption[];
-    };
-}
-
-export type ColumnVariantMeta =
-    | { variant?: PlainColumnVariant }
-    | {
-          [TVariant in keyof ColumnVariantOptions]: {
-              variant: TVariant;
-          } & ColumnVariantOptions[TVariant];
-      }[keyof ColumnVariantOptions];
-
 /**
  * Loading state of a visit: `busy` after `loadingDelay` (rows dimmed),
  * `slow` after `skeletonDelay` (skeleton rows), `idle` otherwise.
@@ -129,7 +101,21 @@ export type DataTableColumnMeta = {
     empty?: boolean;
     /** Rows without a value, for the filter list (from the server facets). */
     emptyCount?: number;
-} & ColumnVariantMeta;
+    /**
+     * Filter of the column in the PHP class (`->filterSelect()`…), which the
+     * toolbar renders; none without a filter. Filled by `useServerDataTable`.
+     */
+    filterVariant?: FilterVariant;
+    /**
+     * Options of a select filter and of the option cells, with the server
+     * counts. Declared in the page, they relabel or reorder the server ones
+     * and add icons (`{ value: 'active', label: 'On', icon: CircleCheck }`).
+     */
+    options?: ColumnSelectOption[];
+    /** Bounds of a range filter, from the server data. */
+    min?: number;
+    max?: number;
+};
 
 export interface ColumnFilterItem<
     TColumnId extends string = string,

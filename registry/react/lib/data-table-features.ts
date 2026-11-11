@@ -29,7 +29,6 @@ import type {
     DataTableTableMeta,
 } from '@/lib/data-table-types';
 
-import { getFilterVariant } from '@/lib/data-table-filter-options';
 import {
     getIsPlainFilter,
     getPlainFilterValue,
@@ -103,9 +102,8 @@ function getPlainFilter(
     columnId: string,
     filters: ColumnFilter[],
 ) {
-    const variant = getFilterVariant(
-        instance.getColumn(columnId)?.columnDef.meta,
-    );
+    const variant =
+        instance.getColumn(columnId)?.columnDef.meta?.filterVariant ?? 'text';
     const index = filters.findIndex(
         (filter) =>
             filter.id === columnId &&
@@ -196,7 +194,7 @@ export function setEmptyFilter<TData extends RowData, TValue>(
     column: DataTableColumn<TData, TValue>,
     include: boolean,
 ) {
-    const variant = getFilterVariant(column.columnDef.meta);
+    const variant = column.columnDef.meta?.filterVariant ?? 'text';
 
     column.table.setColumnFilters((old) => {
         const rest = old.filter(

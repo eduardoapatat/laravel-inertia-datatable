@@ -86,14 +86,19 @@ describe('getFormatContext', () => {
             },
         });
 
-        expect(formatCellValue({ variant: 'boolean' }, 1, context)).toBe('Sí');
         expect(
-            formatCellValue({ variant: 'date' }, '2026-01-15', context),
+            formatCellValue({ display: { type: 'boolean' } }, 1, context),
+        ).toBe('Sí');
+        expect(
+            formatCellValue(
+                { display: { type: 'date' } },
+                '2026-01-15',
+                context,
+            ),
         ).toBe('15-01-26');
         expect(
             formatCellValue(
                 {
-                    variant: 'boolean',
                     display: {
                         type: 'boolean',
                         labels: { true: 'Activo', false: 'Inactivo' },

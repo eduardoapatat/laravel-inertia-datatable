@@ -104,14 +104,13 @@ describe('formatDateValue', () => {
 });
 
 describe('formatCellValue', () => {
-    it('uses the display before the filter variant', () => {
+    it('adds the unit of the display', () => {
         expect(
             formatCellValue(
                 {
-                    variant: 'number',
-                    unit: 'kg',
                     display: {
                         type: 'number',
+                        unit: 'kg',
                         format: { maximumFractionDigits: 1 },
                     },
                 },
@@ -122,10 +121,9 @@ describe('formatCellValue', () => {
         expect(
             formatCellValue(
                 {
-                    variant: 'number',
-                    unit: '$',
                     display: {
                         type: 'number',
+                        unit: '$',
                         format: { style: 'currency', currency: 'USD' },
                     },
                 },
@@ -141,14 +139,12 @@ describe('formatCellValue', () => {
         ).toBe('Lámpa…');
     });
 
-    it('keeps the variant formatting without display', () => {
-        expect(formatCellValue({ variant: 'number', unit: 'kg' }, 2026)).toBe(
-            '2026 kg',
-        );
+    it('takes the type of the cell from display only', () => {
+        expect(formatCellValue({ filterVariant: 'range' }, 2026)).toBe('2026');
         expect(
             formatCellValue(
                 {
-                    variant: 'multi-select',
+                    display: { type: 'option' },
                     options: [{ value: 'active', label: 'Active' }],
                 },
                 ['active', 'draft'],
@@ -264,9 +260,6 @@ describe('getFilterAffixes', () => {
         expect(
             getFilterAffixes({ display: { type: 'number', unit: 'kg' } }),
         ).toEqual([{ text: 'kg', align: 'inline-end' }]);
-        expect(getFilterAffixes({ variant: 'number', unit: 'u.' })).toEqual([
-            { text: 'u.', align: 'inline-end' },
-        ]);
     });
 
     it('leaves out a unit hidden in the filter', () => {
@@ -284,9 +277,11 @@ describe('getFilterAffixes', () => {
     it('has none for percentages or columns without a unit', () => {
         expect(
             getFilterAffixes({
-                variant: 'number',
-                unit: '%',
-                display: { type: 'number', format: { style: 'percent' } },
+                display: {
+                    type: 'number',
+                    unit: '%',
+                    format: { style: 'percent' },
+                },
             }),
         ).toEqual([]);
         expect(getFilterAffixes({ display: { type: 'number' } })).toEqual([]);
@@ -345,7 +340,6 @@ describe('getOption', () => {
         expect(
             getOption(
                 {
-                    variant: 'select',
                     options: [{ value: 'active', label: 'Activo' }],
                     icons: { active: Icon },
                 },
@@ -356,7 +350,6 @@ describe('getOption', () => {
 
     it('ignores the inherited members of meta.icons', () => {
         const meta = {
-            variant: 'select' as const,
             options: [],
             icons: { active: Icon },
         };
@@ -372,7 +365,6 @@ describe('getOption', () => {
         expect(
             getOption(
                 {
-                    variant: 'select',
                     options: [{ value: 'active', label: 'Activo', icon: Own }],
                     icons: { active: Icon },
                 },

@@ -483,18 +483,6 @@ export function formatCellValue(
             return getOptionLabel(meta, toPrimitive(value));
     }
 
-    switch (meta?.variant) {
-        case 'date':
-            return formatDateValue(value, dateFormat, locale);
-        case 'boolean':
-            return formatBoolean(value, booleanLabels);
-        case 'select':
-        case 'multi-select':
-            return getOptionLabel(meta, toPrimitive(value));
-        case 'number':
-            return withUnit(toText(value), meta);
-    }
-
     if (typeof value === 'boolean') {
         return formatBoolean(value, booleanLabels);
     }
@@ -550,8 +538,7 @@ export function getOption(
     value: string | number | boolean | null | undefined,
 ): ColumnSelectOption | undefined {
     const text = value === null || value === undefined ? '' : String(value);
-    const options = meta && 'options' in meta ? meta.options : undefined;
-    const option = options?.find((item) => item.value === text);
+    const option = meta?.options?.find((item) => item.value === text);
     const icon = getOwn(meta?.icons, text);
 
     return icon && !option?.icon
@@ -626,7 +613,7 @@ function toNumber(value: unknown): number | null {
 
 /**
  * Unit of the column in the cells (and the filter label) or next to the filter
- * inputs: `->unit('kg', cell: false)` in PHP or `meta.unit` in the page.
+ * inputs: `->unit('kg', cell: false)` in PHP or `display.unit` in the page.
  */
 export function getUnit(
     meta: DataTableColumnMeta | undefined,
@@ -634,11 +621,7 @@ export function getUnit(
 ): string | undefined {
     const display = meta?.display?.type === 'number' ? meta.display : undefined;
 
-    if (display?.unit !== undefined) {
-        return display.showUnit?.[place] === false ? undefined : display.unit;
-    }
-
-    return meta && 'unit' in meta ? meta.unit : undefined;
+    return display?.showUnit?.[place] === false ? undefined : display?.unit;
 }
 
 /**

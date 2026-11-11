@@ -18,10 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
-import type {
-    DataTableColumnMeta,
-    DataTableLoadingPhase,
-} from '@/lib/data-table-types';
+import type { DataTableLoadingPhase } from '@/lib/data-table-types';
 import { getMessage } from '@/lib/data-table-messages';
 
 import {
@@ -31,6 +28,7 @@ import {
     getColumnPinningStyle,
     getColumnSizingStyle,
     getVisibleSelectedRows,
+    hasBadge,
 } from '@/lib/data-table-utils';
 import { useDataTable } from '@/components/data-table/data-table-context';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
@@ -350,7 +348,10 @@ function DataTableSkeletonRows<TData extends RowData>({
                                             className={cn(
                                                 'w-full',
                                                 // A badge is a bit taller than a line of text.
-                                                hasBadge(column.columnDef.meta)
+                                                hasBadge(
+                                                    column.columnDef.meta
+                                                        ?.display,
+                                                )
                                                     ? 'h-5.5'
                                                     : 'h-5',
                                             )}
@@ -363,14 +364,6 @@ function DataTableSkeletonRows<TData extends RowData>({
                 </TableBody>
             )}
         </table.Subscribe>
-    );
-}
-
-function hasBadge(meta: DataTableColumnMeta | undefined) {
-    const display = meta?.display;
-
-    return (
-        display !== undefined && 'badge' in display && display.badge === true
     );
 }
 

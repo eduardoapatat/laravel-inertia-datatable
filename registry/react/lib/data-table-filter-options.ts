@@ -3,7 +3,6 @@
 import type { FilterVariant } from '@/lib/data-table-server';
 import type {
     ColumnSelectOption,
-    ColumnVariantMeta,
     DataTableColumnMeta,
 } from '@/lib/data-table-types';
 
@@ -21,31 +20,6 @@ export const FILTER_COMPONENT_VARIANTS = {
 } as const satisfies Record<string, readonly FilterVariant[]>;
 
 export type FilterComponentName = keyof typeof FILTER_COMPONENT_VARIANTS;
-
-export function getFilterVariant(
-    meta: ColumnVariantMeta | undefined,
-): FilterVariant {
-    switch (meta?.variant) {
-        case 'number':
-            return meta.filter === 'range' ? 'range' : 'number';
-        case 'date':
-            return meta.filter === 'range' ? 'date-range' : 'date';
-        case 'boolean':
-        case 'select':
-        case 'multi-select':
-            return meta.variant;
-        default:
-            return 'text';
-    }
-}
-
-export function getColumnSelectOptions(
-    meta: ColumnVariantMeta | undefined,
-): ColumnSelectOption[] {
-    return meta?.variant === 'select' || meta?.variant === 'multi-select'
-        ? (meta.options ?? [])
-        : [];
-}
 
 /**
  * Component that edits a server filter variant, as the toolbar renders it.
@@ -84,7 +58,7 @@ export function getFilterColumnIssue(
     column:
         | {
               getCanFilter: () => boolean;
-              columnDef: { meta?: ColumnVariantMeta };
+              columnDef: { meta?: DataTableColumnMeta };
           }
         | undefined,
 ): string | undefined {
@@ -92,11 +66,12 @@ export function getFilterColumnIssue(
         return `${component}: the table has no column "${columnId}". Use the id of a column of the PHP table class.`;
     }
 
-    if (!column.getCanFilter() || !column.columnDef.meta?.variant) {
+    const variant = column.columnDef.meta?.filterVariant;
+
+    if (!column.getCanFilter() || !variant) {
         return `${component}: column "${columnId}" has no filter. Declare it in the PHP table class (\`->filterInput()\`, \`->filterSelect()\`, \`->filterMultiSelect()\`, \`->filterRange()\`, \`->filterDate()\`).`;
     }
 
-    const variant = getFilterVariant(column.columnDef.meta);
     const accepted: readonly FilterVariant[] =
         FILTER_COMPONENT_VARIANTS[component];
 

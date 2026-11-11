@@ -73,14 +73,14 @@ filter[<col>]=[<operator>.]<value>
 
 | Variant | Column `meta` in the frontend | Implicit operator | Operators (URL name) | Value |
 |---|---|---|---|---|
-| `text` | `variant: "text"` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | text |
-| `number` | `variant: "number"` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | number (`.` decimal) |
-| `range` | `variant: "number", filter: "range"` | `between` | same as `number` | `min,max`; one end may be empty (`10,` / `,100`) |
-| `date` | `variant: "date"` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` (`rel` in a future phase) | `YYYY-MM-DD` |
-| `date-range` | `variant: "date", filter: "range"` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`) |
-| `boolean` | `variant: "boolean"` | `eq` | `eq`, `neq`, `is.empty`, `not.is.empty` | `true` / `false` |
-| `select` | `variant: "select"` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | value or list |
-| `multi-select` | `variant: "multi-select"` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | list |
+| `text` | `filterVariant: "text"` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | text |
+| `number` | `filterVariant: "number"` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | number (`.` decimal) |
+| `range` | `filterVariant: "range"` | `between` | same as `number` | `min,max`; one end may be empty (`10,` / `,100`) |
+| `date` | `filterVariant: "date"` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` | `YYYY-MM-DD` |
+| `date-range` | `filterVariant: "date-range"` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`) |
+| `boolean` | `filterVariant: "boolean"` | `eq` | `eq`, `neq`, `is.empty`, `not.is.empty` | `true` / `false` |
+| `select` | `filterVariant: "select"` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | value or list |
+| `multi-select` | `filterVariant: "multi-select"` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | list |
 
 #### Translation to SQL
 

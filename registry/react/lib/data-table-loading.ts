@@ -3,6 +3,7 @@ import type {
     DataTableAlign,
     DataTableLoadingPhase,
 } from '@/lib/data-table-types';
+import { hasBadge } from '@/lib/data-table-utils';
 
 interface LoadingPhasesOptions {
     /** Before it, a fast response shows nothing (no flicker). */
@@ -181,7 +182,7 @@ export function getSkeletonShape(
                 id,
                 label,
                 align: display.type === 'number' ? 'end' : 'start',
-                badge: 'badge' in display && display.badge === true,
+                badge: hasBadge(display),
             })),
         rowCount: config.per_page_options.includes(perPage)
             ? perPage

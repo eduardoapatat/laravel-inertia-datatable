@@ -10,6 +10,7 @@ import type {
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type {
+    ColumnDisplay,
     DataTableAlign,
     DataTableColumnMeta,
 } from '@/lib/data-table-types';
@@ -112,9 +113,17 @@ export function getColumnSizingStyle<TData extends RowData>(
  * Whether the default cell of the column is a number cell.
  */
 export function isNumberColumn(meta: DataTableColumnMeta | undefined) {
-    return meta?.display
-        ? meta.display.type === 'number'
-        : meta?.variant === 'number';
+    return meta?.display?.type === 'number';
+}
+
+/**
+ * Whether the cells of the column show a badge (`->badge()`), a bit taller
+ * than a line of text.
+ */
+export function hasBadge(display: ColumnDisplay | undefined) {
+    return (
+        display !== undefined && 'badge' in display && display.badge === true
+    );
 }
 
 /**

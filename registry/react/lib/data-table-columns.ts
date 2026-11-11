@@ -169,49 +169,22 @@ function serverMeta(
     server: ServerColumnConfig,
     facet: ServerFacet,
 ): DataTableColumnMeta {
-    const base = {
+    const range =
+        server.filter?.variant === 'range' && isRangeFacet(facet)
+            ? facet
+            : undefined;
+
+    return {
         label: server.label,
         placeholder: server.filter?.placeholder,
+        filterVariant: server.filter?.variant,
         empty: server.filter?.empty,
         emptyCount: Array.isArray(facet)
             ? facet.find((option) => option.value === null)?.count
             : undefined,
+        min: range?.min ?? undefined,
+        max: range?.max ?? undefined,
     };
-    const filter = server.filter?.variant;
-    const display = server.display;
-
-    // The type of the column gives the variant of the meta; its filter, the
-    // details (the toolbar only shows the columns that can filter).
-    switch (display.type) {
-        case 'number': {
-            if (filter !== 'range') {
-                return { ...base, variant: 'number', unit: display.unit };
-            }
-
-            const range = isRangeFacet(facet) ? facet : undefined;
-
-            return {
-                ...base,
-                variant: 'number',
-                filter: 'range',
-                unit: display.unit,
-                min: range?.min ?? undefined,
-                max: range?.max ?? undefined,
-            };
-        }
-        case 'date':
-            return filter === 'date-range'
-                ? { ...base, variant: 'date', filter: 'range' }
-                : { ...base, variant: 'date' };
-        case 'option':
-            return {
-                ...base,
-                variant: filter === 'select' ? 'select' : 'multi-select',
-                options: [],
-            };
-        default:
-            return { ...base, variant: display.type };
-    }
 }
 
 /**
@@ -248,8 +221,7 @@ function toOptions(
     facet: ServerFacetOption[],
     userMeta: DataTableColumnMeta | undefined,
 ): ColumnSelectOption[] {
-    const declared =
-        userMeta && 'options' in userMeta ? (userMeta.options ?? []) : [];
+    const declared = userMeta?.options ?? [];
 
     return facet.flatMap(({ value, label, count }) => {
         if (value === null) {

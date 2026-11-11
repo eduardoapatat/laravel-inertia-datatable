@@ -114,15 +114,12 @@ function DataTableSliderFilterContent<TData extends RowData>({
     const id = React.useId();
 
     const meta = column.columnDef.meta;
-    const numberMeta = meta?.variant === 'number' ? meta : undefined;
-    const declaredMin = numberMeta?.min;
-    const declaredMax = numberMeta?.max;
     // The label of the filter shows the unit as the cells do.
     const unit = getUnit(meta, 'cell');
 
     // The server sends the bounds of the data; without rows it has none.
-    const min = declaredMin ?? 0;
-    const max = declaredMax ?? 100;
+    const min = meta?.min ?? 0;
+    const max = meta?.max ?? 100;
     const step = stepProp ?? getRangeStep(min, max);
 
     const bounds = parseRangeBounds(columnFilterValueProp);

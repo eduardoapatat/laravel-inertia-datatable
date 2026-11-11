@@ -14,7 +14,6 @@ import * as React from 'react';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getMessage } from '@/lib/data-table-messages';
 
-import { getFilterVariant } from '@/lib/data-table-filter-options';
 import { useDataTable } from '@/components/data-table/data-table-context';
 import { DataTableDateFilter } from '@/components/data-table/data-table-date-filter';
 import {
@@ -257,9 +256,7 @@ interface DataTableToolbarFilterProps<TData extends RowData> {
 function DataTableToolbarFilter<TData extends RowData>({
     column,
 }: DataTableToolbarFilterProps<TData>) {
-    if (!column.columnDef.meta?.variant) return null;
-
-    switch (getFilterVariant(column.columnDef.meta)) {
+    switch (column.columnDef.meta?.filterVariant) {
         case 'text':
             return <DataTableTextFilter column={column} className="lg:w-56" />;
         case 'number':

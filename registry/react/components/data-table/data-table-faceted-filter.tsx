@@ -19,7 +19,6 @@ import type { ColumnSelectOption } from '@/lib/data-table-types';
 import {
     type FilterComponentName,
     getBooleanFilterOptions,
-    getColumnSelectOptions,
     getFacetedFilterOptions,
 } from '@/lib/data-table-filter-options';
 
@@ -147,7 +146,7 @@ function ColumnFacetedFilter<TData extends RowData>({
     if (!column) return null;
 
     const meta = column.columnDef.meta;
-    const isBoolean = meta?.variant === 'boolean';
+    const isBoolean = meta?.filterVariant === 'boolean';
     const serverOptions = isBoolean
         ? getBooleanFilterOptions(
               meta,
@@ -157,7 +156,7 @@ function ColumnFacetedFilter<TData extends RowData>({
               },
               labels,
           )
-        : getColumnSelectOptions(meta);
+        : (meta?.options ?? []);
 
     return (
         <Subscribe
@@ -173,7 +172,9 @@ function ColumnFacetedFilter<TData extends RowData>({
                     columnFilterValue={value}
                     includesEmpty={empty}
                     options={getFacetedFilterOptions(serverOptions, options)}
-                    multiple={multiple ?? meta?.variant === 'multi-select'}
+                    multiple={
+                        multiple ?? meta?.filterVariant === 'multi-select'
+                    }
                     {...props}
                 />
             )}
@@ -209,7 +210,7 @@ function DataTableFacetedFilterContent<TData extends RowData>({
     const meta = column?.columnDef.meta;
     const dir = useDirection();
     // Boolean filters store a single value ('true' / 'false').
-    const isScalar = meta?.variant === 'boolean';
+    const isScalar = meta?.filterVariant === 'boolean';
     const pickedValues = Array.isArray(columnFilterValue)
         ? columnFilterValue.filter(
               (value): value is string => typeof value === 'string',

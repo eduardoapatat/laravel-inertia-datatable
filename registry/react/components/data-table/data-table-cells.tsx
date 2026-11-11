@@ -47,15 +47,15 @@ function cellSetup<TData extends RowData, TValue>({
 
 /**
  * Default cell: picks the cell of the column type, from the `display` declared
- * in PHP or in the page `meta` or, without it, from the filter variant. Every
- * type cell is exported to reuse its formatting inside a custom `cell`.
+ * in PHP or in the page `meta` (a text cell without it). Every type cell is
+ * exported to reuse its formatting inside a custom `cell`.
  */
 export function DataTableCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
 ) {
     const { meta } = cellSetup(props);
 
-    switch (meta?.display?.type ?? typeOfVariant(meta?.variant)) {
+    switch (meta?.display?.type) {
         case 'number':
             return <DataTableNumberCell {...props} />;
         case 'date':
@@ -407,18 +407,4 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
             })}
         </span>
     );
-}
-
-function typeOfVariant(variant: DataTableColumnMeta['variant']) {
-    switch (variant) {
-        case 'number':
-        case 'date':
-        case 'boolean':
-            return variant;
-        case 'select':
-        case 'multi-select':
-            return 'option';
-        default:
-            return 'text';
-    }
 }

@@ -51,18 +51,17 @@ describe('getColumnClassName', () => {
 
 describe('getColumnAlign', () => {
     it('aligns numbers to the end and the rest to the start', () => {
-        expect(getColumnAlign({ variant: 'number' })).toBe('end');
+        expect(getColumnAlign({ display: { type: 'number' } })).toBe('end');
         expect(
             getColumnAlign({ display: { type: 'number', format: {} } }),
         ).toBe('end');
-        expect(getColumnAlign({ variant: 'text' })).toBe('start');
+        expect(getColumnAlign({ display: { type: 'text' } })).toBe('start');
         expect(getColumnAlign(undefined)).toBe('start');
-        expect(getColumnAlign({ variant: 'number', align: 'center' })).toBe(
-            'center',
-        );
-        expect(getColumnClassName({ variant: 'number' }, 'cell')).toEqual([
-            'w-(--cell-size)',
-            'pe-8 text-end',
-        ]);
+        expect(
+            getColumnAlign({ display: { type: 'number' }, align: 'center' }),
+        ).toBe('center');
+        expect(
+            getColumnClassName({ display: { type: 'number' } }, 'cell'),
+        ).toEqual(['w-(--cell-size)', 'pe-8 text-end']);
     });
 });

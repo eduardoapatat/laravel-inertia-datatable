@@ -49,7 +49,7 @@ describe('withColumnMeta', () => {
         expect(metaOf(column)).toMatchObject({
             label: 'NAME',
             placeholder: 'Search…',
-            variant: 'text',
+            filterVariant: 'text',
             display: { type: 'text' },
         });
         expect(column.enableSorting).toBe(false);
@@ -81,7 +81,6 @@ describe('withColumnMeta', () => {
             {
                 id: 'status',
                 meta: {
-                    variant: 'select',
                     options: [{ value: 'active', label: 'On' }],
                     icons: { draft: Icon },
                 },
@@ -98,7 +97,7 @@ describe('withColumnMeta', () => {
         );
 
         expect(metaOf(column)).toMatchObject({
-            variant: 'select',
+            filterVariant: 'select',
             empty: true,
             emptyCount: 1,
             options: [
@@ -119,9 +118,7 @@ describe('withColumnMeta', () => {
         );
 
         expect(metaOf(column)).toMatchObject({
-            variant: 'number',
-            filter: 'range',
-            unit: 'kg',
+            filterVariant: 'range',
             min: 1,
             max: undefined,
         });

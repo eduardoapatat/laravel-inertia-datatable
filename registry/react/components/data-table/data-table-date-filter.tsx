@@ -20,7 +20,6 @@ import {
     getWeekStartsOn,
     type TableWithMeta,
 } from '@/lib/data-table-messages';
-import { getFilterVariant } from '@/lib/data-table-filter-options';
 import { pickDateRangeDay } from '@/lib/data-table-filter-values';
 import {
     type DataTableFilterPieceProps,
@@ -60,7 +59,7 @@ export function DataTableDateFilter<TData extends RowData>({
 
     if (!column) return null;
 
-    const multiple = getFilterVariant(column.columnDef.meta) === 'date-range';
+    const multiple = column.columnDef.meta?.filterVariant === 'date-range';
 
     return (
         <Subscribe
