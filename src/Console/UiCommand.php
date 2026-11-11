@@ -47,7 +47,15 @@ class UiCommand extends Command
             return self::FAILURE;
         }
 
-        return $this->runInstaller($installer, $installer->updateCommand());
+        $result = $this->runInstaller($installer, $installer->updateCommand());
+
+        if ($result === self::SUCCESS) {
+            foreach ($installer->deleteObsoleteFiles() as $file) {
+                $this->components->info("Deleted resources/js/{$file}: the new version no longer has it.");
+            }
+        }
+
+        return $result;
     }
 
     /**

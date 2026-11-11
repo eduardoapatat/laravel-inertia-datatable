@@ -11,7 +11,16 @@ use function Pest\Laravel\artisan;
 
 afterEach(function () {
     File::delete(resource_path('js/hooks/use-server-data-table.ts'));
+    File::delete(resource_path('js/lib/data-table-filters.ts'));
 });
+
+function putObsoleteFile(): string
+{
+    File::ensureDirectoryExists(resource_path('js/lib'));
+    File::put($path = resource_path('js/lib/data-table-filters.ts'), '// old');
+
+    return $path;
+}
 
 function installUiFiles(): void
 {
@@ -77,6 +86,37 @@ it('updates without asking with the force option', function () {
     artisan('inertia-datatable:ui', ['--update' => true, '--force' => true])->assertSuccessful();
 
     Process::assertRanTimes(fn ($process) => in_array('--overwrite', $process->command, true), 1);
+});
+
+it('deletes the files the new version no longer has after updating', function () {
+    installUiFiles();
+    $obsolete = putObsoleteFile();
+    Process::fake();
+
+    artisan('inertia-datatable:ui', ['--update' => true, '--force' => true])
+        ->expectsOutputToContain('Deleted resources/js/lib/data-table-filters.ts')
+        ->assertSuccessful();
+
+    expect(File::exists($obsolete))->toBeFalse();
+});
+
+it('updates without obsolete files to delete', function () {
+    installUiFiles();
+    Process::fake();
+
+    artisan('inertia-datatable:ui', ['--update' => true, '--force' => true])
+        ->doesntExpectOutputToContain('Deleted')
+        ->assertSuccessful();
+});
+
+it('keeps the obsolete files when the update fails', function () {
+    installUiFiles();
+    $obsolete = putObsoleteFile();
+    Process::fake(fn () => Process::result(exitCode: 1));
+
+    artisan('inertia-datatable:ui', ['--update' => true, '--force' => true])->assertFailed();
+
+    expect(File::exists($obsolete))->toBeTrue();
 });
 
 it('reads the registry url from the environment', function () {

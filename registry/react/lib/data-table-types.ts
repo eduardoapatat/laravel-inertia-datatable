@@ -14,11 +14,7 @@ import type {
     CurrencyDisplay,
     ServerColumnDisplay,
 } from '@/lib/data-table-server';
-import type {
-    FILTER_OPERATORS,
-    FILTER_VARIANTS,
-    JOIN_OPERATORS,
-} from '@/lib/data-table-utils';
+import type { FILTER_OPERATORS, FILTER_VARIANTS } from '@/lib/data-table-utils';
 
 export interface ColumnSelectOption {
     label: string;
@@ -149,7 +145,6 @@ export type DataTableColumnMeta = {
 
 export type FilterVariant = (typeof FILTER_VARIANTS)[number];
 export type FilterOperator = keyof typeof FILTER_OPERATORS;
-export type JoinOperator = (typeof JOIN_OPERATORS)[number];
 
 export interface FilterOperatorOption {
     label: string;
@@ -200,31 +195,6 @@ export type SortableColumnId<TColumnConfigs extends DataTableColumnConfigs> = {
         : K;
 }[keyof TColumnConfigs] &
     string;
-
-export interface DataTableQueryKeys {
-    page: string;
-    perPage: string;
-    sort: string;
-    joinOperator: string;
-}
-
-export interface DataTableQuery<
-    TFilterColumnId extends string = string,
-    TSortColumnId extends string = TFilterColumnId,
-> {
-    page: number;
-    perPage: number;
-    sorting: ColumnSortItem<TSortColumnId>[];
-    filters: ColumnFilterItem<TFilterColumnId>[];
-    joinOperator: JoinOperator;
-}
-
-export type DataTableColumnConfigsQuery<
-    TColumnConfigs extends DataTableColumnConfigs,
-> = DataTableQuery<
-    FilterableColumnId<TColumnConfigs>,
-    SortableColumnId<TColumnConfigs>
->;
 
 export interface DataTableRowAction<TData extends RowData> {
     row: Row<DataTableFeatures, TData>;

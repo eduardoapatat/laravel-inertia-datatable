@@ -120,16 +120,10 @@ function DataTableSliderFilterContent<TData extends RowData>({
     // The label of the filter shows the unit as the cells do.
     const unit = getUnit(meta, 'cell');
 
-    const [facetedRange, setFacetedRange] = React.useState(() =>
-        getFacetedRange(column),
-    );
-    const min = declaredMin ?? facetedRange[0];
-    const max = declaredMax ?? facetedRange[1];
+    // The server sends the bounds of the data; without rows it has none.
+    const min = declaredMin ?? 0;
+    const max = declaredMax ?? 100;
     const step = stepProp ?? getRangeStep(min, max);
-
-    function onOpenChange(open: boolean) {
-        if (open) setFacetedRange(getFacetedRange(column));
-    }
 
     const bounds = parseRangeBounds(columnFilterValueProp);
     const columnFilterValue: RangeValue | undefined = bounds
@@ -252,7 +246,7 @@ function DataTableSliderFilterContent<TData extends RowData>({
     const hasFilter = Boolean(columnFilterValue) || includesEmpty;
 
     return (
-        <Popover onOpenChange={onOpenChange}>
+        <Popover>
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
@@ -401,18 +395,6 @@ function DataTableSliderFilterContent<TData extends RowData>({
             </PopoverContent>
         </Popover>
     );
-}
-
-function getFacetedRange<TData extends RowData>(
-    column: Column<DataTableFeatures, TData>,
-): RangeValue {
-    const values = column.getFacetedMinMaxValues();
-    if (Array.isArray(values) && values.length === 2) {
-        const [min, max] = values;
-        if (typeof min === 'number' && typeof max === 'number')
-            return [min, max];
-    }
-    return [0, 100];
 }
 
 function getRangeStep(min: number, max: number) {

@@ -42,11 +42,6 @@
                     "target": "~/resources/js/lib/data-table-features.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filters.ts",
-                    "type": "registry:lib",
-                    "target": "~/resources/js/lib/data-table-filters.ts"
-                },
-                {
                     "path": "registry/react/lib/data-table-format.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-format.ts"
@@ -168,11 +163,6 @@
                     "path": "registry/react/lib/data-table-features.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-features.ts"
-                },
-                {
-                    "path": "registry/react/lib/data-table-filters.ts",
-                    "type": "registry:lib",
-                    "target": "~/resources/js/lib/data-table-filters.ts"
                 },
                 {
                     "path": "registry/react/lib/data-table-format.ts",

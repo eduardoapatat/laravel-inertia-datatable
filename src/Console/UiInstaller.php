@@ -15,6 +15,15 @@ use Illuminate\Support\Facades\Process;
  */
 final class UiInstaller
 {
+    /**
+     * Files of older versions of the UI that the registry no longer has, relative to
+     * `resources/js`. shadcn never deletes a file, and an old one would still import
+     * what the new ones removed, breaking the build of the app.
+     */
+    public const array OBSOLETE_FILES = [
+        'lib/data-table-filters.ts',
+    ];
+
     public function __construct(
         private readonly Filesystem $files,
         private readonly Application $app,
@@ -48,6 +57,26 @@ final class UiInstaller
     public function updateCommand(): array
     {
         return [...$this->packageRunner(), 'shadcn@latest', 'add', $this->itemUrl('data-table-react-files'), '-y', '--overwrite'];
+    }
+
+    /**
+     * Deletes the files of older versions that the registry no longer has.
+     *
+     * @return list<string> The deleted files, relative to `resources/js`.
+     */
+    public function deleteObsoleteFiles(): array
+    {
+        $deleted = [];
+
+        foreach (self::OBSOLETE_FILES as $file) {
+            $path = $this->app->resourcePath('js/'.$file);
+
+            if ($this->files->exists($path) && $this->files->delete($path)) {
+                $deleted[] = $file;
+            }
+        }
+
+        return $deleted;
     }
 
     /**

@@ -4,7 +4,13 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `inertia-datatable:ui --update` deletes the files of older versions that the registry no longer has (today `resources/js/lib/data-table-filters.ts`) and says which ones. shadcn never deletes a file, and an old one would still import what the new ones removed, breaking the build of the app.
+
 ### Removed
+
+- **BREAKING** The client-side filtering inherited from tablecn, which the table never used because it filters on the server: `lib/data-table-filters.ts`, the join operator (`table.getJoinOperator()`, `setJoinOperator()`, `resetJoinOperator()`, the `JoinOperator` type), `table.getColumnFilterItems()`, `addColumnFilter()`, `updateColumnFilter()`, `removeColumnFilter()`, and the filtered, faceted, sorted and paginated row models (`column.getFacetedUniqueValues()`, `getFacetedMinMaxValues()`). Update the UI with `php artisan inertia-datatable:ui --update`, which deletes the old file. The slider takes its bounds from the server, and `[0, 100]` when there are no rows.
 
 - The UI texts `min`, `max`, `minimum` and `maximum`, which no component used. Translations published before keep them, unused.
 - The development warning of `DataTableSliderFilter` about missing `meta.min` / `meta.max`: the server sends the bounds of every range filter.

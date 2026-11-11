@@ -217,7 +217,6 @@ export function DataTableResetButton<TData extends RowData>({
     function onReset() {
         table.resetColumnFilters(true);
         table.resetGlobalFilter(true);
-        table.resetJoinOperator(true);
     }
 
     return (

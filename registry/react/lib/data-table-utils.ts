@@ -53,8 +53,6 @@ export const FILTER_OPERATORS = {
     isRelativeToToday: 'rel',
 } as const;
 
-export const JOIN_OPERATORS = ['and', 'or'] as const;
-
 export const SORT_ORDERS = [
     { label: 'Asc', value: 'asc' },
     { label: 'Desc', value: 'desc' },
