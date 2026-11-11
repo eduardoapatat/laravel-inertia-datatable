@@ -55,11 +55,7 @@ export function {{ component }}({
     });
 
     return (
-        <DataTable
-            table={table}
-            aria-label="{{ title }}"
-            className={className}
-        >
+        <DataTable table={table} aria-label="{{ title }}" className={className}>
             {/* To change the layout, replace the toolbar with its pieces
                 (anywhere inside <DataTableProvider table={table}>):
                 DataTableSearch, the filter of each type
