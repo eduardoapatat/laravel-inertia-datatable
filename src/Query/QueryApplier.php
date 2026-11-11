@@ -7,6 +7,7 @@ namespace InertiaDataTable\Query;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use InertiaDataTable\Column;
+use InertiaDataTable\Columns\OptionColumn;
 use InertiaDataTable\Enums\FilterOperator;
 use InertiaDataTable\Enums\FilterVariant;
 use InertiaDataTable\FilterItem;
@@ -18,6 +19,9 @@ use InertiaDataTable\TableDefinition;
  */
 final class QueryApplier
 {
+    /** Largest value of a Postgres `integer` column. */
+    private const int MAX_INT4 = 2147483647;
+
     private const int MAX_SEARCH_WORDS = 10;
 
     public function __construct(private readonly RelationResolver $relations = new RelationResolver) {}
@@ -88,7 +92,7 @@ final class QueryApplier
                     if ($relation === null) {
                         $group->orWhere(fn (Builder $where) => $this->whereContains($where, $where->qualifyColumn($column->attribute()), $word));
                     } else {
-                        $group->orWhereHas($relation, fn (Builder $where) => $this->whereContains($where, $column->attribute(), $word));
+                        $group->orWhereHas($relation, fn (Builder $where) => $this->whereContains($where, $where->qualifyColumn($column->attribute()), $word));
                     }
                 }
             });
@@ -141,17 +145,23 @@ final class QueryApplier
         $positive = $operator->negationOf();
         $relation = $column->relation();
 
+        // Without declared options the values are not checked against a list, and Postgres
+        // rejects a text compared with a number column: the column is compared as text.
+        $asText = in_array($filter->variant, [FilterVariant::Select, FilterVariant::MultiSelect], true)
+            && ! ($column instanceof OptionColumn && $column->optionLabels() !== null);
+
         if ($relation !== null) {
-            $attribute = $column->attribute();
+            // Qualified: a through relation joins a table that may have the same column.
+            $attribute = fn (Builder $where): string => $where->qualifyColumn($column->attribute());
 
             if ($operator === FilterOperator::IsEmpty) {
-                $query->whereDoesntHave($relation, fn (Builder $where) => $this->whereNotEmpty($where, $attribute, $filter->variant));
+                $query->whereDoesntHave($relation, fn (Builder $where) => $this->whereNotEmpty($where, $attribute($where), $filter->variant));
             } elseif ($operator === FilterOperator::IsNotEmpty) {
-                $query->whereHas($relation, fn (Builder $where) => $this->whereNotEmpty($where, $attribute, $filter->variant));
+                $query->whereHas($relation, fn (Builder $where) => $this->whereNotEmpty($where, $attribute($where), $filter->variant));
             } elseif ($positive !== null) {
-                $query->whereDoesntHave($relation, fn (Builder $where) => $this->wherePredicate($where, $attribute, $positive, $filter));
+                $query->whereDoesntHave($relation, fn (Builder $where) => $this->wherePredicate($where, $attribute($where), $positive, $filter, $asText));
             } else {
-                $query->whereHas($relation, fn (Builder $where) => $this->wherePredicate($where, $attribute, $operator, $filter));
+                $query->whereHas($relation, fn (Builder $where) => $this->wherePredicate($where, $attribute($where), $operator, $filter, $asText));
             }
 
             return;
@@ -166,20 +176,27 @@ final class QueryApplier
         } elseif ($positive !== null) {
             // Negations include NULL: "is not X" also matches rows without a value.
             $query->where(fn (Builder $where) => $where
-                ->whereNot(fn (Builder $not) => $this->wherePredicate($not, $sqlColumn, $positive, $filter))
+                ->whereNot(fn (Builder $not) => $this->wherePredicate($not, $sqlColumn, $positive, $filter, $asText))
                 ->orWhereNull($sqlColumn));
         } else {
-            $this->wherePredicate($query, $sqlColumn, $operator, $filter);
+            $this->wherePredicate($query, $sqlColumn, $operator, $filter, $asText);
         }
     }
 
     /**
      * @param  Builder<covariant Model>  $query
      */
-    private function wherePredicate(Builder $query, string $column, FilterOperator $operator, FilterItem $filter): void
+    private function wherePredicate(Builder $query, string $column, FilterOperator $operator, FilterItem $filter, bool $asText = false): void
     {
         $value = $filter->value;
         $variant = $filter->variant;
+
+        if ($asText && $this->driver($query) === 'pgsql' && in_array($operator, [FilterOperator::InArray, FilterOperator::Eq], true)) {
+            $values = array_map(strval(...), (array) $value);
+            $query->whereRaw($this->wrap($query, $column).'::text in ('.implode(', ', array_fill(0, count($values), '?')).')', $values);
+
+            return;
+        }
 
         match ($operator) {
             FilterOperator::ILike => $this->whereContains($query, $column, (string) (is_array($value) ? ($value[0] ?? '') : $value)),
@@ -196,10 +213,14 @@ final class QueryApplier
     private function whereEquals(Builder $query, string $column, FilterVariant $variant, string $value): void
     {
         match (true) {
-            $variant === FilterVariant::Text => $query->whereRaw('lower('.$this->wrap($query, $column).') = ?', [mb_strtolower($value)]),
+            // The exact value too: `lower()` only folds ASCII in SQLite, PHP folds "Á" as well.
+            $variant === FilterVariant::Text => $query->whereRaw(
+                '(lower('.$this->wrap($query, $column).') = ? or '.$this->wrap($query, $column).' = ?)',
+                [mb_strtolower($value), $value],
+            ),
             $variant->isDate() => $query->whereDate($column, '=', $value),
             $variant === FilterVariant::Boolean => $query->where($column, $value === 'true'),
-            $variant->isNumeric() => $query->where($column, $this->number($value)),
+            $variant->isNumeric() => $this->whereNumber($query, $column, '=', $value),
             default => $query->where($column, $value),
         };
     }
@@ -219,7 +240,7 @@ final class QueryApplier
         if ($variant->isDate()) {
             $query->whereDate($column, $sqlOperator, $value);
         } else {
-            $query->where($column, $sqlOperator, $this->number($value));
+            $this->whereNumber($query, $column, $sqlOperator, $value);
         }
     }
 
@@ -262,7 +283,7 @@ final class QueryApplier
         $pattern = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value).'%';
         $wrapped = $this->wrap($query, $column);
 
-        match ($query->getModel()->getConnection()->getDriverName()) {
+        match ($this->driver($query)) {
             'pgsql' => $query->whereRaw("{$wrapped}::text ilike ?", [$pattern]),
             // SQLite and SQL Server have no default escape character in LIKE.
             'sqlite', 'sqlsrv' => $query->whereRaw("{$wrapped} like ? escape '\\'", [$pattern]),
@@ -276,6 +297,33 @@ final class QueryApplier
     private function wrap(Builder $query, string $column): string
     {
         return $query->getQuery()->getGrammar()->wrap($column);
+    }
+
+    /**
+     * Postgres takes the type of the value from the column, so `1.5` or a number over its
+     * range fails on an integer column: those go as `numeric` and compare with any number.
+     *
+     * @param  Builder<covariant Model>  $query
+     */
+    private function whereNumber(Builder $query, string $column, string $sqlOperator, string $value): void
+    {
+        $number = $this->number($value);
+
+        if ($this->driver($query) === 'pgsql' && (is_float($number) || abs($number) > self::MAX_INT4)) {
+            $query->whereRaw($this->wrap($query, $column)." {$sqlOperator} ?::numeric", [(string) $number]);
+
+            return;
+        }
+
+        $query->where($column, $sqlOperator, $number);
+    }
+
+    /**
+     * @param  Builder<covariant Model>  $query
+     */
+    private function driver(Builder $query): string
+    {
+        return $query->getModel()->getConnection()->getDriverName();
     }
 
     private function number(string $value): int|float

@@ -11,6 +11,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Fixed
 
+- In Postgres a filter value that passed the normalization still failed with a 500: a decimal or a number over the range on an integer column (`filter[stock]=1.5`, `filter[stock]=99999999999999`), a number that is not finite (`1e999`), the date `0000-01-01`, or a text on a number column filtered as an option without declared options (`filter[stock]=abc`). Numbers that are not finite and that date are now ignored, and the rest compare without failing.
+- A select filter without declared options let through a value that is not valid UTF-8 (`filter[status]=%FF`), which broke the query in Postgres and the JSON of the response elsewhere. It is ignored, as is a value over 255 characters.
+- Sorting, filtering or searching on a `hasOneThrough` relation failed with "ambiguous column name" when the related table and the one in between had a column with the same name.
+- `eq` and `neq` on a text did not find the very value they were given when it had a capital outside ASCII in SQLite (`eq.Ángel`).
 - `DataTableSkeleton config` did not look like the table it stood for, so the page jumped when the data arrived: its columns took the width of their label instead of the 150px of the table, numbers were not aligned to the end, the filters were all the same small box, the pagination had a "selected rows" placeholder and the heights differed. It also ignored the URL: with `?per_page=25` or `?columns=…` it drew the default rows and columns. It now reads both from the URL with the rules of the server.
 - With several visits in a row (clicking "next page" quickly), each cancelled visit turned the loading state off and the next one started it again, so the rows blinked between dimmed and normal. The state now holds until the last visit ends; `isLoading` too.
 - `inertia-datatable:ui` and `--install-ui` used `npx` in a pnpm project without a lockfile yet (a starter kit just created with `--pnpm`); `pnpm-workspace.yaml` now also counts as pnpm.

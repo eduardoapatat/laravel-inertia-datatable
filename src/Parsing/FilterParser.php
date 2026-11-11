@@ -140,11 +140,19 @@ final class FilterParser
     {
         return match ($variant) {
             FilterVariant::Text => $this->normalizeText($value),
-            FilterVariant::Number, FilterVariant::Range => is_numeric(trim($value)) ? trim($value) : null,
+            FilterVariant::Number, FilterVariant::Range => $this->normalizeNumber(trim($value)),
             FilterVariant::Date, FilterVariant::DateRange => $this->isValidDate(trim($value)) ? trim($value) : null,
             FilterVariant::Boolean => in_array(strtolower(trim($value)), ['true', 'false'], true) ? strtolower(trim($value)) : null,
             FilterVariant::Select, FilterVariant::MultiSelect => $this->normalizeOption($column, $value),
         };
+    }
+
+    /**
+     * `1e999` is numeric for PHP but not a number a database can compare.
+     */
+    private function normalizeNumber(string $value): ?string
+    {
+        return is_numeric($value) && is_finite((float) $value) ? $value : null;
     }
 
     private function normalizeText(string $value): ?string
@@ -156,7 +164,9 @@ final class FilterParser
 
     private function normalizeOption(Column $column, string $value): ?string
     {
-        if ($value === '') {
+        // Without declared options any value goes to the query: it must at least be text
+        // a database accepts.
+        if ($value === '' || ! mb_check_encoding($value, 'UTF-8') || mb_strlen($value) > self::MAX_TEXT_LENGTH) {
             return null;
         }
 
@@ -169,7 +179,8 @@ final class FilterParser
     {
         $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
 
-        return $date !== false && $date->format('Y-m-d') === $value;
+        // The year 0000 is a date for PHP, but not for Postgres.
+        return $date !== false && $date->format('Y-m-d') === $value && (int) $date->format('Y') >= 1;
     }
 
     /**

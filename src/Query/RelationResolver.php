@@ -60,13 +60,14 @@ final class RelationResolver
     {
         $relation = $this->relation($parent->getModel(), $column);
 
-        // Unqualified column: inside the subquery it resolves against the related table,
-        // also when Laravel aliases it (self-referencing relations). The constraints of the
-        // relation method are merged as whereHas() does, so sort and facets see the same
-        // related rows as the data, the filters and the search.
-        return $relation
-            ->getRelationExistenceQuery($relation->getRelated()->newQuery(), $parent->getModel()->newQuery(), [$column->attribute()])
-            ->mergeConstraintsFrom($relation->getQuery())
-            ->limit(1);
+        // The constraints of the relation method are merged as whereHas() does, so sort and
+        // facets see the same related rows as the data, the filters and the search.
+        $query = $relation
+            ->getRelationExistenceQuery($relation->getRelated()->newQuery(), $parent->getModel()->newQuery(), ['*'])
+            ->mergeConstraintsFrom($relation->getQuery());
+
+        // Qualified with the related table (its alias in self-referencing relations): a
+        // through relation joins a table that may have a column with the same name.
+        return $query->select($query->qualifyColumn($column->attribute()))->limit(1);
     }
 }
