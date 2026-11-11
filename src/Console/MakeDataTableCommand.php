@@ -181,12 +181,6 @@ class MakeDataTableCommand extends GeneratorCommand
         $ids = array_map(fn (GuessedColumn $column): string => $column->id, $columns);
         $sort = in_array('created_at', $ids, true) ? '-created_at' : null;
 
-        foreach ($columns as $column) {
-            if ($sort === null && in_array('sortable()', $column->calls, true)) {
-                $sort = $column->id;
-            }
-        }
-
         if ($sort === null) {
             return '';
         }

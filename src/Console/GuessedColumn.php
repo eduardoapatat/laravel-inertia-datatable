@@ -11,7 +11,7 @@ final readonly class GuessedColumn
 {
     /**
      * @param  'text'|'number'|'date'|'boolean'|'option'  $type  Factory of `Column` (`Column::number()`).
-     * @param  list<string>  $calls  Calls chained after the factory, for example `sortable()`.
+     * @param  list<string>  $calls  Calls chained after the factory, for example `searchable()`.
      * @param  'string'|'number'|'decimal'|'number-or-string'|'boolean'|'boolean-or-number'|'date'|'option'  $kind  Type of the value in the JSON, for the React component.
      */
     public function __construct(

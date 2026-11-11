@@ -174,12 +174,6 @@ export interface FilterAffix {
     align: 'inline-start' | 'inline-end';
 }
 
-/**
- * What goes next to the number inputs of a filter, which take the raw value:
- * the unit of plain numbers (`->unit('kg')`) after them or, for `->money()`,
- * the symbol before (`$`, by default), the code after (`CLP`) or both, as
- * chosen with `filter:`. Percentages and Intl units have none.
- */
 /** Undefined with a currency Intl does not know: the filter shows no symbol. */
 function getCurrencySymbol(
     format: Intl.NumberFormatOptions,
@@ -196,6 +190,12 @@ function getCurrencySymbol(
     }
 }
 
+/**
+ * What goes next to the number inputs of a filter, which take the raw value:
+ * the unit of plain numbers (`->unit('kg')`) after them or, for `->money()`,
+ * the symbol before (`$`, by default), the code after (`CLP`) or both, as
+ * chosen with `filter:`. Percentages and Intl units have none.
+ */
 export function getFilterAffixes(
     meta: DataTableColumnMeta | undefined,
 ): FilterAffix[] {

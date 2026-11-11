@@ -4,6 +4,11 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Removed
+
+- The UI texts `min`, `max`, `minimum` and `maximum`, which no component used. Translations published before keep them, unused.
+- The development warning of `DataTableSliderFilter` about missing `meta.min` / `meta.max`: the server sends the bounds of every range filter.
+
 ### Changed
 
 - `<DataTable>` no longer draws its own progress bar while a visit loads: Inertia already shows one at the top of the page. The rows still dim with a fade after `loadingDelay` and turn into skeleton rows after `skeletonDelay`.

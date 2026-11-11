@@ -86,7 +86,7 @@ filter[<col>]=[<operator>.]<value>
 
 | Operator | SQL |
 |---|---|
-| `ilike` / `not.ilike` | `whereLike` / `whereNotLike` with `%value%`, case-insensitive and escaping `%` and `_` |
+| `ilike` / `not.ilike` | Case-insensitive `LIKE %value%` (`ILIKE` in PostgreSQL, with the column cast to text), escaping `%`, `_` and `\` |
 | `eq` / `neq` | `=` / `<>`; in `date` it compares the whole day (`whereDate`); in `text` it is case-insensitive |
 | `lt` `lte` `gt` `gte` | comparison; in `date` by day (`lte` 2026-01-31 includes that whole day) |
 | `between` | both ends inclusive; with one empty end it is equivalent to `gte` / `lte` |
@@ -99,6 +99,7 @@ filter[<col>]=[<operator>.]<value>
 #### Normalization
 
 - A filter without a value (except `is.empty` / `not.is.empty`) is ignored: `filter[status]=` = no filter.
+- A text value is cut at 255 characters.
 - A value that does not match the variant (`filter[price]=abc`, invalid date, boolean other than `true`/`false`) drops that filter.
 - `between` with `min > max` swaps the ends.
 - In `select` / `multi-select` with declared options, values not in the list are dropped.
@@ -111,9 +112,9 @@ filter[<col>]=[<operator>.]<value>
 
 ### 1.5 `search`
 
-- It is trimmed (`trim`). If it ends up empty, there is no search. Maximum length: 100 characters (the excess is cut).
+- It is trimmed (`trim`). If it ends up empty, there is no search. Maximum length: 100 characters (the excess is cut). At most 10 distinct words are used; the rest are ignored.
 - It is split into words: **each word** must match in **some** `searchable` column: `(name LIKE %ana% OR email LIKE %ana%) AND (name LIKE %perez% OR email LIKE %perez%)`.
-- It uses Laravel's `whereLike(..., caseSensitive: false)` (`ILIKE` in PostgreSQL) and escapes `%` and `_`.
+- It is a case-insensitive `LIKE %word%` (`ILIKE` in PostgreSQL) that escapes `%`, `_` and `\`.
 - It maps 1:1 to TanStack's `globalFilter`; that is why it is a top-level parameter and not `filter[search]`.
 
 ### 1.6 `columns`
@@ -239,7 +240,7 @@ Data the client cannot compute by itself in server mode (they replace TanStack's
   - Not declared: distinct values present in the database, sorted by value, with `label = value`.
 - Selected values always appear, even if their count is 0.
 - `NULL` values are not an option. With `empty: true` in the filter, the rows without a value go last as `{ "value": null, "label": …, "count"?: … }`; the label is the text of `->whenEmpty()` or the `no_value` UI text.
-- Counts can be disabled per column (`->filterSelect(counts: false)` / `->filterMultiSelect(counts: false)`); then `count` is not sent.
+- Counts can be disabled per column (`->filterSelect(counts: false)` / `->filterMultiSelect(counts: false)`); then `count` is not sent. The count query is only skipped with declared options: without them it still runs to list the values.
 
 **`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `Column::number(...)->filterRange(min: 0, max: 5000)` to skip the query.
 
@@ -289,8 +290,8 @@ The client adapter translates each column into the columns' `meta` (`label`, `pl
 
 Pure TypeScript functions shared between React and Vue:
 
-- `stateToQuery(state, config) → Record<string, string | string[]>`: serializes, leaving out default values (page 1, default `per_page`, no sort, no filters, default visibility) so URLs stay clean. Filters with their implicit operator are written without a prefix (`filter[status]=active,pending`).
-- `queryToState(query, config) → Partial<TableState>`: the inverse. Only used as a fallback, because the official state is the response's `state`.
+- `stateToQuery(state, config) → Array<[string, string]>`: serializes into `[key, value]` pairs (several filters of one column repeat the key as `filter[col][]`), leaving out default values (page 1, default `per_page`, no sort, no filters, default visibility) so URLs stay clean. Filters with their implicit operator are written without a prefix (`filter[status]=active,pending`).
+- `buildTableUrl(href, pairs, keys)`: builds the URL of the visit from those pairs, keeping the parameters that are not of the table. There is no inverse function: the official state is always the `state` of the response.
 
 Rules the client must follow:
 
@@ -381,7 +382,7 @@ UserProductsTable::make(user: $user);
 
 ### 5.4 Relation columns (`belongsTo` / `hasOne`)
 
-`->from('relation.column')` takes the value from a related model. The public id (`category`) is independent of the internal path (`category.name`): the frontend does not know there is a relation.
+`->from('relation.column')` takes the value from a related model (`belongsTo`, `hasOne`, `morphOne` or `hasOneThrough`; a `morphTo` or a to-many relation throws a `LogicException`). The public id (`category`) is independent of the internal path (`category.name`): the frontend does not know there is a relation.
 
 | Operation | How it is resolved |
 |---|---|

@@ -12,7 +12,7 @@ final readonly class SortItem
     public function __construct(public string $id, public bool $desc) {}
 
     /**
-     * Interpreta `-created_at,name`.
+     * Parses `-created_at,name`.
      *
      * @return list<self>
      */

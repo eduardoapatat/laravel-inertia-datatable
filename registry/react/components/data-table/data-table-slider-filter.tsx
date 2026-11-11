@@ -131,15 +131,6 @@ function DataTableSliderFilterContent<TData extends RowData>({
         if (open) setFacetedRange(getFacetedRange(column));
     }
 
-    React.useEffect(() => {
-        if (process.env.NODE_ENV === 'production') return;
-        if (!column.table.options.manualFiltering) return;
-        if (declaredMin !== undefined && declaredMax !== undefined) return;
-        console.warn(
-            `DataTableSliderFilter: column "${column.id}" is missing \`meta.min\` or \`meta.max\`, so in server mode its bounds only cover the rows on the current page. Set both to the full range of the data.`,
-        );
-    }, [column, declaredMin, declaredMax]);
-
     const bounds = parseRangeBounds(columnFilterValueProp);
     const columnFilterValue: RangeValue | undefined = bounds
         ? [bounds[0] ?? min, bounds[1] ?? max]

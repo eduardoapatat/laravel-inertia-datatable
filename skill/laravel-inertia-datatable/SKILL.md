@@ -86,7 +86,7 @@ Write feature tests in the app's test style (see `references/testing.md`): autho
 
 ## Things that commonly go wrong
 
-- **Only to-one relations** (`belongsTo`, `hasOne`) can be columns; a `hasMany` column throws a `LogicException` on purpose. Use a parent-model table instead (`references/backend.md`).
+- **Only to-one relations** (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`; not `morphTo`) can be columns; a `hasMany` column throws a `LogicException` on purpose. Use a parent-model table instead (`references/backend.md`).
 - **Filter/sort/search only work on declared columns.** Anything not declared with the matching capability is ignored by design (allow-list), not an error.
 - **Columns must exist.** With `APP_DEBUG=true` (or `inertia-datatable.validate_columns`), the first load throws a `LogicException` when a sortable/searchable/filterable column is not a column of its table, or when a displayed column has no value in the model (typo, `$hidden`, accessor missing from `$appends`), or when `whenEmpty()` or a filter with `empty: true` can never apply (a `NOT NULL` column, or a `belongsTo` whose foreign key and related column are both `NOT NULL`). Fix the column or the migration; values computed in PHP can only be displayed (accessor in `$appends`, `withCount`/`addSelect` alias or `transform()`).
 - **Rows only contain visible columns.** Type row fields as optional in TypeScript and handle `undefined` in cells.

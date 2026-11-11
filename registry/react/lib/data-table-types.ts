@@ -63,15 +63,15 @@ export type ColumnVariantMeta =
       }[keyof ColumnVariantOptions];
 
 /**
- * Table meta: server data the components need (pagination and toolbar)
- * without every page having to pass it.
- */
-/**
  * Loading state of a visit: `busy` after `loadingDelay` (rows dimmed),
  * `slow` after `skeletonDelay` (skeleton rows), `idle` otherwise.
  */
 export type DataTableLoadingPhase = 'idle' | 'busy' | 'slow';
 
+/**
+ * Table meta: server data the components need (pagination and toolbar)
+ * without every page having to pass it.
+ */
 export interface DataTableTableMeta {
     pageSizeOptions?: number[];
     /** Loading state of the visit in flight (`useServerDataTable`). */

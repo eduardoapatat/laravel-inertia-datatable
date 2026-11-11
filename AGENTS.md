@@ -25,6 +25,8 @@ pnpm run registry:build # compiles registry.json into r/
 
 Run `composer check` and `pnpm run check` before considering a change done.
 
+`pnpm run check` and `pnpm run types:check` do not cover `registry/react/**`: those components import the `ui/` components of shadcn that each app installs, so they are only linted and type checked by the starter kit job (`.github/scripts/starter-kit.sh`), in a real app. Check React changes there or in an app that installs the registry from `r/` (`INERTIA_DATATABLE_REGISTRY_URL`).
+
 ## Rules
 
 - There is no `artisan` in this repo: it is a package. Use Testbench for anything that needs the framework.

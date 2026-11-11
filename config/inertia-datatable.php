@@ -49,7 +49,8 @@ return [
     | (app()->getLocale(), from APP_LOCALE); "browser" leaves it to each
     | browser. A table can override it with locale(); the React hook too.
     |
-    | currency: ISO 4217 code used by ->money() without a currency.
+    | currency: ISO 4217 code used by ->money() without a currency; with null,
+    | ->money() without one throws.
     |
     | date_format: preset of the date columns without ->format(): short,
     | medium, long, datetime or relative.
