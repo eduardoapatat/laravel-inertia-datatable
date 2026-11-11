@@ -22,7 +22,7 @@ import { getMessage } from '@/lib/data-table-messages';
 import {
     getRangeFilterBounds,
     getValidRangeFilterBounds,
-} from '@/lib/data-table-utils';
+} from '@/lib/data-table-filter-values';
 import {
     type DataTableFilterPieceProps,
     useDataTableFilterColumn,

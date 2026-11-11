@@ -17,6 +17,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Changed
 
+- `lib/data-table-utils.ts` is split by topic: `data-table-filter-values.ts` (filter values, dates and ranges), `data-table-filter-options.ts` (filter components and their options), `data-table-loading.ts` (loading phases and skeleton) and `data-table-columns.ts` (what the hook does with the server response). `--update` installs the new files; code of the app that imported a helper from `@/lib/data-table-utils` must import it from its new file. The helpers no component used are gone (`getFilterOperators`, `getDefaultFilter`, `getActiveFilters`, `getDateFilterLabel`…), and so are the `FILTER_VARIANTS` and `FILTER_OPERATORS` lists and the `isRelativeToToday` operator, which the server never supported: `FilterVariant` and `FilterOperator` now come from `lib/data-table-server.ts`.
 - `<DataTable>` no longer draws its own progress bar while a visit loads: Inertia already shows one at the top of the page. The rows still dim with a fade after `loadingDelay` and turn into skeleton rows after `skeletonDelay`.
 - `make:datatable` writes better labels: known acronyms in capitals (`sku` is "SKU", `site_url` is "Site URL") and boolean columns without the "Is" (`is_featured` is "Featured").
 

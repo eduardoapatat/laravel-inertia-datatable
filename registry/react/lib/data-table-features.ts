@@ -29,12 +29,12 @@ import type {
     DataTableTableMeta,
 } from '@/lib/data-table-types';
 
+import { getFilterVariant } from '@/lib/data-table-filter-options';
 import {
-    getFilterVariant,
     getIsPlainFilter,
     getPlainFilterValue,
     normalizeColumnFilter,
-} from '@/lib/data-table-utils';
+} from '@/lib/data-table-filter-values';
 
 declare module '@tanstack/react-table' {
     interface Plugins {

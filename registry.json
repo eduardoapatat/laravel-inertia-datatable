@@ -62,6 +62,26 @@
                     "target": "~/resources/js/lib/data-table-utils.ts"
                 },
                 {
+                    "path": "registry/react/lib/data-table-columns.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-columns.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-filter-options.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-options.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-filter-values.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-values.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-loading.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-loading.ts"
+                },
+                {
                     "path": "registry/react/hooks/use-server-data-table.ts",
                     "type": "registry:hook",
                     "target": "~/resources/js/hooks/use-server-data-table.ts"
@@ -183,6 +203,26 @@
                     "path": "registry/react/lib/data-table-utils.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-utils.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-columns.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-columns.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-filter-options.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-options.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-filter-values.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-values.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-loading.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-loading.ts"
                 },
                 {
                     "path": "registry/react/hooks/use-server-data-table.ts",

@@ -21,7 +21,7 @@ import {
     getBooleanFilterOptions,
     getColumnSelectOptions,
     getFacetedFilterOptions,
-} from '@/lib/data-table-utils';
+} from '@/lib/data-table-filter-options';
 
 import {
     type DataTableFilterPieceProps,

@@ -331,6 +331,6 @@ Call the hook once per table with its own prop and give each backend table a `na
 - `components/data-table/data-table-default-column.tsx` — default header and cell for columns the component does not customize.
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
 - `components/data-table/data-table-context.tsx` — `DataTableProvider` and `useDataTable`.
-- `lib/data-table-{features,filters,types,utils,format,messages}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
+- `lib/data-table-{columns,features,filter-options,filter-values,format,loading,messages,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
 
 These files belong to the project after installation: adapt styles there (texts are translated with the lang files, see above). `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.

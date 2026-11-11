@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import { DEFAULT_MESSAGES } from '@/lib/data-table-messages';
 import type { ServerTableConfig } from '@/lib/data-table-server';
-import { getSkeletonShape } from '@/lib/data-table-utils';
+import { getSkeletonShape } from '@/lib/data-table-loading';
 import { cn } from '@/lib/utils';
 
 import { Skeleton } from '@/components/ui/skeleton';

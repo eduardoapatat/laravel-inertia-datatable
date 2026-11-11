@@ -1,20 +1,15 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
-import type {
-    Cell,
-    ColumnFilter,
-    ColumnSort,
-    Row,
-    RowData,
-} from '@tanstack/react-table';
+import type { Cell, ColumnFilter, RowData } from '@tanstack/react-table';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type { DataTableMessages } from '@/lib/data-table-messages';
 import type {
     CurrencyDisplay,
+    FilterOperator,
+    FilterVariant,
     ServerColumnDisplay,
 } from '@/lib/data-table-server';
-import type { FILTER_OPERATORS, FILTER_VARIANTS } from '@/lib/data-table-utils';
 
 export interface ColumnSelectOption {
     label: string;
@@ -23,12 +18,7 @@ export interface ColumnSelectOption {
     icon?: React.ComponentType<React.ComponentProps<'svg'>>;
 }
 
-export type PlainColumnVariant =
-    | 'text'
-    | 'long-text'
-    | 'url'
-    | 'boolean'
-    | 'file';
+export type PlainColumnVariant = 'text' | 'boolean';
 
 export interface ColumnVariantOptions {
     number: {
@@ -47,8 +37,6 @@ export interface ColumnVariantOptions {
         options?: ColumnSelectOption[];
     };
 }
-
-export type ColumnVariant = PlainColumnVariant | keyof ColumnVariantOptions;
 
 export type ColumnVariantMeta =
     | { variant?: PlainColumnVariant }
@@ -87,7 +75,7 @@ export interface DataTableTableMeta {
  */
 export type ColumnDisplay = ServerColumnDisplay;
 
-export type { CurrencyDisplay };
+export type { CurrencyDisplay, FilterOperator, FilterVariant };
 
 export type DatePreset = Extract<
     Extract<ColumnDisplay, { type: 'date' }>['format'],
@@ -143,20 +131,6 @@ export type DataTableColumnMeta = {
     emptyCount?: number;
 } & ColumnVariantMeta;
 
-export type FilterVariant = (typeof FILTER_VARIANTS)[number];
-export type FilterOperator = keyof typeof FILTER_OPERATORS;
-
-export interface FilterOperatorOption {
-    label: string;
-    value: FilterOperator;
-}
-
-export interface ColumnSortItem<
-    TColumnId extends string = string,
-> extends ColumnSort {
-    id: TColumnId;
-}
-
 export interface ColumnFilterItem<
     TColumnId extends string = string,
 > extends ColumnFilter {
@@ -171,32 +145,4 @@ declare module '@tanstack/react-table' {
     interface ColumnFilter extends Partial<
         Pick<ColumnFilterItem, 'operator' | 'variant' | 'filterId'>
     > {}
-}
-
-export type DataTableColumnConfig = {
-    isSortable?: boolean;
-} & ColumnVariantMeta;
-
-export type DataTableColumnConfigs = Record<string, DataTableColumnConfig>;
-
-export type FilterableColumnId<TColumnConfigs extends DataTableColumnConfigs> =
-    {
-        [K in keyof TColumnConfigs]: TColumnConfigs[K] extends {
-            variant: ColumnVariant;
-        }
-            ? K
-            : never;
-    }[keyof TColumnConfigs] &
-        string;
-
-export type SortableColumnId<TColumnConfigs extends DataTableColumnConfigs> = {
-    [K in keyof TColumnConfigs]: TColumnConfigs[K] extends { isSortable: false }
-        ? never
-        : K;
-}[keyof TColumnConfigs] &
-    string;
-
-export interface DataTableRowAction<TData extends RowData> {
-    row: Row<DataTableFeatures, TData>;
-    variant: 'update' | 'delete';
 }

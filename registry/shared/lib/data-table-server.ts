@@ -221,7 +221,11 @@ export const FILTER_OPERATOR_URL_NAMES = {
     isBetween: 'between',
 } as const satisfies Record<FilterOperator, string>;
 
-const IMPLICIT_OPERATORS: Record<FilterVariant, FilterOperator> = {
+/**
+ * Operator of each variant that the URL leaves out (`filter[name]=ana` is
+ * `ilike`): the one of the plain value a filter component writes.
+ */
+export const IMPLICIT_OPERATORS: Record<FilterVariant, FilterOperator> = {
     text: 'iLike',
     number: 'eq',
     range: 'isBetween',

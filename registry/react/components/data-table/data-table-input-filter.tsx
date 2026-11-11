@@ -11,7 +11,7 @@ import type * as React from 'react';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getFilterAffixes, type FilterAffix } from '@/lib/data-table-format';
-import type { FilterComponentName } from '@/lib/data-table-utils';
+import type { FilterComponentName } from '@/lib/data-table-filter-options';
 
 import {
     type DataTableColumnRef,

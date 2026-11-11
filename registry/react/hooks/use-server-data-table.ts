@@ -17,54 +17,38 @@ import {
     DataTableDefaultHeader,
 } from '@/components/data-table/data-table-default-column';
 import {
+    type DataTableColumn,
+    type DataTableColumns,
+    getColumnId,
+    getDefaultRowId,
+    type LocalTableState,
+    resolveLocale,
+    toLocalState,
+    toQueryState,
+    withColumnMeta,
+} from '@/lib/data-table-columns';
+import {
     dataTableFeatures,
     type DataTableFeatures,
 } from '@/lib/data-table-features';
-import {
-    arrangeColumns,
-    buildTableUrl,
-    type ServerColumnConfig,
-    type ServerDataTable,
-    type ServerFacetOption,
-    type ServerFilter,
-    type ServerRangeFacet,
-    type ServerTableConfig,
-    type ServerTableState,
-    stateToQuery,
-} from '@/lib/data-table-server';
+import { createLoadingPhases, keepTypedSpaces } from '@/lib/data-table-loading';
 import {
     type DataTableMessages,
     mergeMessages,
 } from '@/lib/data-table-messages';
+import {
+    arrangeColumns,
+    buildTableUrl,
+    type ServerDataTable,
+    type ServerTableConfig,
+    stateToQuery,
+} from '@/lib/data-table-server';
 import type {
-    ColumnDisplay,
-    ColumnSelectOption,
     DataTableColumnMeta,
     DataTableLoadingPhase,
 } from '@/lib/data-table-types';
-import { getOwn } from '@/lib/data-table-format';
-import {
-    createLoadingPhases,
-    keepTypedSpaces,
-    normalizeColumnFilter,
-} from '@/lib/data-table-utils';
 
 export { getOptionLabel } from '@/components/data-table/data-table-default-column';
-
-type DataTableColumns<TData extends RowData> = TableOptions<
-    DataTableFeatures,
-    TData
->['columns'];
-
-type DataTableColumn<TData extends RowData> = DataTableColumns<TData>[number];
-
-interface LocalTableState {
-    pagination: PaginationState;
-    sorting: SortingState;
-    columnFilters: ColumnFiltersState;
-    globalFilter: string;
-    columnVisibility: ColumnVisibilityState;
-}
 
 export interface UseServerDataTableOptions<TData extends RowData> {
     /** Inertia prop with the response of the laravel-inertia-datatable package. */
@@ -343,61 +327,6 @@ export function useServerDataTable<TData extends RowData>({
     return { table, isLoading, loading };
 }
 
-/** `'browser'` or nothing: the browser locale (Intl without a locale). */
-function resolveLocale(locale: string | null | undefined): string | undefined {
-    return locale && locale !== 'browser'
-        ? locale.replaceAll('_', '-')
-        : undefined;
-}
-
-function toLocalState(state: ServerTableState): LocalTableState {
-    return {
-        pagination: state.pagination,
-        sorting: state.sorting,
-        columnFilters: state.columnFilters,
-        globalFilter: state.globalFilter,
-        columnVisibility: state.columnVisibility,
-    };
-}
-
-function toQueryState(state: LocalTableState, config: ServerTableConfig) {
-    const variants = new Map(
-        config.columns.map((column) => [column.id, column.filter?.variant]),
-    );
-    const filters: ServerFilter[] = [];
-
-    for (const filter of state.columnFilters) {
-        const variant = variants.get(filter.id);
-
-        if (!variant) {
-            continue;
-        }
-
-        const item = normalizeColumnFilter(filter, variant);
-
-        // Dates relative to today: the server does not support them yet.
-        if (item.operator === 'isRelativeToToday') {
-            continue;
-        }
-
-        filters.push({
-            id: item.id,
-            variant,
-            operator: item.operator,
-            value: item.value,
-        });
-    }
-
-    return {
-        pageIndex: state.pagination.pageIndex,
-        pageSize: state.pagination.pageSize,
-        sorting: state.sorting,
-        filters,
-        globalFilter: state.globalFilter,
-        columnVisibility: state.columnVisibility,
-    };
-}
-
 /**
  * Orders the columns like the table class, creates the ones the component does
  * not declare and fills each one with what the server declares: label, filter
@@ -457,172 +386,4 @@ function withDefaults<TData extends RowData>(
         header: column.header ?? DataTableDefaultHeader,
         cell: column.cell ?? DataTableDefaultCell,
     } as DataTableColumn<TData>;
-}
-
-function withColumnMeta<TData extends RowData>(
-    column: DataTableColumn<TData>,
-    server: ServerColumnConfig,
-    facet: ServerFacetOption[] | ServerRangeFacet | undefined,
-): DataTableColumn<TData> {
-    const userMeta = column.meta as DataTableColumnMeta | undefined;
-
-    return {
-        ...column,
-        meta: {
-            ...serverMeta(server, facet, userMeta),
-            ...userMeta,
-            ...mergedOptions(facet, userMeta),
-            ...mergedDisplay(server.display, userMeta?.display),
-        } as DataTableColumnMeta,
-        enableSorting: column.enableSorting ?? server.sortable,
-        enableColumnFilter: column.enableColumnFilter ?? server.filter !== null,
-        enableHiding: column.enableHiding ?? server.hideable,
-    };
-}
-
-function serverMeta(
-    server: ServerColumnConfig,
-    facet: ServerFacetOption[] | ServerRangeFacet | undefined,
-    userMeta: DataTableColumnMeta | undefined,
-): DataTableColumnMeta {
-    const base = {
-        label: server.label,
-        placeholder: server.filter?.placeholder,
-        empty: server.filter?.empty,
-        emptyCount: Array.isArray(facet)
-            ? facet.find((option) => option.value === null)?.count
-            : undefined,
-    };
-    const filter = server.filter?.variant;
-    const display = server.display;
-
-    // The type of the column gives the variant of the meta; its filter, the
-    // details (the toolbar only shows the columns that can filter).
-    switch (display.type) {
-        case 'number': {
-            if (filter !== 'range') {
-                return { ...base, variant: 'number', unit: display.unit };
-            }
-
-            const range = isRangeFacet(facet) ? facet : undefined;
-
-            return {
-                ...base,
-                variant: 'number',
-                filter: 'range',
-                unit: display.unit,
-                min: range?.min ?? undefined,
-                max: range?.max ?? undefined,
-            };
-        }
-        case 'date':
-            return filter === 'date-range'
-                ? { ...base, variant: 'date', filter: 'range' }
-                : { ...base, variant: 'date' };
-        case 'option':
-            return {
-                ...base,
-                variant: filter === 'select' ? 'select' : 'multi-select',
-                options: toOptions(facet, userMeta),
-            };
-        default:
-            return { ...base, variant: display.type };
-    }
-}
-
-/**
- * The page `display` wins; with the same type as the server one, only the keys
- * it declares (TanStack merges `meta` shallowly, so it is done here).
- */
-function mergedDisplay(
-    server: ColumnDisplay,
-    page: ColumnDisplay | undefined,
-): { display: ColumnDisplay } {
-    if (page === undefined || server.type !== page.type) {
-        return { display: page ?? server };
-    }
-
-    if (server.type === 'number' && page.type === 'number') {
-        return {
-            display: {
-                ...server,
-                ...page,
-                format: { ...server.format, ...page.format },
-            },
-        };
-    }
-
-    return { display: { ...server, ...page } as ColumnDisplay };
-}
-
-/**
- * Options always carry the server count, even when the page redeclares them
- * (for example, to add icons).
- */
-function mergedOptions(
-    facet: ServerFacetOption[] | ServerRangeFacet | undefined,
-    userMeta: DataTableColumnMeta | undefined,
-): { options?: ColumnSelectOption[] } {
-    return Array.isArray(facet) ? { options: toOptions(facet, userMeta) } : {};
-}
-
-function toOptions(
-    facet: ServerFacetOption[] | ServerRangeFacet | undefined,
-    userMeta: DataTableColumnMeta | undefined,
-): ColumnSelectOption[] {
-    if (!Array.isArray(facet)) {
-        return [];
-    }
-
-    const declared =
-        userMeta && 'options' in userMeta ? (userMeta.options ?? []) : [];
-
-    // The rows without a value are not an option: the filter adds them apart.
-    return facet.flatMap(({ value, label, count }) => {
-        if (value === null) {
-            return [];
-        }
-
-        const own = declared.find((item) => item.value === value);
-
-        return {
-            ...own,
-            value,
-            label: own?.label ?? label,
-            count,
-            icon: own?.icon ?? getOwn(userMeta?.icons, value),
-        };
-    });
-}
-
-function isRangeFacet(
-    facet: ServerFacetOption[] | ServerRangeFacet | undefined,
-): facet is ServerRangeFacet {
-    return facet !== undefined && !Array.isArray(facet);
-}
-
-function getColumnId<TData extends RowData>(
-    column: DataTableColumn<TData>,
-): string | undefined {
-    if (column.id) {
-        return column.id;
-    }
-
-    return 'accessorKey' in column && typeof column.accessorKey === 'string'
-        ? column.accessorKey
-        : undefined;
-}
-
-function getDefaultRowId<TData extends RowData>(
-    row: TData,
-    index: number,
-): string {
-    const id =
-        typeof row === 'object' && row !== null && 'id' in row
-            ? row.id
-            : undefined;
-
-    return typeof id === 'string' || typeof id === 'number'
-        ? String(id)
-        : String(index);
 }

@@ -14,7 +14,7 @@ import * as React from 'react';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getMessage } from '@/lib/data-table-messages';
 
-import { getFilterVariant } from '@/lib/data-table-utils';
+import { getFilterVariant } from '@/lib/data-table-filter-options';
 import { useDataTable } from '@/components/data-table/data-table-context';
 import { DataTableDateFilter } from '@/components/data-table/data-table-date-filter';
 import {

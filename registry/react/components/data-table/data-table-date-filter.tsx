@@ -20,7 +20,8 @@ import {
     getWeekStartsOn,
     type TableWithMeta,
 } from '@/lib/data-table-messages';
-import { getFilterVariant, pickDateRangeDay } from '@/lib/data-table-utils';
+import { getFilterVariant } from '@/lib/data-table-filter-options';
+import { pickDateRangeDay } from '@/lib/data-table-filter-values';
 import {
     type DataTableFilterPieceProps,
     useDataTableFilterColumn,

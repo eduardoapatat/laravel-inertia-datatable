@@ -7,7 +7,7 @@ import type { DataTableFeatures } from '@/lib/data-table-features';
 import {
     type FilterComponentName,
     getFilterColumnIssue,
-} from '@/lib/data-table-utils';
+} from '@/lib/data-table-filter-options';
 
 // Holds a table of any row type; each piece reads it with its own TData.
 const DataTableContext = React.createContext<unknown>(null);
