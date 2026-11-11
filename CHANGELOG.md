@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- Option cells without a badge cut a long label without "…": the label was inside an inline-flex box, which the `text-ellipsis` of the cell does not reach. Update the generic UI with `php artisan inertia-datatable:ui --update`.
+
 ## [0.10.0] - 2026-11-10
 
 ### Added

@@ -355,8 +355,10 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
         return <DataTableEmptyCell {...props} />;
     }
 
+    // `max-w-full` and the `truncate` label keep the "…" of the cell: an
+    // inline-flex box is clipped without it.
     return (
-        <span className="inline-flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex max-w-full flex-wrap items-center gap-1.5">
             {values.map((item) => {
                 const option = getOption(meta, item);
 
@@ -389,7 +391,7 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
                 return (
                     <span
                         key={String(item)}
-                        className="inline-flex items-center gap-1.5"
+                        className="inline-flex max-w-full min-w-0 items-center gap-1.5"
                     >
                         {Icon && (
                             <Icon
@@ -397,7 +399,9 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
                                 className="size-3.5 shrink-0 text-muted-foreground"
                             />
                         )}
-                        {option?.label ?? String(item)}
+                        <span className="truncate">
+                            {option?.label ?? String(item)}
+                        </span>
                     </span>
                 );
             })}
