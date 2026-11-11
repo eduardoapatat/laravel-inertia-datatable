@@ -17,6 +17,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Fixed
 
+- A filter that includes the rows without a value took its label from `->whenEmpty()` even when that is only a placeholder like `—`, so the range filter read "Include —". A text without letters or digits now falls back to the `no_value` message ("Include No value").
 - Option cells without a badge cut a long label without "…": the label was inside an inline-flex box, which the `text-ellipsis` of the cell does not reach. Update the generic UI with `php artisan inertia-datatable:ui --update`.
 - A `DataTableTextFilter` or `DataTableSearch` with a width in `className` (`w-full`) kept the default `lg:w-56` / `lg:w-64` from the `lg` breakpoint up, so it was narrower than a `DataTableNumberFilter` with the same class. The pieces now default to `w-40` alone, and the toolbar adds the `lg:` width itself, so the default layout does not change.
 - The custom cell example of the React component stub and of the skill rendered `cell.getValue()`, which drops `->limit()`, `->whenEmpty()`, links and formats; it now wraps `DataTableTextCell`, and the skill says why.

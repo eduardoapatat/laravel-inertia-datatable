@@ -527,7 +527,12 @@ export function getEmptyLabel(
     meta: DataTableColumnMeta | undefined,
     table?: TableWithMeta,
 ): string {
-    return meta?.display?.empty || getMessage(table, 'no_value');
+    const empty = meta?.display?.empty;
+
+    // A placeholder like "—" or "-" says nothing as a filter label.
+    return empty && /[\p{L}\p{N}]/u.test(empty)
+        ? empty
+        : getMessage(table, 'no_value');
 }
 
 export function toText(value: unknown): string {

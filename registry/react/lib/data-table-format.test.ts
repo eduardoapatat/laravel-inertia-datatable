@@ -431,4 +431,15 @@ describe('getEmptyLabel', () => {
         ).toBe('Sin valor');
         expect(getEmptyLabel(undefined)).toBe('No value');
     });
+
+    it('uses the no_value text when whenEmpty() is only a symbol', () => {
+        for (const empty of ['—', '-', ' – ', '…']) {
+            expect(
+                getEmptyLabel({ display: { type: 'number', empty } }, table),
+            ).toBe('Sin valor');
+        }
+        expect(
+            getEmptyLabel({ display: { type: 'number', empty: 'N/A' } }, table),
+        ).toBe('N/A');
+    });
 });
