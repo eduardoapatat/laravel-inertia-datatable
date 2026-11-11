@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-10
+
 ### Added
 
 - `DataTableProvider` (`components/data-table/data-table-context.tsx`) shares the table with the pieces inside it, so the filters, the search, Reset, View and the pagination can go anywhere in the page (a sidebar, a header) without a `table` prop each. `useDataTable()` reads it in your own components, and every piece still accepts `table`.
@@ -239,7 +241,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.9.1...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.9.1...v0.10.0
 [0.9.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.7.1...v0.8.0
