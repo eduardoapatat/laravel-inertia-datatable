@@ -45,7 +45,7 @@ export function DataTableTextFilter<TData extends RowData>({
     return (
         <ColumnInputFilter
             component="DataTableTextFilter"
-            className={cn('w-40 lg:w-56', className)}
+            className={cn('w-40', className)}
             {...props}
         />
     );

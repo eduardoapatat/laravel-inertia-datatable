@@ -72,6 +72,7 @@ export function DataTableToolbar<TData extends RowData>({
                     table={table}
                     searchable={searchable}
                     placeholder={searchPlaceholder}
+                    className="lg:w-64"
                 />
                 <DataTableFilters table={table} />
                 <DataTableResetButton table={table} />
@@ -123,7 +124,7 @@ export function DataTableSearch<TData extends RowData>({
                     type="search"
                     aria-label={placeholder}
                     placeholder={placeholder}
-                    className={cn('w-40 lg:w-64', className)}
+                    className={cn('w-40', className)}
                     {...props}
                     value={typeof globalFilter === 'string' ? globalFilter : ''}
                     onChange={(event) =>
@@ -261,7 +262,7 @@ function DataTableToolbarFilter<TData extends RowData>({
 
     switch (getFilterVariant(column.columnDef.meta)) {
         case 'text':
-            return <DataTableTextFilter column={column} />;
+            return <DataTableTextFilter column={column} className="lg:w-56" />;
         case 'number':
             return <DataTableNumberFilter column={column} />;
         case 'range':

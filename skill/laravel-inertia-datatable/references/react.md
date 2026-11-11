@@ -209,8 +209,8 @@ Every piece of the toolbar and the pagination is its own component. To change th
 | `DataTableBooleanFilter` | `filterSelect()` on a boolean | `labels={{ true: 'On', false: 'Off' }}` (those of `->labels()` by default) |
 | `DataTableSliderFilter` | `filterRange()` on a number | `step` |
 | `DataTableDateFilter` | `filterDate()`, `filterRange()` on a date | one day or a range, from the variant |
-| `DataTableTextFilter` | `filterInput()` on text | any `<input>` prop; `className` on the input |
-| `DataTableNumberFilter` | `filterInput()` on a number | any `<input>` prop; the unit or currency of the column next to it |
+| `DataTableTextFilter` | `filterInput()` on text | any `<input>` prop; `className` replaces the default width (`w-40`) |
+| `DataTableNumberFilter` | `filterInput()` on a number | any `<input>` prop; the unit or currency of the column next to it; `className` replaces the default width (`w-30`) |
 
 The popover filters also take `title` (the column label by default), `icon` (`null` hides it), `className` (the button), `contentClassName` (the popover), `align` and `disabled`. Faceted, slider and date filters import from `data-table-faceted-filter`, `data-table-slider-filter` and `data-table-date-filter`; text and number from `data-table-input-filter`.
 
@@ -219,7 +219,7 @@ The popover filters also take `title` (the column label by default), `icon` (`nu
 | Piece | Import from | Notes |
 |---|---|---|
 | `DataTableProvider` | `data-table-context` | `table`; `useDataTable()` reads it in your own components. |
-| `DataTableSearch` | `data-table-toolbar` | Hidden when the PHP class has no `searchable()` column (force with `searchable`); `placeholder`, `className`. |
+| `DataTableSearch` | `data-table-toolbar` | Hidden when the PHP class has no `searchable()` column (force with `searchable`); `placeholder`, `className` (replaces the default width, `w-40`; the toolbar adds `lg:w-64`). |
 | `DataTableFilters` | `data-table-toolbar` | One control per filterable column, with the component of its type; `columns={['status', 'price']}` shows only those, in that order. Renders no wrapper. |
 | `DataTableFilter` | `data-table-toolbar` | A single filter with the component of its type, without props: `column="status"`. Use the component of the type to customize it. |
 | `DataTableResetButton` | `data-table-toolbar` | Only visible while a filter or the search is active. `children` replace the text and are its accessible name; `icon` (`null` hides it). |
