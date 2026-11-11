@@ -397,8 +397,10 @@ it('shapes each row with the transform method and removes hidden column keys', f
 function orderByPriceAndId(string $direction): string
 {
     $grammar = DB::connection()->getQueryGrammar();
+    // Postgres is told where the rows without a value go, to sort like the rest.
+    $nulls = DB::connection()->getDriverName() === 'pgsql' ? ($direction === 'desc' ? ' nulls last' : ' nulls first') : '';
 
-    return "order by {$grammar->wrap('products.price')} {$direction}, {$grammar->wrap('products.id')} {$direction} limit 10 offset 0";
+    return "order by {$grammar->wrap('products.price')} {$direction}{$nulls}, {$grammar->wrap('products.id')} {$direction} limit 10 offset 0";
 }
 
 /**

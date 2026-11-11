@@ -36,6 +36,10 @@ final class OptionColumn extends Column
      * badge variant with a `badgeVariant()` method (the variants passed to
      * `badge()` win).
      *
+     * A map whose values are the numbers 0, 1, 2… in order (`[0 => 'Low',
+     * 1 => 'High']`) is the same array as a list for PHP, so it is read as
+     * the values "Low" and "High": use an int backed enum for those.
+     *
      * @param  array<array-key, string|int>|class-string<BackedEnum>  $options
      */
     public function options(array|string $options): self

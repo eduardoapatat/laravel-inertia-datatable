@@ -204,7 +204,9 @@ final class DataTableEngine
         if ($definition->transformer !== null) {
             $row = ($definition->transformer)($model);
 
-            foreach (array_diff(array_keys($definition->columns), $state->visibleColumns) as $hiddenId) {
+            // The keys of alwaysInclude() stay, like without transform(): the client needs
+            // the primary key of each row also when its column is hidden.
+            foreach (array_diff(array_keys($definition->columns), $state->visibleColumns, $definition->alwaysInclude) as $hiddenId) {
                 unset($row[$hiddenId]);
             }
 

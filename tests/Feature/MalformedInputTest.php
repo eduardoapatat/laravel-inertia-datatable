@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Http\Request;
 use InertiaDataTable\Column;
 use InertiaDataTable\DataTable;
+use InertiaDataTable\Tests\Fixtures\Models\Category;
 use InertiaDataTable\Tests\Fixtures\Models\Member;
 use InertiaDataTable\Tests\Fixtures\Models\Note;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
@@ -113,3 +114,43 @@ it('sorts, filters and searches on a through relation whose tables share a colum
     'negated filter' => ['filter[team]=not.ilike.Mine', ['Second']],
     'search' => ['search=Theirs', ['Second']],
 ]);
+
+it('sorts the rows without a value first ascending and last descending on every database', function () {
+    Product::query()->delete();
+    Product::factory()->create(['name' => 'B', 'sku' => 'B-1']);
+    Product::factory()->withoutSku()->create(['name' => 'None']);
+    Product::factory()->create(['name' => 'A', 'sku' => 'A-1']);
+
+    $names = fn (string $sort): array => array_column(
+        resolveProducts([Column::text('name'), Column::text('sku')->sortable()], 'sort='.$sort)['data'],
+        'name',
+    );
+
+    expect($names('sku'))->toBe(['None', 'A', 'B'])
+        ->and($names('-sku'))->toBe(['B', 'A', 'None']);
+});
+
+it('sorts the rows without a related value first ascending and last descending', function () {
+    Product::query()->delete();
+    $category = Category::factory()->create(['name' => 'Home']);
+    Product::factory()->for($category)->create(['name' => 'With']);
+    Product::factory()->create(['name' => 'Without', 'category_id' => null]);
+
+    $names = fn (string $sort): array => array_column(
+        resolveProducts([Column::text('name'), Column::text('category')->from('category.name')->sortable()], 'sort='.$sort)['data'],
+        'name',
+    );
+
+    expect($names('category'))->toBe(['Without', 'With'])
+        ->and($names('-category'))->toBe(['With', 'Without']);
+});
+
+it('keeps the primary key of a transformed row whose id column is hidden', function () {
+    $result = DataTable::for(Product::query())
+        ->columns([Column::number('id')->hidden(), Column::text('name')])
+        ->transform(fn (Product $product): array => ['id' => $product->id, 'name' => $product->name])
+        ->withRequest(Request::create('/'))
+        ->toArray();
+
+    expect($result['data'][0])->toHaveKeys(['id', 'name']);
+});

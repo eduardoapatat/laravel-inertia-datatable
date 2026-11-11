@@ -120,14 +120,26 @@ final class QueryApplier
             $direction = $item->desc ? 'desc' : 'asc';
 
             if ($column?->relation() !== null) {
-                $query->orderBy($this->relations->valueQuery($query, $column), $direction);
+                $value = $this->relations->valueQuery($query, $column);
+
+                if ($this->driver($query) === 'pgsql') {
+                    $query->orderByRaw('('.$value->toSql().') '.$this->nullsLikeTheRest($direction), $value->getBindings());
+                } else {
+                    $query->orderBy($value, $direction);
+                }
 
                 continue;
             }
 
             // A default sort may use an attribute that is not a column of the table.
             $attribute = $column?->attribute() ?? $item->id;
-            $query->orderBy($model->qualifyColumn($attribute), $direction);
+
+            if ($this->driver($query) === 'pgsql') {
+                $query->orderByRaw($this->wrap($query, $model->qualifyColumn($attribute)).' '.$this->nullsLikeTheRest($direction));
+            } else {
+                $query->orderBy($model->qualifyColumn($attribute), $direction);
+            }
+
             $isKeySorted = $isKeySorted || $attribute === $model->getKeyName();
         }
 
@@ -316,6 +328,16 @@ final class QueryApplier
         }
 
         $query->where($column, $sqlOperator, $number);
+    }
+
+    /**
+     * Postgres sorts the rows without a value as the largest; SQLite, MySQL and SQL Server
+     * as the smallest. The same sort gives the same order everywhere: first ascending, last
+     * descending.
+     */
+    private function nullsLikeTheRest(string $direction): string
+    {
+        return $direction === 'desc' ? 'desc nulls last' : 'asc nulls first';
     }
 
     /**

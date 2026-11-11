@@ -49,6 +49,7 @@ Full example:
 - `-created_at` (the spatie and JSON:API convention) is used instead of `created_at.desc`. `registry/shared` translates it from the TanStack state.
 - Columns that are not `sortable`, duplicates and anything beyond `maxSorts` (by default 3) are dropped.
 - With no valid sort → the table's `defaultSort` is applied, if any.
+- Rows without a value (`NULL`) go first ascending and last descending on every database (Postgres would put them the other way around by itself).
 - The primary key is always added as the final tiebreaker (unless already present), so pagination is stable. It follows the direction of the first criterion: `sort=-created_at` → `created_at desc, id desc`.
 - `state.sorting` reflects **only the explicitly requested sort** (empty if the default was used); the default one is reported in `config.default_sorting`. This way the client does not write into the URL a sort the user did not choose.
 
@@ -213,7 +214,7 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
 Rows of the current page:
 
 - **Without `transform`:** only the visible columns plus the fixed keys (`alwaysInclude`, by default the primary key). Each value comes from the model's `toArray()` (it respects `$hidden`, casts and date format); relation columns are flattened under their id.
-- **With `transform`:** whatever the class's `transform()` method or the `->transform()` closure returns, removing the keys of hidden columns. Keys that are not columns (for example `url`) are kept.
+- **With `transform`:** whatever the class's `transform()` method or the `->transform()` closure returns, removing the keys of hidden columns except the fixed ones (`alwaysInclude`, by default the primary key). Keys that are not columns (for example `url`) are kept.
 
 ### 2.3 `meta`
 
