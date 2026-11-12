@@ -135,9 +135,10 @@ export interface DataTableSkeletonShape {
     rowCount: number;
     /**
      * A control per column with a filter, also the hidden ones (their filter
-     * shows): `input` for the text and number fields, `button` for the rest.
+     * shows): the text and number fields, and a button with the label of the
+     * column for the rest.
      */
-    filters: ('input' | 'button')[];
+    filters: { kind: 'text' | 'number' | 'button'; label: string }[];
     filterCount: number;
     searchable: boolean;
     label: string | undefined;
@@ -160,15 +161,17 @@ export function getSkeletonShape(
     const visible = columns
         ? columns.split(',').map((id) => id.trim())
         : undefined;
-    const filters = config.columns.flatMap((column) =>
-        column.filter
-            ? [
-                  column.filter.variant === 'text' ||
-                  column.filter.variant === 'number'
-                      ? ('input' as const)
-                      : ('button' as const),
-              ]
-            : [],
+    const filters = config.columns.flatMap(
+        ({ filter, label }): DataTableSkeletonShape['filters'] => {
+            if (!filter) return [];
+
+            const kind =
+                filter.variant === 'text' || filter.variant === 'number'
+                    ? filter.variant
+                    : 'button';
+
+            return [{ kind, label }];
+        },
     );
 
     return {

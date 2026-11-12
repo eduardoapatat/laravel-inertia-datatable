@@ -26,12 +26,12 @@ return [
     'no' => 'No',
     'empty' => '—',
     'no_value' => 'No value',
-    'include' => 'Include :label',
 
     // Column header
     'sort_ascending' => 'Asc',
     'sort_descending' => 'Desc',
     'hide' => 'Hide',
+    'column_menu' => ':label column options',
 
     // Filters
     'filter' => ':label filter',

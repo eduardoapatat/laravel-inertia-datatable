@@ -413,8 +413,10 @@ function FacetedInput({
     variant = 'default',
     className,
     ref,
-    ...props
+    ...rest
 }: FacetedInputProps) {
+    // A placeholder is no accessible name: it names the combobox by default.
+    const props = { 'aria-label': rest.placeholder, ...rest };
     const inputRef = React.useRef<HTMLInputElement>(null);
     const composedRef = useComposedRefs(ref, inputRef);
 

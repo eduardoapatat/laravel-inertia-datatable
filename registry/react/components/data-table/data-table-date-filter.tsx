@@ -226,6 +226,12 @@ function DataTableDateFilterContent<TData extends RowData>({
                         autoFocus
                         captionLayout="dropdown"
                         mode="range"
+                        defaultMonth={
+                            rangeStart ??
+                            (getIsDateRange(selectedDates)
+                                ? (selectedDates.from ?? selectedDates.to)
+                                : undefined)
+                        }
                         selected={
                             rangeStart
                                 ? { from: rangeStart, to: undefined }
@@ -240,6 +246,11 @@ function DataTableDateFilterContent<TData extends RowData>({
                         {...calendarLocale}
                         captionLayout="dropdown"
                         mode="single"
+                        defaultMonth={
+                            !getIsDateRange(selectedDates)
+                                ? selectedDates[0]
+                                : undefined
+                        }
                         selected={
                             !getIsDateRange(selectedDates)
                                 ? selectedDates[0]

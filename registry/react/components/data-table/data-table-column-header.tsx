@@ -97,6 +97,7 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
                     'inline-flex h-8 items-center gap-1.5 rounded-md px-2 py-1.5 group-data-[align=end]/head:-me-2 group-data-[align=start]/head:-ms-2 hover:bg-accent focus:ring-1 focus:ring-ring focus:outline-none data-[state=open]:bg-accent rtl:flex-row-reverse [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
                     className,
                 )}
+                aria-label={getMessage(column.table, 'column_menu', { label })}
                 {...props}
             >
                 {label}

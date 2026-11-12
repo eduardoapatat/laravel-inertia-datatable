@@ -146,7 +146,10 @@ describe('getSkeletonShape', () => {
                 { id: 'price', label: 'PRICE', align: 'end', badge: false },
             ],
             rowCount: 25,
-            filters: ['input', 'button'],
+            filters: [
+                { kind: 'text', label: 'NAME' },
+                { kind: 'button', label: 'CREATED_AT' },
+            ],
             filterCount: 2,
             searchable: true,
             label: undefined,

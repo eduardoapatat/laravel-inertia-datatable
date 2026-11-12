@@ -24,6 +24,11 @@ interface DataTableSkeletonProps extends React.ComponentProps<'div'> {
      * the search and the filters. The props below win over it.
      */
     config?: ServerTableConfig;
+    /**
+     * Width in px of the columns whose `size` the page sets, by id (the same
+     * `size` of the table component), so the table does not jump on load.
+     */
+    sizes?: Record<string, number>;
     /** Needed without `config`. */
     columnCount?: number;
     rowCount?: number;
@@ -49,6 +54,7 @@ function subscribeToNothing() {
 
 export function DataTableSkeleton({
     config,
+    sizes,
     columnCount: columnCountProp,
     rowCount: rowCountProp,
     filterCount: filterCountProp,
@@ -88,10 +94,13 @@ export function DataTableSkeleton({
 
         return () => clearTimeout(timer);
     }, [delay]);
-    const cozyCellWidths = Array.from(
-        { length: columnCount },
-        (_, index) => cellWidths[index % cellWidths.length] ?? 'auto',
-    );
+    const cozyCellWidths = Array.from({ length: columnCount }, (_, index) => {
+        const size = sizes?.[headers?.[index]?.id ?? ''];
+
+        return size === undefined
+            ? (cellWidths[index % cellWidths.length] ?? 'auto')
+            : `${size}px`;
+    });
 
     return (
         <div
@@ -113,18 +122,41 @@ export function DataTableSkeleton({
                     {withSearch ? (
                         <Skeleton className="h-9 w-40 rounded-lg lg:w-64" />
                     ) : null}
-                    {Array.from({ length: filterCount }).map((_, i) => (
-                        <Skeleton
-                            key={i}
-                            className={cn(
-                                'rounded-lg',
-                                filterCountProp === undefined &&
-                                    shape?.filters[i] === 'input'
-                                    ? 'h-9 w-40'
-                                    : 'h-8 w-24',
-                            )}
-                        />
-                    ))}
+                    {Array.from({ length: filterCount }).map((_, i) => {
+                        const filter =
+                            filterCountProp === undefined
+                                ? shape?.filters[i]
+                                : undefined;
+
+                        if (filter?.kind === 'button') {
+                            // As wide as the button: icon and label, hidden.
+                            return (
+                                <Skeleton
+                                    key={i}
+                                    className="flex h-9 items-center gap-2 rounded-md border border-transparent px-3 text-sm font-medium whitespace-nowrap"
+                                >
+                                    <span className="size-4" />
+                                    <span className="invisible">
+                                        {filter.label}
+                                    </span>
+                                </Skeleton>
+                            );
+                        }
+
+                        return (
+                            <Skeleton
+                                key={i}
+                                className={cn(
+                                    'rounded-lg',
+                                    filter?.kind === 'text'
+                                        ? 'h-9 w-40 lg:w-56'
+                                        : filter
+                                          ? 'h-9 w-40'
+                                          : 'h-8 w-24',
+                                )}
+                            />
+                        );
+                    })}
                 </div>
                 {withViewOptions ? (
                     <Skeleton className="ms-auto hidden h-8 w-18 rounded-lg lg:flex" />

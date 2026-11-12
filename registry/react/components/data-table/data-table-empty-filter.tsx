@@ -8,7 +8,6 @@ import {
     setEmptyFilter,
 } from '@/lib/data-table-features';
 import { getEmptyLabel } from '@/lib/data-table-format';
-import { getMessage } from '@/lib/data-table-messages';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -42,9 +41,7 @@ export function DataTableEmptyFilter<TData extends RowData, TValue>({
                 }
             />
             <Label htmlFor={id} className="font-normal">
-                {getMessage(column.table, 'include', {
-                    label: getEmptyLabel(column.columnDef.meta, column.table),
-                })}
+                {getEmptyLabel(column.columnDef.meta, column.table)}
             </Label>
         </div>
     );

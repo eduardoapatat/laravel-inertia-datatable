@@ -21,11 +21,11 @@ export const DEFAULT_MESSAGES = {
     no: 'No',
     empty: '—',
     no_value: 'No value',
-    include: 'Include :label',
 
     sort_ascending: 'Asc',
     sort_descending: 'Desc',
     hide: 'Hide',
+    column_menu: ':label column options',
 
     filter: ':label filter',
     clear: 'Clear',
