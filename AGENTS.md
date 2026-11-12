@@ -34,3 +34,14 @@ Run `composer check` and `pnpm run check` before considering a change done.
 - Tests run on in-memory SQLite locally, but CI also runs MySQL 8.4 and Postgres 17. Keep queries and tests portable across the three.
 - Never edit `r/` by hand. Change `registry/` or `registry.json` and run `pnpm run registry:build`.
 - Changes for users go under `## [Unreleased]` in `CHANGELOG.md`. Releases follow the "Releasing a version" section of the README.
+
+## Where things are documented
+
+Each thing lives in one place; the others link to it instead of copying it.
+
+- `README.md`: what the package is, installation, an overview of the API and releasing a version.
+- `skill/laravel-inertia-datatable/`: how to use it, for people and AI (`SKILL.md` is the workflow, `references/` the details of the backend, React and tests).
+- `docs/contract.md`: the HTTP contract between client and server (URL, response, normalization).
+- `CHANGELOG.md`: the changes of each version, with the migration of the breaking ones.
+
+`tests/Unit/DocumentationTest.php` checks that what the docs quote still exists: components, registry files, column methods, UI texts, the operators of each variant, the URL parameters and the version of the registry links. When it fails after a change, update the doc, not the test.

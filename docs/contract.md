@@ -71,16 +71,16 @@ filter[<col>]=[<operator>.]<value>
 
 #### Variants and operators
 
-| Variant | Column `meta` in the frontend | Implicit operator | Operators (URL name) | Value |
-|---|---|---|---|---|
-| `text` | `filterVariant: "text"` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | text |
-| `number` | `filterVariant: "number"` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | number (`.` decimal) |
-| `range` | `filterVariant: "range"` | `between` | same as `number` | `min,max`; one end may be empty (`10,` / `,100`) |
-| `date` | `filterVariant: "date"` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` | `YYYY-MM-DD` |
-| `date-range` | `filterVariant: "date-range"` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`) |
-| `boolean` | `filterVariant: "boolean"` | `eq` | `eq`, `neq`, `is.empty`, `not.is.empty` | `true` / `false` |
-| `select` | `filterVariant: "select"` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | value or list |
-| `multi-select` | `filterVariant: "multi-select"` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | list |
+| Variant | Implicit operator | Operators (URL name) | Value |
+|---|---|---|---|
+| `text` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | text |
+| `number` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | number (`.` decimal) |
+| `range` | `between` | same as `number` | `min,max`; one end may be empty (`10,` / `,100`) |
+| `date` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` | `YYYY-MM-DD` |
+| `date-range` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`) |
+| `boolean` | `eq` | `eq`, `neq`, `is.empty`, `not.is.empty` | `true` / `false` |
+| `select` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | value or list |
+| `multi-select` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | list |
 
 #### Translation to SQL
 
