@@ -179,7 +179,7 @@ export default function ProductsIndex({ products, productsConfig }: Props) {
 }
 ```
 
-`DataTableSkeleton config` draws the table that is coming: the visible columns with their labels, widths and alignment, `per_page` rows, the search and one placeholder per filter (the page size and the visible columns of the URL win over the defaults), with the screen-reader text of `messages.loading`; its manual props (`columnCount`, `rowCount`, `filterCount`, `withSearch`, `label`) win over the config. It waits `delay` (150 ms; `0` shows it at once) before showing, keeping its space, so a fast load does not flash it. Client-only columns (actions, selection) are not in the config: pass `columnCount` to count them. Filters, paging and sorting are partial reloads of `products`, so they do not show the deferred fallback again.
+`DataTableSkeleton config` draws the table that is coming: the visible columns with their labels, widths and alignment, `per_page` rows, the search and one placeholder per filter (the page size and the visible columns of the URL win over the defaults), with the screen-reader text of `messages.loading`; its manual props (`columnCount`, `rowCount`, `filterCount`, `withSearch`, `label`) win over the config. Columns take 150px, like the table: when the component sets `size` on a column, pass the same widths by id (`sizes={{ name: 320 }}`) so the page does not jump when the data arrives. It waits `delay` (150 ms; `0` shows it at once) before showing, keeping its space, so a fast load does not flash it. Client-only columns (actions, selection) are not in the config: pass `columnCount` to count them. Filters, paging and sorting are partial reloads of `products`, so they do not show the deferred fallback again.
 
 ## Language and texts
 
@@ -252,7 +252,7 @@ The popover filters also take `title` (the column label by default), `icon` (`nu
 | `DataTableSearch` | `data-table-toolbar` | Hidden when the PHP class has no `searchable()` column (force with `searchable`); `placeholder`, `className` (replaces the default width, `w-40`; the toolbar adds `lg:w-64`). |
 | `DataTableFilters` | `data-table-toolbar` | One control per filterable column, with the component of its type; `columns={['status', 'price']}` shows only those, in that order. Renders no wrapper. |
 | `DataTableFilter` | `data-table-toolbar` | A single filter with the component of its type, without props: `column="status"`. Use the component of the type to customize it. |
-| `DataTableResetButton` | `data-table-toolbar` | Only visible while a filter or the search is active. `children` replace the text and are its accessible name; `icon` (`null` hides it). |
+| `DataTableResetButton` | `data-table-toolbar` | Only visible while a filter or the search is active. It clears the filters and the search and goes back to page 1; the sorting, the page size and the visible columns stay. `children` replace the text and are its accessible name; `icon` (`null` hides it). |
 | `DataTableViewOptions` | `data-table-view-options` | Column visibility menu: `className` (the button), `contentClassName`, `align`, `icon`. Visible at every width; the toolbar hides it below `lg`. |
 | `DataTablePagination` | `data-table-pagination` | All the pagination; use with `<DataTable pagination={false}>`. |
 | `DataTablePageSize` | `data-table-pagination` | Rows per page: `pageSizeOptions`, `side`, `hideLabel`. |

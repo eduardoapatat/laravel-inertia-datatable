@@ -25,6 +25,20 @@ public function test_products_are_filtered_by_category_and_sorted_by_price()
 }
 ```
 
+A page made with `--defer` (`Inertia::defer`) does not send the table in the first response, only its config: assert it there, and load the deferred prop to assert the rows (the reload keeps the query string of the request).
+
+```php
+$response->assertInertia(fn (Assert $page) => $page
+    ->component('products/index')
+    ->missing('products')
+    ->has('productsConfig.columns')
+    ->loadDeferredProps(fn (Assert $reload) => $reload
+        ->has('products.data', 2)
+        ->where('products.data.0.name', 'Bible')
+    )
+);
+```
+
 Useful paths in the prop:
 
 | Path | Content |

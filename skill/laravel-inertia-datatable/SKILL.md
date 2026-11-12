@@ -5,7 +5,7 @@ description: Build server-side data tables (pagination, sorting, filters, global
 
 # Laravel Inertia DataTable
 
-Server-side tables for Laravel + Inertia. The backend package parses the query string, applies whitelisted sorting/filters/search with Eloquent and returns one Inertia prop; the React components (shadcn + TanStack Table v9) render it and turn every interaction into a partial Inertia visit. State lives in the URL, so reload, back/forward and shared links reproduce the same view.
+Server-side tables for Laravel + Inertia. The backend package parses the query string, applies whitelisted sorting/filters/search with Eloquent and returns one Inertia prop; the React components (shadcn + TanStack Table v9) render it and turn every interaction into a partial Inertia visit. State lives in the URL, so reload and shared links reproduce the same view; changing the page adds a history entry (back/forward), while filters, search and sorting replace the current one so typing does not fill the history.
 
 Pieces:
 - **Backend** (Composer): `InertiaDataTable\DataTable`, `Column`, `php artisan make:datatable`.
@@ -82,7 +82,7 @@ Follow the app's conventions for controllers, middleware (usually `auth`, `verif
 
 ### 5. Test and verify
 
-Write feature tests in the app's test style (see `references/testing.md`): authorization, one filter/sort/search case per behavior that matters, and facets if the page relies on counts. Then run the project's checks (tests, Pint, PHPStan, type check, lint/format) and build the assets (`pnpm run build`, or ask the user to run the dev server) before opening the page.
+Write feature tests in the app's test style (see `references/testing.md`): authorization, one filter/sort/search case per behavior that matters, and facets if the page relies on counts. Build the assets first (`pnpm run build`, or ask the user to run the dev server): without them in the Vite manifest, the feature tests of a new page fail with a 500. Then run the project's checks (tests, Pint, PHPStan, type check, the lint/format script of `package.json`) before opening the page.
 
 ## Things that commonly go wrong
 
@@ -93,6 +93,7 @@ Write feature tests in the app's test style (see `references/testing.md`): autho
 - **Layout is composed in JSX.** To move or customize the search, a filter, Reset, the View menu or the pagination, replace `<DataTableToolbar>` (and, with `pagination={false}`, the pagination) with its exported pieces: the filter component of each type (`DataTableFacetedFilter`, `DataTableSliderFilter`, `DataTableDateFilter`, `DataTableTextFilter`…), placed anywhere inside `<DataTableProvider table={table}>` (`references/react.md`, "Layout"); never edit `components/data-table/*` for that. A filter component only works on a column whose PHP class declares that kind of filter: to change the kind, change the PHP column.
 - **Columns and their order live in PHP.** Add, remove or reorder columns in `columns()`; do not mirror them in the React component unless a cell needs custom rendering.
 - **Formats are declared on the column.** Currency, decimals, percentages, dates, cut texts, links, Yes/No labels and badges go in PHP (`Column::number(...)->money('CLP')`, `Column::date(...)->format('long')`…); do not reformat them by hand in React. To render a value differently, write a custom `cell` that reuses the type cells of `components/data-table/data-table-cells.tsx` (`references/react.md`).
+- **Columns are 150px wide by default.** A long text (`limit(60)`) is cut earlier: set `size` on that column in the React component (`references/react.md`) and pass the same widths to the first-load skeleton (`<DataTableSkeleton sizes={{ name: 320 }}>`), or the page jumps when the data arrives.
 - **Several tables on one page** need `name()` (query parameter prefix) and distinct prop names.
 - **Encoded URLs** (`filter%5Bstatus%5D=a%2Cb`) come from Inertia (`$request->fullUrl()`), not from the package; for readable URLs add `urlResolver()` to `HandleInertiaRequests` (`references/react.md`, "Readable URLs").
 - **Case-insensitive matching of non-ASCII letters** (`Á`/`á`) does not work on SQLite; it does on MySQL/PostgreSQL.

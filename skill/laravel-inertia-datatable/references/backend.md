@@ -34,7 +34,7 @@ class ProductsTable extends DataTable
     }
 
     public function defaultSort(): ?string { return '-created_at'; } // "-" = descending
-    public function perPage(): int { return 25; }
+    public function perPage(): int { return 25; }   // example; without it, `per_page` of the config (10)
     public function perPageOptions(): array { return [25, 50, 100]; }
     public function name(): ?string { return null; }                // query prefix, see below
     public function alwaysInclude(): ?array { return null; }        // keys kept in every row (default: primary key)

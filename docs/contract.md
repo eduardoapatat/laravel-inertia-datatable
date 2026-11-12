@@ -5,7 +5,7 @@ This document defines how the frontend (shadcn DataTable on top of TanStack Tabl
 Principles:
 
 - **The server is the source of truth.** Pagination, sorting, filters, global search and column visibility are resolved on the server. TanStack Table works in manual mode (`manualPagination`, `manualSorting`, `manualFiltering`).
-- **The state lives in the URL.** The whole table state is serialized in the query string, so reloading, sharing the link or using back/forward reproduces the same view.
+- **The state lives in the URL.** The whole table state is serialized in the query string, so reloading or sharing the link reproduces the same view. Changing the page adds a history entry; filters, search and sorting replace the current one (see "Visits").
 - **Allowlists.** Sorting, filtering, searching and displaying are only possible on columns declared on the server. Names coming from the request are never interpolated into SQL.
 - **Normalize, don't fail.** An invalid value (column not allowed, `per_page` outside the list, nonexistent page…) is ignored or corrected; it does not return 400. The response includes the normalized state so the client rehydrates with what was actually applied.
 - **Convention compatible with spatie/laravel-query-builder** (`sort=-col`, `filter[col]=a,b`), in case migrating ever makes sense.

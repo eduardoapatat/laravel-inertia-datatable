@@ -4,6 +4,26 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `DataTableSkeleton sizes={{ name: 320 }}`: the width of the columns whose `size` the component sets, so the page does not jump when the data arrives.
+- The UI text `column_menu` (":label column options"), the accessible name of the column header menu.
+
+### Changed
+
+- The checkbox of the rows without a value (`empty: true` in a range, date or boolean filter) reads only their label ("No value", or the text of `->whenEmpty()`), as the option of a select filter does, instead of "Include No value".
+
+### Removed
+
+- The UI text `include`, which only that checkbox used. Translations published before keep it, unused.
+
+### Fixed
+
+- The calendar of a date filter opened on the current month, not on the month of the date or range picked.
+- The column header menu had the same accessible name as the filter of that column in the toolbar ("Status"), and the search field of a select filter and of the View menu had none.
+- The toolbar of the first-load skeleton drew every filter button with the same width and the text filters narrower than the real ones, so the real toolbar could take one more row and the page jumped.
+- `make:datatable --help` said `--react` creates a component "with the columns of the table": the columns come from the server.
+
 ## [0.12.0] - 2026-11-11
 
 ### Added
