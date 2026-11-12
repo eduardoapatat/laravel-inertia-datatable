@@ -22,6 +22,8 @@ return [
     // Tabla
     'no_results' => 'Sin resultados.',
     'loading' => 'Cargando tabla…',
+    'load_error' => 'No se pudo cargar la tabla.',
+    'retry' => 'Reintentar',
     'yes' => 'Sí',
     'no' => 'No',
     'empty' => '—',

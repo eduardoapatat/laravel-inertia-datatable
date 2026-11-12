@@ -298,6 +298,7 @@ Rules the client must follow:
 - When the sort, the filters, the search or `per_page` change, it goes back to page 1.
 - The search is debounced (about 300 ms).
 - Visits use `preserveState: true`, `preserveScroll: true`, `replace: true` (except when changing pages, which may add history) and `only: [<prop>]`.
+- A visit that fails (by network or cancelled) changes nothing: the client goes back to the last `state` of the server, which is what the rows and the URL show.
 
 ---
 

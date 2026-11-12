@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- When a visit of the table fails by network, `DataTable` shows a notice with a Retry button instead of leaving the click without an answer, and Inertia no longer throws an uncaught "Network error". New `onNetworkError` option of `useServerDataTable` (for a toast, for example), `failed` and `retry` in what the hook returns, and the `load_error` and `retry` texts in `lang/*/ui.php` (published lang files without them use the ones of the package). Update the UI with `php artisan inertia-datatable:ui --update`.
+
 ## [0.12.2] - 2026-11-12
 
 ### Fixed

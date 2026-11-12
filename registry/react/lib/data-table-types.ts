@@ -32,6 +32,10 @@ export interface DataTableTableMeta {
     pageSizeOptions?: number[];
     /** Loading state of the visit in flight (`useServerDataTable`). */
     loading?: DataTableLoadingPhase;
+    /** The latest visit failed by network (`useServerDataTable`). */
+    failed?: boolean;
+    /** Sends the failed visit again. */
+    retry?: () => void;
     searchable?: boolean;
     /** Locale to format numbers and dates; the browser's when missing. */
     locale?: string;

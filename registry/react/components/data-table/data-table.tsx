@@ -14,6 +14,7 @@ import {
     type TableState,
 } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import * as React from 'react';
 
@@ -66,8 +67,9 @@ interface DataTableProps<
     /**
      * Shows that a visit is loading: after `loadingDelay` the rows dim, after
      * `skeletonDelay` they turn into skeletons (both options of
-     * `useServerDataTable`). With `false`, nothing is shown; handle it
-     * yourself with the `loading` the hook returns.
+     * `useServerDataTable`); when a visit fails by network, a notice with a
+     * retry button. With `false`, nothing is shown; handle it yourself with
+     * the `loading`, `failed` and `retry` the hook returns.
      */
     loading?: 'auto' | false;
 }
@@ -94,6 +96,8 @@ export function DataTable<TData extends RowData>({
     const phase: DataTableLoadingPhase =
         loading === false ? 'idle' : (table.options.meta?.loading ?? 'idle');
     const isLoading = phase !== 'idle';
+    const meta = table.options.meta;
+    const failed = loading !== false && meta?.failed === true;
 
     return (
         <div
@@ -127,6 +131,26 @@ export function DataTable<TData extends RowData>({
                     />
                 </DataTableLayout>
             </div>
+            {failed ? (
+                <div
+                    role="alert"
+                    data-slot="data-table-error"
+                    className="flex items-center justify-between gap-2 rounded-md border border-destructive/30 px-3 py-1.5 text-sm text-destructive"
+                >
+                    <span>{getMessage(table, 'load_error')}</span>
+                    {meta?.retry ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7"
+                            onClick={meta.retry}
+                        >
+                            {getMessage(table, 'retry')}
+                        </Button>
+                    ) : null}
+                </div>
+            ) : null}
             {pagination || actionBar ? (
                 <div className="flex flex-col gap-2.5">
                     {pagination ? <DataTablePagination table={table} /> : null}

@@ -81,6 +81,13 @@ export interface UseServerDataTableOptions<TData extends RowData> {
      * `false` keeps the dimmed rows. 600 ms by default.
      */
     skeletonDelay?: number | false;
+    /**
+     * Called when the latest visit fails by network (server down, no
+     * connection), after the table goes back to what the server last sent;
+     * for example, to show a toast. `<DataTable>` already shows a notice with
+     * a retry button.
+     */
+    onNetworkError?: (error: unknown) => void;
     getRowId?: TableOptions<DataTableFeatures, TData>['getRowId'];
 }
 
@@ -98,6 +105,7 @@ export function useServerDataTable<TData extends RowData>({
     messages,
     loadingDelay = 150,
     skeletonDelay = 600,
+    onNetworkError,
 }: UseServerDataTableOptions<TData>) {
     const { config, data, facets, meta, state: serverState } = serverTable;
 
@@ -107,6 +115,10 @@ export function useServerDataTable<TData extends RowData>({
     const [draftVersion, setDraftVersion] = React.useState(0);
     const [sentVersion, setSentVersion] = React.useState(0);
     const [isLoading, setIsLoading] = React.useState(false);
+    // The state the user asked for in a visit that failed by network: retry
+    // sends it again.
+    const [failedVisit, setFailedVisit] =
+        React.useState<LocalTableState | null>(null);
     const [loading, setLoading] = React.useState<DataTableLoadingPhase>('idle');
     const [loadingPhases] = React.useState(() =>
         createLoadingPhases({
@@ -158,6 +170,7 @@ export function useServerDataTable<TData extends RowData>({
         const pairs = stateToQuery(toQueryState(next, config), config);
         const id = ++visitRef.current;
         let succeeded = false;
+        let networkError: { error: unknown } | null = null;
 
         router.get(
             buildTableUrl(window.location.href, pairs, config.query),
@@ -167,9 +180,18 @@ export function useServerDataTable<TData extends RowData>({
                 preserveState: true,
                 preserveScroll: true,
                 replace,
-                onStart: () => loadingPhases.start(),
+                onStart: () => {
+                    setFailedVisit(null);
+                    loadingPhases.start();
+                },
                 onSuccess: () => {
                     succeeded = true;
+                },
+                // Handled here: `false` keeps Inertia from throwing it.
+                onNetworkError: (error) => {
+                    networkError = { error };
+
+                    return false;
                 },
                 // Also after a cancelled or failed visit.
                 onFinish: () => {
@@ -184,6 +206,11 @@ export function useServerDataTable<TData extends RowData>({
                         timeoutRef.current === undefined
                     ) {
                         setState(toLocalState(serverStateRef.current));
+                    }
+
+                    if (networkError && visitRef.current === id) {
+                        setFailedVisit(next);
+                        onNetworkError?.(networkError.error);
                     }
                 },
             },
@@ -283,6 +310,13 @@ export function useServerDataTable<TData extends RowData>({
         visitLater(next, version);
     }
 
+    function retry() {
+        if (failedVisit) {
+            setState(failedVisit);
+            visitNow(failedVisit);
+        }
+    }
+
     const tableColumns = React.useMemo(
         () => withServerMeta(columns, config, facets),
         [columns, config, facets],
@@ -305,6 +339,8 @@ export function useServerDataTable<TData extends RowData>({
             dateFormat: config.date_format,
             messages: tableMessages,
             loading,
+            failed: failedVisit !== null,
+            retry,
         },
         rowCount: meta.total,
         // Without rows the server reports 1 page, not 0.
@@ -322,9 +358,10 @@ export function useServerDataTable<TData extends RowData>({
 
     /**
      * `isLoading`: a visit is in flight, right away. `loading`: the delayed
-     * phase `DataTable` shows (`idle`, `busy`, `slow`).
+     * phase `DataTable` shows (`idle`, `busy`, `slow`). `failed`: the latest
+     * visit failed by network; `retry` sends it again.
      */
-    return { table, isLoading, loading };
+    return { table, isLoading, loading, failed: failedVisit !== null, retry };
 }
 
 /**

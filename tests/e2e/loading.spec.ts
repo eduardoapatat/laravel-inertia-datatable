@@ -5,6 +5,7 @@ import {
     measure,
     query,
     test,
+    visit,
 } from './support';
 
 const skeletonOf = (page: import('@playwright/test').Page) =>
@@ -123,12 +124,11 @@ test('visits in a row dim the rows, then show skeleton rows, without blinking', 
 });
 
 test.describe('a failed visit', () => {
-    // Inertia reports a network error that no `onNetworkError` handles.
-    test.use({
-        expectedConsole: /net::ERR_FAILED|pageerror: Network error/,
-    });
+    // The browser logs the aborted request; the hook handles the error, so
+    // Inertia throws nothing.
+    test.use({ expectedConsole: /net::ERR_FAILED/ });
 
-    test('leaves the table as it was', async ({ page }) => {
+    test('leaves the table as it was and offers to retry', async ({ page }) => {
         await page.goto('/products');
         await dataTable(page).waitFor();
         const pageInfo = page.locator('[data-slot=data-table-page-info]');
@@ -149,6 +149,18 @@ test.describe('a failed visit', () => {
         expect(await firstRow.textContent()).toBe(beforeRow);
         await expect(dataTable(page).locator('[data-loading]')).toHaveCount(0);
         expect(query(page)).toBe('');
+
+        const notice = dataTable(page).getByRole('alert');
+        await expect(notice).toHaveText(/The table could not be loaded\./);
+
+        await page.unroute('**/products*');
+        await visit(page, () =>
+            notice.getByRole('button', { name: 'Retry' }).click(),
+        );
+
+        expect(query(page)).toBe('?page=2');
+        await expect(pageInfo).not.toHaveText(before);
+        await expect(notice).toHaveCount(0);
     });
 });
 

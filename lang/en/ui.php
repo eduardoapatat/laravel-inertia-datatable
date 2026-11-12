@@ -22,6 +22,8 @@ return [
     // Table
     'no_results' => 'No results.',
     'loading' => 'Loading table…',
+    'load_error' => 'The table could not be loaded.',
+    'retry' => 'Retry',
     'yes' => 'Yes',
     'no' => 'No',
     'empty' => '—',
