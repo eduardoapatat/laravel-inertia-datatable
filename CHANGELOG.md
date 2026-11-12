@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- In MySQL, a select filter on a column without declared options (`Column::option('stock')->filterSelect()` on a number column) matched a value that is not a number with the rows holding 0: `filter[stock]=abc` found them and `neq.abc` left them out. The column is now compared as text on every database, as it already was on Postgres.
+
 ## [0.12.1] - 2026-11-12
 
 ### Added

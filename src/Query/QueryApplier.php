@@ -157,8 +157,9 @@ final class QueryApplier
         $positive = $operator->negationOf();
         $relation = $column->relation();
 
-        // Without declared options the values are not checked against a list, and Postgres
-        // rejects a text compared with a number column: the column is compared as text.
+        // Without declared options the values are not checked against a list: the column is
+        // compared as text, since Postgres rejects a text compared with a number column and
+        // MySQL turns the text into a number (`stock = 'abc'` finds the rows with 0).
         $asText = in_array($filter->variant, [FilterVariant::Select, FilterVariant::MultiSelect], true)
             && ! ($column instanceof OptionColumn && $column->optionLabels() !== null);
 
@@ -203,9 +204,9 @@ final class QueryApplier
         $value = $filter->value;
         $variant = $filter->variant;
 
-        if ($asText && $this->driver($query) === 'pgsql' && in_array($operator, [FilterOperator::InArray, FilterOperator::Eq], true)) {
+        if ($asText && in_array($operator, [FilterOperator::InArray, FilterOperator::Eq], true)) {
             $values = array_map(strval(...), (array) $value);
-            $query->whereRaw($this->wrap($query, $column).'::text in ('.implode(', ', array_fill(0, count($values), '?')).')', $values);
+            $query->whereRaw($this->castToText($query, $column).' in ('.implode(', ', array_fill(0, count($values), '?')).')', $values);
 
             return;
         }
@@ -338,6 +339,23 @@ final class QueryApplier
     private function nullsLikeTheRest(string $direction): string
     {
         return $direction === 'desc' ? 'desc nulls last' : 'asc nulls first';
+    }
+
+    /**
+     * The column as text, to compare it with values that are not numbers.
+     *
+     * @param  Builder<covariant Model>  $query
+     */
+    private function castToText(Builder $query, string $column): string
+    {
+        $wrapped = $this->wrap($query, $column);
+
+        return match ($this->driver($query)) {
+            'pgsql' => "{$wrapped}::text",
+            'mysql', 'mariadb' => "cast({$wrapped} as char)",
+            'sqlsrv' => "cast({$wrapped} as nvarchar(max))",
+            default => "cast({$wrapped} as text)",
+        };
     }
 
     /**
