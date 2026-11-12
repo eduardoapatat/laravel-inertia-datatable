@@ -114,7 +114,7 @@ class MakeDataTableCommand extends GeneratorCommand
     {
         return [
             ['model', 'm', InputOption::VALUE_REQUIRED, 'The model of the table (defaults to the singular of the class name)'],
-            ['react', null, InputOption::VALUE_NONE, 'Also create a React component with the columns of the table'],
+            ['react', null, InputOption::VALUE_NONE, 'Also create a React component that renders the table (its columns come from the server)'],
             ['page', null, InputOption::VALUE_NONE, 'Also create the React component and an Inertia page that renders it'],
             ['defer', null, InputOption::VALUE_NONE, 'Create the page with the table deferred and a skeleton meanwhile (implies --page)'],
             ['install-ui', null, InputOption::VALUE_NONE, 'Install the data-table-react registry item if the project does not have it'],
