@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-12
+
 ### Added
 
 - When a visit of the table fails by network, `DataTable` shows a notice with a Retry button instead of leaving the click without an answer, and Inertia no longer throws an uncaught "Network error". New `onNetworkError` option of `useServerDataTable` (for a toast, for example), `failed` and `retry` in what the hook returns, and the `load_error` and `retry` texts in `lang/*/ui.php` (published lang files without them use the ones of the package). Update the UI with `php artisan inertia-datatable:ui --update`.
@@ -335,7 +337,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.2...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.2...v0.13.0
 [0.12.2]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.11.0...v0.12.0
