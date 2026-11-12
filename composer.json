@@ -44,6 +44,10 @@
             "@format:check",
             "@analyse",
             "@test"
+        ],
+        "verify": [
+            "Composer\\Config::disableProcessTimeout",
+            "bash .github/scripts/verify.sh"
         ]
     },
     "extra": {

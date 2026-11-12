@@ -21,11 +21,13 @@ pnpm run test           # Vitest for the shared code
 pnpm run check          # format and lint (vite-plus)
 pnpm run types:check
 pnpm run registry:build # compiles registry.json into r/
+composer verify         # all the CI locally: repo, MySQL/Postgres (Docker) and a new starter kit
+composer verify -- databases   # only some stages: repo, databases, starter-kit
 ```
 
-Run `composer check` and `pnpm run check` before considering a change done.
+Run `composer check` and `pnpm run check` before considering a change done. Run `composer verify` before releasing a version, and for changes to `registry/react/**` or to the SQL of the queries (it needs Docker; without `pdo_mysql` or `pdo_pgsql` in the local PHP, Pest runs in a PHP container).
 
-`pnpm run check` and `pnpm run types:check` do not cover `registry/react/**`: those components import the `ui/` components of shadcn that each app installs, so they are only linted and type checked by the starter kit job (`.github/scripts/starter-kit.sh`), in a real app. Check React changes there or in an app that installs the registry from `r/` (`INERTIA_DATATABLE_REGISTRY_URL`).
+`pnpm run check` and `pnpm run types:check` do not cover `registry/react/**`: those components import the `ui/` components of shadcn that each app installs, so they are only linted and type checked in a real app: the `starter-kit` stage of `composer verify` and the starter kit job of the CI (`.github/scripts/starter-kit.sh`).
 
 ## Rules
 
