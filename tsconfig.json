@@ -11,5 +11,10 @@
         "isolatedModules": true,
         "verbatimModuleSyntax": true
     },
-    "include": ["registry/shared/**/*.ts", "vite.config.ts"]
+    "include": [
+        "registry/shared/**/*.ts",
+        "tests/e2e/*.ts",
+        "playwright.config.ts",
+        "vite.config.ts"
+    ]
 }

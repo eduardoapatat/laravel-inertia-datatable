@@ -7,8 +7,10 @@
 #                pdo_pgsql in the local PHP, Pest runs in a PHP container that has them.
 #   starter-kit  .github/scripts/starter-kit.sh in a temporary folder: a new React
 #                starter kit with the package and its UI, checked like a user would.
+#   e2e          The Playwright tests of tests/e2e in that starter kit (made here when
+#                the starter-kit stage did not run), with the scenario of tests/e2e/setup.sh.
 #
-# Usage: .github/scripts/verify.sh [repo] [databases] [starter-kit]   (all without arguments)
+# Usage: .github/scripts/verify.sh [repo] [databases] [starter-kit] [e2e]   (all without arguments)
 #        composer verify [-- databases]
 set -uo pipefail
 
@@ -118,20 +120,45 @@ stage_databases() {
     return "$status"
 }
 
+# The app of the starter kit, in one temporary folder per run (removed on exit), so
+# the e2e stage reuses the one of the starter-kit stage.
+app=""
+use_temp_app() {
+    if [ -z "$temp_dir" ]; then
+        temp_dir="$(mktemp -d)"
+    fi
+
+    app="$temp_dir/app"
+}
+
 stage_starter_kit() {
-    temp_dir="$(mktemp -d)"
-    bash "$root/.github/scripts/starter-kit.sh" pnpm "$temp_dir/app"
+    use_temp_app
+    rm -rf "$app"
+    bash "$root/.github/scripts/starter-kit.sh" pnpm "$app"
+}
+
+stage_e2e() {
+    use_temp_app
+
+    if [ ! -f "$app/artisan" ]; then
+        echo "▶ Creating the starter kit for the e2e tests"
+        bash "$root/.github/scripts/starter-kit.sh" pnpm "$app" >/dev/null || return 1
+    fi
+
+    step bash "$root/tests/e2e/setup.sh" "$app" &&
+        step pnpm exec playwright install chromium &&
+        step env E2E_APP_DIR="$app" pnpm run test:e2e
 }
 
 stages=("$@")
 if [ "${#stages[@]}" -eq 0 ]; then
-    stages=(repo databases starter-kit)
+    stages=(repo databases starter-kit e2e)
 fi
 
 for stage in "${stages[@]}"; do
     case "$stage" in
-        repo | databases | starter-kit) ;;
-        *) echo "Unknown stage: $stage (repo, databases, starter-kit)" >&2; exit 2 ;;
+        repo | databases | starter-kit | e2e) ;;
+        *) echo "Unknown stage: $stage (repo, databases, starter-kit, e2e)" >&2; exit 2 ;;
     esac
 done
 

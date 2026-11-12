@@ -10,3 +10,6 @@ phpstan.neon
 .DS_Store
 .mcp.json
 .claude/
+tests/e2e/.auth/
+test-results/
+playwright-report/

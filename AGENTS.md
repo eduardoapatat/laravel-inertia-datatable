@@ -8,7 +8,7 @@ Laravel package (`type: library`) for server-driven data tables, with a shadcn r
 - `registry/` (sources), `registry.json` and `r/` (built output): the shadcn registry for the React UI.
 - `skill/laravel-inertia-datatable/`: the skill shipped to package users. It is not a skill for working on this repo.
 - `stubs/`: templates used by the `make:datatable` command.
-- `tests/`: Pest with Orchestra Testbench (`Feature/`, `Unit/`, `Fixtures/`, `ArchTest.php`).
+- `tests/`: Pest with Orchestra Testbench (`Feature/`, `Unit/`, `Fixtures/`, `ArchTest.php`), and `e2e/`: Playwright tests of the UI in a starter kit, with the products scenario of `e2e/fixture/` (fixed data in `E2eSeeder`).
 
 ## Commands
 
@@ -21,13 +21,13 @@ pnpm run test           # Vitest for the shared code
 pnpm run check          # format and lint (vite-plus)
 pnpm run types:check
 pnpm run registry:build # compiles registry.json into r/
-composer verify         # all the CI locally: repo, MySQL/Postgres (Docker) and a new starter kit
-composer verify -- databases   # only some stages: repo, databases, starter-kit
+composer verify         # all the CI locally: repo, MySQL/Postgres (Docker), a new starter kit and the e2e tests
+composer verify -- e2e  # only some stages: repo, databases, starter-kit, e2e
 ```
 
 Run `composer check` and `pnpm run check` before considering a change done. Run `composer verify` before releasing a version, and for changes to `registry/react/**` or to the SQL of the queries (it needs Docker; without `pdo_mysql` or `pdo_pgsql` in the local PHP, Pest runs in a PHP container).
 
-`pnpm run check` and `pnpm run types:check` do not cover `registry/react/**`: those components import the `ui/` components of shadcn that each app installs, so they are only linted and type checked in a real app: the `starter-kit` stage of `composer verify` and the starter kit job of the CI (`.github/scripts/starter-kit.sh`).
+`pnpm run check` and `pnpm run types:check` do not cover `registry/react/**`: those components import the `ui/` components of shadcn that each app installs, so they are only linted and type checked in a real app: the `starter-kit` stage of `composer verify` and the starter kit job of the CI (`.github/scripts/starter-kit.sh`). The `e2e` stage tests them in the browser; when a change of the UI changes what a test expects, update the test in `tests/e2e/`.
 
 ## Rules
 
