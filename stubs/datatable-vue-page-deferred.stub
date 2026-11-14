@@ -1,0 +1,43 @@
+<script setup lang="ts">
+import { Deferred, Head } from '@inertiajs/vue3';
+import { DataTableSkeleton } from '@/components/data-table';
+import {{ component }} from '@/components/data-tables/{{ component }}.vue';
+import type { {{ rowType }} } from '@/components/data-tables/{{ component }}.vue';
+import type {
+    ServerDataTable,
+    ServerTableConfig,
+} from '@/lib/data-table-server';
+
+defineOptions({
+    layout: {
+        breadcrumbs: [
+            {
+                title: '{{ title }}',
+                href: '{{ url }}',
+            },
+        ],
+    },
+});
+
+defineProps<{
+    /** Deferred: it arrives after the page, with the skeleton meanwhile. */
+    {{ prop }}?: ServerDataTable<{{ rowType }}>;
+    /** Config of the table, without a query, to draw the skeleton. */
+    {{ prop }}Config: ServerTableConfig;
+}>();
+</script>
+
+<template>
+    <Head title="{{ title }}" />
+
+    <div
+        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
+        <Deferred data="{{ prop }}">
+            <template #fallback>
+                <DataTableSkeleton :config="{{ prop }}Config" />
+            </template>
+            <{{ component }} v-if="{{ prop }}" :{{ prop }}="{{ prop }}" />
+        </Deferred>
+    </div>
+</template>

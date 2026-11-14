@@ -11,32 +11,34 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Process;
 
 /**
- * Installs or updates the generic DataTable UI from the shadcn registry.
+ * Installs or updates the generic DataTable UI from the shadcn registry, with the
+ * shadcn CLI of the project's framework (React or Vue).
  */
 final class UiInstaller
 {
-    /**
-     * Files of older versions of the UI that the registry no longer has, relative to
-     * `resources/js`. shadcn never deletes a file, and an old one would still import
-     * what the new ones removed, breaking the build of the app.
-     */
-    public const array OBSOLETE_FILES = [
-        'lib/data-table-filters.ts',
-    ];
-
     public function __construct(
         private readonly Filesystem $files,
         private readonly Application $app,
     ) {}
 
     /**
-     * The hook only exists when the UI is installed. Installing and updating change it.
+     * The framework of the app's Inertia adapter; React when `package.json` does
+     * not tell.
+     */
+    public function detectFrontend(): Frontend
+    {
+        return Frontend::detect($this->files, $this->app->basePath()) ?? Frontend::React;
+    }
+
+    /**
+     * The hook (or composable) only exists when the UI is installed. Installing and
+     * updating change it.
      *
      * @phpstan-impure
      */
-    public function isInstalled(): bool
+    public function isInstalled(Frontend $frontend): bool
     {
-        return $this->files->exists($this->app->resourcePath('js/hooks/use-server-data-table.ts'));
+        return $this->files->exists($this->app->resourcePath('js/'.$frontend->installedMarker()));
     }
 
     /**
@@ -44,9 +46,9 @@ final class UiInstaller
      *
      * @return list<string>
      */
-    public function installCommand(): array
+    public function installCommand(Frontend $frontend): array
     {
-        return [...$this->packageRunner(), 'shadcn@latest', 'add', $this->itemUrl('data-table-react'), '-y'];
+        return [...$this->packageRunner(), $frontend->cliPackage(), 'add', $this->itemUrl($frontend->item()), '-y'];
     }
 
     /**
@@ -54,9 +56,9 @@ final class UiInstaller
      *
      * @return list<string>
      */
-    public function updateCommand(): array
+    public function updateCommand(Frontend $frontend): array
     {
-        return [...$this->packageRunner(), 'shadcn@latest', 'add', $this->itemUrl('data-table-react-files'), '-y', '--overwrite'];
+        return [...$this->packageRunner(), $frontend->cliPackage(), 'add', $this->itemUrl($frontend->filesItem()), '-y', '--overwrite'];
     }
 
     /**
@@ -64,11 +66,11 @@ final class UiInstaller
      *
      * @return list<string> The deleted files, relative to `resources/js`.
      */
-    public function deleteObsoleteFiles(): array
+    public function deleteObsoleteFiles(Frontend $frontend): array
     {
         $deleted = [];
 
-        foreach (self::OBSOLETE_FILES as $file) {
+        foreach ($frontend->obsoleteFiles() as $file) {
             $path = $this->app->resourcePath('js/'.$file);
 
             if ($this->files->exists($path) && $this->files->delete($path)) {
@@ -83,7 +85,7 @@ final class UiInstaller
      * @param  list<string>  $command
      * @param  Closure(string, string): void  $output
      */
-    public function run(array $command, Closure $output): bool
+    public function run(array $command, Closure $output, Frontend $frontend): bool
     {
         // Answers "no" to every prompt to overwrite an existing ui/ component. The answers are
         // fed one at a time: all at once, the CLI only reads the first one.
@@ -92,7 +94,7 @@ final class UiInstaller
             ->timeout(600)
             ->run($command, $output);
 
-        return $result->successful() && $this->isInstalled();
+        return $result->successful() && $this->isInstalled($frontend);
     }
 
     /**

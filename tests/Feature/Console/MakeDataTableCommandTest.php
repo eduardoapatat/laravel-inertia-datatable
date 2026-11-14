@@ -19,8 +19,19 @@ afterEach(function () {
     File::deleteDirectory(app_path('DataTables'));
     File::deleteDirectory(resource_path('js/pages/products'));
     File::deleteDirectory(resource_path('js/components/data-tables'));
-    File::delete([resource_path('js/hooks/use-server-data-table.ts'), base_path('pnpm-lock.yaml'), base_path('pnpm-workspace.yaml')]);
+    File::delete([
+        resource_path('js/hooks/use-server-data-table.ts'),
+        resource_path('js/composables/useServerDataTable.ts'),
+        base_path('pnpm-lock.yaml'),
+        base_path('pnpm-workspace.yaml'),
+        base_path('package.json'),
+    ]);
 });
+
+function useVueApp(): void
+{
+    File::put(base_path('package.json'), '{"dependencies": {"@inertiajs/vue3": "^3.0.0"}}');
+}
 
 it('creates a table class with the columns guessed from the model', function () {
     artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class])->assertSuccessful();
@@ -303,4 +314,98 @@ it('installs the data table UI even when the table already exists', function () 
         ->expectsOutputToContain('already exists');
 
     Process::assertRanTimes(fn ($process) => in_array('add', $process->command, true), 1);
+});
+
+it('creates a reusable Vue component with the vue option', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--vue' => true])
+        ->expectsOutputToContain('<ProductsTable :products="products" /> from \'@/components/data-tables/ProductsTable.vue\'')
+        ->assertSuccessful();
+
+    expect(File::get(resource_path('js/components/data-tables/ProductsTable.vue')))
+        ->toContain('export type Product = {')
+        ->toContain('    name?: string;')
+        ->toContain('    price?: number;')
+        ->toContain('const columns = columnHelper.columns([]);')
+        ->toContain(" *     columnHelper.accessor('name', {")
+        ->toContain("    { prop: 'products' },")
+        ->toContain('    table: () => props.products,')
+        ->toContain('<DataTable :table="table" aria-label="Products">')
+        ->not->toContain('{{')
+        ->and(File::exists(resource_path('js/components/data-tables/products-table.tsx')))->toBeFalse()
+        ->and(File::exists(resource_path('js/pages/products/Index.vue')))->toBeFalse();
+});
+
+it('creates a Vue page in a Vue app with the page option', function () {
+    useVueApp();
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--page' => true])
+        ->expectsOutputToContain("Inertia::render('products/Index'")
+        ->assertSuccessful();
+
+    expect(File::exists(resource_path('js/components/data-tables/ProductsTable.vue')))->toBeTrue()
+        ->and(File::get(resource_path('js/pages/products/Index.vue')))
+        ->toContain("import ProductsTable from '@/components/data-tables/ProductsTable.vue';")
+        ->toContain('<ProductsTable :products="products" />')
+        ->toContain("href: '/products',")
+        ->not->toContain('Deferred')
+        ->not->toContain('{{');
+});
+
+it('creates a deferred Vue page with a skeleton with the defer option', function () {
+    useVueApp();
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--defer' => true])->assertSuccessful();
+
+    expect(File::get(resource_path('js/pages/products/Index.vue')))
+        ->toContain("import { Deferred, Head } from '@inertiajs/vue3';")
+        ->toContain('    products?: ServerDataTable<Product>;')
+        ->toContain('    productsConfig: ServerTableConfig;')
+        ->toContain('<Deferred data="products">')
+        ->toContain('<DataTableSkeleton :config="productsConfig" />')
+        ->toContain('<ProductsTable v-if="products" :products="products" />');
+});
+
+it('creates the React files with the react option in a Vue app', function () {
+    useVueApp();
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--react' => true, '--page' => true])->assertSuccessful();
+
+    expect(File::exists(resource_path('js/components/data-tables/products-table.tsx')))->toBeTrue()
+        ->and(File::exists(resource_path('js/pages/products/index.tsx')))->toBeTrue()
+        ->and(File::exists(resource_path('js/components/data-tables/ProductsTable.vue')))->toBeFalse();
+});
+
+it('shows the Vue install command when the Vue UI is missing', function () {
+    Process::fake();
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--vue' => true])
+        ->expectsOutputToContain('npx shadcn-vue@latest add '.RegistryUrl::forInstalledVersion().'/data-table-vue.json -y')
+        ->assertSuccessful();
+
+    Process::assertNothingRan();
+});
+
+it('installs the Vue UI in a Vue app', function () {
+    useVueApp();
+    Process::fake(function () {
+        File::ensureDirectoryExists(resource_path('js/composables'));
+        File::put(resource_path('js/composables/useServerDataTable.ts'), '');
+
+        return Process::result();
+    });
+
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--install-ui' => true])->assertSuccessful();
+
+    Process::assertRan(fn ($process) => $process->command === [
+        'npx', 'shadcn-vue@latest', 'add',
+        RegistryUrl::forInstalledVersion().'/data-table-vue.json', '-y',
+    ]);
+});
+
+it('refuses the react and vue options together', function () {
+    artisan('make:datatable', ['name' => 'ProductsTable', '--model' => Product::class, '--react' => true, '--vue' => true])
+        ->expectsOutputToContain('not both')
+        ->assertFailed();
+
+    expect(File::exists(app_path('DataTables/ProductsTable.php')))->toBeFalse();
 });

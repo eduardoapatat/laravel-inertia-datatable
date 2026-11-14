@@ -1,0 +1,31 @@
+<script setup lang="ts">
+import { Head } from '@inertiajs/vue3';
+import {{ component }} from '@/components/data-tables/{{ component }}.vue';
+import type { {{ rowType }} } from '@/components/data-tables/{{ component }}.vue';
+import type { ServerDataTable } from '@/lib/data-table-server';
+
+defineOptions({
+    layout: {
+        breadcrumbs: [
+            {
+                title: '{{ title }}',
+                href: '{{ url }}',
+            },
+        ],
+    },
+});
+
+defineProps<{
+    {{ prop }}: ServerDataTable<{{ rowType }}>;
+}>();
+</script>
+
+<template>
+    <Head title="{{ title }}" />
+
+    <div
+        class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
+    >
+        <{{ component }} :{{ prop }}="{{ prop }}" />
+    </div>
+</template>
