@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- The `lib/data-table-*.ts` files of the UI import TanStack Table and the React types from a new file, `lib/data-table-tanstack.ts`, so they can be shared with the coming Vue version. Nothing changes in the pages; `php artisan inertia-datatable:ui --update` adds the new file.
+
 ## [0.13.0] - 2026-11-12
 
 ### Added
