@@ -1,7 +1,5 @@
-<script setup lang="ts" generic="TData extends RowData">
+<script setup lang="ts">
 import { computed } from 'vue';
-
-import type { RowData } from '@/lib/data-table-tanstack';
 
 import { type DataTableCellProps, getCellSetup } from './cells';
 import DataTableBooleanCell from './DataTableBooleanCell.vue';
@@ -15,7 +13,7 @@ import DataTableTextCell from './DataTableTextCell.vue';
  * in PHP or in the page `meta` (a text cell without it). Every type cell is
  * exported to reuse its formatting inside a custom `cell`.
  */
-const props = defineProps<DataTableCellProps<TData>>();
+const props = defineProps<DataTableCellProps>();
 
 const type = computed(() => getCellSetup(props.cell).meta?.display?.type);
 </script>

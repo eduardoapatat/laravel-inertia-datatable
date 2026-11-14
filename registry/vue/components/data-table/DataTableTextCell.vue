@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="TData extends RowData">
+<script setup lang="ts">
 import { computed } from 'vue';
 
 import {
@@ -8,7 +8,6 @@ import {
     toText,
     truncate,
 } from '@/lib/data-table-format';
-import type { RowData } from '@/lib/data-table-tanstack';
 
 import { type DataTableCellProps, getCellSetup } from './cells';
 import DataTableEmptyCell from './DataTableEmptyCell.vue';
@@ -17,7 +16,7 @@ import DataTableEmptyCell from './DataTableEmptyCell.vue';
  * Text, cut with `->limit()` (the full text in the tooltip) and shown as a
  * link with `->url()` or `->email()`.
  */
-const props = defineProps<DataTableCellProps<TData>>();
+const props = defineProps<DataTableCellProps>();
 
 const view = computed(() => {
     const meta = getCellSetup(props.cell).meta;

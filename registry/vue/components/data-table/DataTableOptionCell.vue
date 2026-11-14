@@ -1,8 +1,7 @@
-<script setup lang="ts" generic="TData extends RowData">
+<script setup lang="ts">
 import { computed, type VNodeChild } from 'vue';
 
 import { getOption, getOwn, toPrimitive } from '@/lib/data-table-format';
-import type { RowData } from '@/lib/data-table-tanstack';
 import type { ColumnSelectOption } from '@/lib/data-table-types';
 
 import {
@@ -23,7 +22,7 @@ type OptionValue = string | number | boolean;
  * the `option` slot or `renderOption`.
  */
 const props = defineProps<
-    DataTableCellProps<TData> & {
+    DataTableCellProps & {
         /**
          * Badge props per value, over the variants declared in PHP; shows
          * badges even without `->badge()`.

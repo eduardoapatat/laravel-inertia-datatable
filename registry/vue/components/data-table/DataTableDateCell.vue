@@ -1,8 +1,7 @@
-<script setup lang="ts" generic="TData extends RowData">
+<script setup lang="ts">
 import { computed } from 'vue';
 
 import { formatDateValue, isDateOnly } from '@/lib/data-table-format';
-import type { RowData } from '@/lib/data-table-tanstack';
 
 import { type DataTableCellProps, getCellSetup } from './cells';
 import DataTableEmptyCell from './DataTableEmptyCell.vue';
@@ -11,7 +10,7 @@ import DataTableEmptyCell from './DataTableEmptyCell.vue';
  * Date with the preset or Intl options of `->format()`; relative dates
  * keep the full date in the tooltip.
  */
-const props = defineProps<DataTableCellProps<TData>>();
+const props = defineProps<DataTableCellProps>();
 
 const view = computed(() => {
     const { meta, locale, context } = getCellSetup(props.cell);

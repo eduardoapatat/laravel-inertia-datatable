@@ -1,8 +1,7 @@
-<script setup lang="ts" generic="TData extends RowData">
+<script setup lang="ts">
 import { computed } from 'vue';
 
 import { formatNumberCell, isEmptyValue } from '@/lib/data-table-format';
-import type { RowData } from '@/lib/data-table-tanstack';
 
 import { type DataTableCellProps, getCellSetup } from './cells';
 import DataTableEmptyCell from './DataTableEmptyCell.vue';
@@ -12,7 +11,7 @@ import DataTableEmptyCell from './DataTableEmptyCell.vue';
  * aligned to the end with its header (`meta.align` changes it). The currency
  * code (`cell: 'code'`) and the unit go after the number, smaller and muted.
  */
-const props = defineProps<DataTableCellProps<TData>>();
+const props = defineProps<DataTableCellProps>();
 
 const parts = computed(() => {
     const value = props.cell.getValue();

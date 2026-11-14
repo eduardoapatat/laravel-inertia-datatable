@@ -3,16 +3,25 @@ import type { FunctionalComponent, HTMLAttributes, VNodeChild } from 'vue';
 import type { BadgeVariants } from '@/components/ui/badge';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getFormatContext } from '@/lib/data-table-format';
-import type { Cell, RowData } from '@/lib/data-table-tanstack';
+import type { Cell, Column } from '@/lib/data-table-tanstack';
 import type { DataTableColumnMeta } from '@/lib/data-table-types';
 
 /**
- * Props of the type cells: the TanStack cell. The other keys of the cell
- * context are accepted too, so a cell component can be the `cell` of a
- * column as is (`cell: DataTableNumberCell`).
+ * A cell of any row type: the type cells read its value and its column, not
+ * the row. Not generic, so `h(DataTableNumberCell, { cell })` type checks.
  */
-export interface DataTableCellProps<TData extends RowData = RowData> {
-    cell: Cell<DataTableFeatures, TData>;
+export type DataTableAnyCell = Cell<DataTableFeatures, any>;
+
+/** A column of any row type: the header components read its label and its menu. */
+export type DataTableAnyColumn = Column<DataTableFeatures, any, any>;
+
+/**
+ * Props of the type cells: the TanStack cell (`h(DataTableNumberCell, { cell })`).
+ * The other keys of the cell context are accepted too, so they never end up
+ * as attributes of the cell.
+ */
+export interface DataTableCellProps {
+    cell: DataTableAnyCell;
     column?: unknown;
     row?: unknown;
     table?: unknown;
@@ -29,9 +38,7 @@ export interface DataTableBadgeProps {
     class?: HTMLAttributes['class'];
 }
 
-export function getCellSetup<TData extends RowData>(
-    cell: Cell<DataTableFeatures, TData>,
-) {
+export function getCellSetup(cell: DataTableAnyCell) {
     const context = getFormatContext(cell.table);
 
     return {

@@ -1,6 +1,5 @@
 import { router } from '@inertiajs/vue3';
 import {
-    type Component,
     computed,
     h,
     type MaybeRefOrGetter,
@@ -12,6 +11,7 @@ import {
 } from 'vue';
 
 import DataTableCell from '@/components/data-table/DataTableCell.vue';
+import type { DataTableAnyColumn } from '@/components/data-table/cells';
 import DataTableDefaultHeader from '@/components/data-table/DataTableDefaultHeader.vue';
 import {
     type DataTableColumn,
@@ -41,9 +41,11 @@ import {
     stateToQuery,
 } from '@/lib/data-table-server';
 import {
+    type CellContext,
     type ColumnFiltersState,
     type ColumnVisibilityState,
     functionalUpdate,
+    type HeaderContext,
     type PaginationState,
     type RowData,
     type SortingState,
@@ -427,11 +429,13 @@ function withDefaults<TData extends RowData>(
         ...column,
         header:
             column.header ??
-            (({ column }: { column: unknown }) =>
-                h(DataTableDefaultHeader as Component, { column })),
+            (({ column }: HeaderContext<DataTableFeatures, TData, unknown>) =>
+                h(DataTableDefaultHeader, {
+                    column: column as DataTableAnyColumn,
+                })),
         cell:
             column.cell ??
-            (({ cell }: { cell: unknown }) =>
-                h(DataTableCell as Component, { cell })),
+            (({ cell }: CellContext<DataTableFeatures, TData, unknown>) =>
+                h(DataTableCell, { cell })),
     } as DataTableColumn<TData>;
 }

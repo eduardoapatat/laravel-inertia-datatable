@@ -5,6 +5,8 @@ export {
 } from '@/lib/data-table-format';
 
 export {
+    type DataTableAnyCell,
+    type DataTableAnyColumn,
     type DataTableBadgeProps,
     type DataTableBadgeVariant,
     type DataTableCellProps,

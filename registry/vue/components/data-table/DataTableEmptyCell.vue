@@ -1,8 +1,7 @@
-<script setup lang="ts" generic="TData extends RowData">
+<script setup lang="ts">
 import { computed } from 'vue';
 
 import { getMessage } from '@/lib/data-table-messages';
-import type { RowData } from '@/lib/data-table-tanstack';
 
 import { type DataTableCellProps, getCellSetup } from './cells';
 
@@ -10,7 +9,7 @@ import { type DataTableCellProps, getCellSetup } from './cells';
  * Cell without a value: the text of `->whenEmpty()` or the `empty` text of the
  * UI (`—`), muted. Every type cell shows it for `null` and `''`.
  */
-const props = defineProps<DataTableCellProps<TData>>();
+const props = defineProps<DataTableCellProps>();
 
 const text = computed(
     () =>

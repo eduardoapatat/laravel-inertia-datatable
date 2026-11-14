@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="TData extends RowData">
+<script setup lang="ts">
 import { computed } from 'vue';
 
 import {
@@ -6,7 +6,6 @@ import {
     formatCellValue,
     getOwn,
 } from '@/lib/data-table-format';
-import type { RowData } from '@/lib/data-table-tanstack';
 
 import {
     type DataTableBadgeVariant,
@@ -21,7 +20,7 @@ import DataTableOptionBadge from './DataTableOptionBadge.vue';
  * icon of `meta.icons.true` / `meta.icons.false`; with `->badge()`, inside the
  * project's Badge (variant of `true` / `false`, else the column one).
  */
-const props = defineProps<DataTableCellProps<TData>>();
+const props = defineProps<DataTableCellProps>();
 
 const view = computed(() => {
     const { meta, context } = getCellSetup(props.cell);

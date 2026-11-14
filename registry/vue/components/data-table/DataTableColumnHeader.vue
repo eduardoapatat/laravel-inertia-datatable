@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="TData extends RowData, TValue = unknown">
+<script setup lang="ts">
 import {
     Check,
     ChevronDown,
@@ -14,13 +14,17 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getMessage } from '@/lib/data-table-messages';
-import type { Column, RowData, SortDirection } from '@/lib/data-table-tanstack';
+import type { SortDirection } from '@/lib/data-table-tanstack';
 import { cn } from '@/lib/utils';
 
+import type { DataTableAnyColumn } from './cells';
+
+/**
+ * Header with the sort and hide menu of a column, of any row type.
+ */
 const props = defineProps<{
-    column: Column<DataTableFeatures, TData, TValue>;
+    column: DataTableAnyColumn;
     label: string;
     class?: HTMLAttributes['class'];
 }>();
