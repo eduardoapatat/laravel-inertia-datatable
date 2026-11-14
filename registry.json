@@ -42,47 +42,47 @@
                     "target": "~/resources/js/lib/data-table-tanstack.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-features.ts",
+                    "path": "registry/shared/lib/data-table-features.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-features.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-format.ts",
+                    "path": "registry/shared/lib/data-table-format.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-format.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-messages.ts",
+                    "path": "registry/shared/lib/data-table-messages.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-messages.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-types.ts",
+                    "path": "registry/shared/lib/data-table-types.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-types.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-utils.ts",
+                    "path": "registry/shared/lib/data-table-utils.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-utils.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-columns.ts",
+                    "path": "registry/shared/lib/data-table-columns.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-columns.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-options.ts",
+                    "path": "registry/shared/lib/data-table-filter-options.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-options.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-values.ts",
+                    "path": "registry/shared/lib/data-table-filter-values.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-values.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-loading.ts",
+                    "path": "registry/shared/lib/data-table-loading.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-loading.ts"
                 },
@@ -190,47 +190,47 @@
                     "target": "~/resources/js/lib/data-table-tanstack.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-features.ts",
+                    "path": "registry/shared/lib/data-table-features.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-features.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-format.ts",
+                    "path": "registry/shared/lib/data-table-format.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-format.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-messages.ts",
+                    "path": "registry/shared/lib/data-table-messages.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-messages.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-types.ts",
+                    "path": "registry/shared/lib/data-table-types.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-types.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-utils.ts",
+                    "path": "registry/shared/lib/data-table-utils.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-utils.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-columns.ts",
+                    "path": "registry/shared/lib/data-table-columns.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-columns.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-options.ts",
+                    "path": "registry/shared/lib/data-table-filter-options.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-options.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-values.ts",
+                    "path": "registry/shared/lib/data-table-filter-values.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-values.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-loading.ts",
+                    "path": "registry/shared/lib/data-table-loading.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-loading.ts"
                 },

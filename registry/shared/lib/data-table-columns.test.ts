@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 import {
     type DataTableColumn,
@@ -240,6 +240,6 @@ describe('getDefaultRowId', () => {
     it('uses the id of the row, else its index', () => {
         expect(getDefaultRowId({ id: 7 }, 0)).toBe('7');
         expect(getDefaultRowId({ id: null }, 3)).toBe('3');
-        expect(getDefaultRowId('text', 2)).toBe('2');
+        expect(getDefaultRowId(['text'], 2)).toBe('2');
     });
 });
