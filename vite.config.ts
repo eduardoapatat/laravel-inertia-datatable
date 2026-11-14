@@ -24,13 +24,14 @@ export default defineConfig({
         include: ['registry/**/*.test.ts'],
     },
     lint: {
-        // The React code is type-checked by the starter kit CI job, where its
-        // dependencies (shadcn, TanStack, Inertia) are installed.
+        // The React and Vue code is type-checked by the starter kit CI jobs,
+        // where its dependencies (shadcn, TanStack, Inertia) are installed.
         ignorePatterns: [
             'vendor/**',
             'node_modules/**',
             'r/**',
             'registry/react/**',
+            'registry/vue/**',
         ],
         options: {
             denyWarnings: true,
