@@ -1,4 +1,7 @@
-export type { FacetedOption, FacetedValue as FacetedSelection } from './context';
+export type {
+    FacetedOption,
+    FacetedValue as FacetedSelection,
+} from './context';
 export { default as Faceted } from './Faceted.vue';
 export { default as FacetedBadge } from './FacetedBadge.vue';
 export { default as FacetedBadgeList } from './FacetedBadgeList.vue';

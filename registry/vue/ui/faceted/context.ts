@@ -38,8 +38,9 @@ export interface FacetedContext extends FacetedVisibility {
 
 const FacetedKey: InjectionKey<FacetedContext> = Symbol('Faceted');
 const FacetedGroupKey: InjectionKey<FacetedVisibility> = Symbol('FacetedGroup');
-const FacetedItemSelectedKey: InjectionKey<ComputedRef<boolean>> =
-    Symbol('FacetedItemSelected');
+const FacetedItemSelectedKey: InjectionKey<ComputedRef<boolean>> = Symbol(
+    'FacetedItemSelected',
+);
 
 export function provideFaceted(context: FacetedContext) {
     provide(FacetedKey, context);

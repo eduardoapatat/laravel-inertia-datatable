@@ -10,7 +10,10 @@ const props = defineProps<{ class?: HTMLAttributes['class'] }>();
     <div
         data-slot="faceted-badge-list"
         :class="
-            cn('flex w-max max-w-full flex-wrap items-center gap-1', props.class)
+            cn(
+                'flex w-max max-w-full flex-wrap items-center gap-1',
+                props.class,
+            )
         "
     >
         <slot />
