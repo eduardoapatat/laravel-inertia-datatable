@@ -22,7 +22,7 @@ import {
     tableFeatures,
     type Updater,
     globalFilteringFeature,
-} from '@tanstack/react-table';
+} from '@/lib/data-table-tanstack';
 
 import type {
     DataTableColumnMeta,
@@ -34,12 +34,6 @@ import {
     getPlainFilterValue,
     normalizeColumnFilter,
 } from '@/lib/data-table-filter-values';
-
-declare module '@tanstack/react-table' {
-    interface Plugins {
-        dataTableFilteringFeature: TableFeature;
-    }
-}
 
 type DataTableInstance = Table<DataTableFeatures, RowData>;
 

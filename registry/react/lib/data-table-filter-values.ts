@@ -1,6 +1,6 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
-import type { ColumnFilter } from '@tanstack/react-table';
+import type { ColumnFilter } from '@/lib/data-table-tanstack';
 
 import {
     type FilterOperator,

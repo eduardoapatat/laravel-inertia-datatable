@@ -37,6 +37,11 @@
                     "target": "~/resources/js/lib/data-table-server.ts"
                 },
                 {
+                    "path": "registry/react/lib/data-table-tanstack.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-tanstack.ts"
+                },
+                {
                     "path": "registry/react/lib/data-table-features.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-features.ts"
@@ -178,6 +183,11 @@
                     "path": "registry/shared/lib/data-table-server.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-server.ts"
+                },
+                {
+                    "path": "registry/react/lib/data-table-tanstack.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-tanstack.ts"
                 },
                 {
                     "path": "registry/react/lib/data-table-features.ts",

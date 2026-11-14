@@ -5,7 +5,7 @@ import type {
     RowData,
     SortingState,
     TableOptions,
-} from '@tanstack/react-table';
+} from '@/lib/data-table-tanstack';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { normalizeColumnFilter } from '@/lib/data-table-filter-values';

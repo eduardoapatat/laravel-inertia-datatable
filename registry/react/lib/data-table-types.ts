@@ -1,6 +1,11 @@
 // Copyright (c) 2024 Sadman Sakib. SPDX-License-Identifier: MIT
 
-import type { Cell, ColumnFilter, RowData } from '@tanstack/react-table';
+import type {
+    Cell,
+    ColumnFilter,
+    DataTableIcon,
+    RowData,
+} from '@/lib/data-table-tanstack';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type { DataTableMessages } from '@/lib/data-table-messages';
@@ -15,7 +20,7 @@ export interface ColumnSelectOption {
     label: string;
     value: string;
     count?: number;
-    icon?: React.ComponentType<React.ComponentProps<'svg'>>;
+    icon?: DataTableIcon;
 }
 
 /**
@@ -66,7 +71,7 @@ export type DataTableCellClassName = (
 
 export type DataTableColumnMeta = {
     label?: string;
-    icon?: React.ComponentType<React.ComponentProps<'svg'>>;
+    icon?: DataTableIcon;
     placeholder?: string;
     /**
      * Position of a column that does not exist in the table class (e.g.
@@ -79,7 +84,7 @@ export type DataTableColumnMeta = {
      * boolean columns (`true` / `false`): `{ active: CircleCheck }`. The labels
      * and badge variants still come from PHP.
      */
-    icons?: Record<string, React.ComponentType<React.ComponentProps<'svg'>>>;
+    icons?: Record<string, DataTableIcon>;
     /**
      * Tailwind classes of the header and the cells, for example a responsive
      * width (`w-40 md:w-80`, over `size`) or `text-right`.
@@ -129,10 +134,4 @@ export interface ColumnFilterItem<
     variant: FilterVariant;
     operator: FilterOperator;
     filterId: string;
-}
-
-declare module '@tanstack/react-table' {
-    interface ColumnFilter extends Partial<
-        Pick<ColumnFilterItem, 'operator' | 'variant' | 'filterId'>
-    > {}
 }

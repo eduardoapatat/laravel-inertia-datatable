@@ -6,7 +6,8 @@ import type {
     RowData,
     SortingState,
     Table,
-} from '@tanstack/react-table';
+    DataTableStyle,
+} from '@/lib/data-table-tanstack';
 
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type {
@@ -25,7 +26,7 @@ const ALIGN_CLASSES: Record<DataTableAlign, string> = {
 export function getAriaSort(
     sorting: SortingState,
     columnId: string,
-): React.AriaAttributes['aria-sort'] {
+): 'ascending' | 'descending' | undefined {
     const sort = sorting[0];
     if (sort?.id !== columnId) return undefined;
     return sort.desc ? 'descending' : 'ascending';
@@ -40,7 +41,7 @@ export function getVisibleSelectedRows<TData extends RowData>(
 export function getColumnPinningStyle<TData extends RowData>(
     column: Column<DataTableFeatures, TData>,
     isPinned = column.getIsPinned(),
-): React.CSSProperties {
+): DataTableStyle {
     return {
         insetInlineStart:
             isPinned === 'start'
@@ -86,7 +87,7 @@ export function getColumnClassName(
 
 export function getColumnSizingStyle<TData extends RowData>(
     table: Table<DataTableFeatures, TData>,
-): React.CSSProperties {
+): DataTableStyle {
     // No minWidth: with `table-fixed` the browser already widens the table to
     // the sum of its columns, also when Tailwind classes change their width.
     const style: Record<string, string> = {};
