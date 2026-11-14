@@ -5,13 +5,14 @@
 #                the shared code; the compiled registry r/ is up to date.
 #   databases    Pest against MySQL 8.4 and Postgres 17 in Docker. Without pdo_mysql or
 #                pdo_pgsql in the local PHP, Pest runs in a PHP container that has them.
-#   starter-kit  .github/scripts/starter-kit.sh in a temporary folder: a new React
-#                starter kit with the package and its UI, checked like a user would.
-#   e2e          The Playwright tests of tests/e2e in that starter kit (made here when
+#   starter-kit  .github/scripts/starter-kit.sh in temporary folders: a new React and a
+#                new Vue starter kit with the package and its UI, checked like a user would.
+#   e2e          The Playwright tests of tests/e2e in those starter kits (made here when
 #                the starter-kit stage did not run), with the scenario of tests/e2e/setup.sh.
 #
 # Usage: .github/scripts/verify.sh [repo] [databases] [starter-kit] [e2e]   (all without arguments)
 #        composer verify [-- databases]
+#        FRAMEWORKS=vue composer verify -- starter-kit e2e   (only one framework)
 set -uo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -120,34 +121,54 @@ stage_databases() {
     return "$status"
 }
 
-# The app of the starter kit, in one temporary folder per run (removed on exit), so
-# the e2e stage reuses the one of the starter-kit stage.
+# The frameworks of the starter-kit and e2e stages.
+read -r -a frameworks <<<"${FRAMEWORKS:-react vue}"
+
+# The app of each starter kit, in one temporary folder per run (removed on exit), so
+# the e2e stage reuses the ones of the starter-kit stage.
 app=""
 use_temp_app() {
     if [ -z "$temp_dir" ]; then
         temp_dir="$(mktemp -d)"
     fi
 
-    app="$temp_dir/app"
+    app="$temp_dir/app-$1"
 }
 
 stage_starter_kit() {
-    use_temp_app
-    rm -rf "$app"
-    bash "$root/.github/scripts/starter-kit.sh" pnpm "$app"
+    local status=0
+
+    for framework in "${frameworks[@]}"; do
+        use_temp_app "$framework"
+        rm -rf "$app"
+        echo "▶ $framework starter kit"
+        bash "$root/.github/scripts/starter-kit.sh" "$framework" pnpm "$app" || status=1
+    done
+
+    return "$status"
 }
 
 stage_e2e() {
-    use_temp_app
+    local status=0
 
-    if [ ! -f "$app/artisan" ]; then
-        echo "▶ Creating the starter kit for the e2e tests"
-        bash "$root/.github/scripts/starter-kit.sh" pnpm "$app" >/dev/null || return 1
-    fi
+    step pnpm exec playwright install chromium || return 1
 
-    step bash "$root/tests/e2e/setup.sh" "$app" &&
-        step pnpm exec playwright install chromium &&
-        step env E2E_APP_DIR="$app" pnpm run test:e2e
+    for framework in "${frameworks[@]}"; do
+        use_temp_app "$framework"
+
+        if [ ! -f "$app/artisan" ]; then
+            echo "▶ Creating the $framework starter kit for the e2e tests"
+            bash "$root/.github/scripts/starter-kit.sh" "$framework" pnpm "$app" >/dev/null || {
+                status=1
+                continue
+            }
+        fi
+
+        step bash "$root/tests/e2e/setup.sh" "$app" "$framework" &&
+            step env E2E_APP_DIR="$app" pnpm run test:e2e || status=1
+    done
+
+    return "$status"
 }
 
 stages=("$@")

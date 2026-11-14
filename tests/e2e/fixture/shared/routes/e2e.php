@@ -7,7 +7,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('products', fn () => Inertia::render('products/index', [
+    // The page of the React fixture (`products/index.tsx`) or the Vue one (`products/Index.vue`).
+    $page = file_exists(resource_path('js/pages/products/Index.vue')) ? 'products/Index' : 'products/index';
+
+    Route::get('products', fn () => Inertia::render($page, [
         'products' => Inertia::defer(fn () => ProductsTable::make()),
         'productsConfig' => fn () => ProductsTable::make()->config(),
     ]))->name('products.index');

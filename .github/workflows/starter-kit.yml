@@ -1,7 +1,8 @@
 name: starter kit
 
-# Installs the package in a clean React starter kit. It also runs every week because the
-# installer uses shadcn@latest and the starter kit changes without this repo changing.
+# Installs the package in clean React and Vue starter kits. It also runs every week because
+# the installer uses shadcn@latest / shadcn-vue@latest and the starter kits change without
+# this repo changing.
 on:
     push:
         branches: [main]
@@ -18,12 +19,13 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    react:
-        name: React starter kit (${{ matrix.package-manager }})
+    starter-kit:
+        name: ${{ matrix.framework }} starter kit (${{ matrix.package-manager }})
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
             matrix:
+                framework: [react, vue]
                 package-manager: [npm, pnpm]
         steps:
             - uses: actions/checkout@v7
@@ -41,7 +43,7 @@ jobs:
                   node-version: lts/*
 
             - name: Install and check like a user
-              run: .github/scripts/starter-kit.sh ${{ matrix.package-manager }} "$RUNNER_TEMP/app"
+              run: .github/scripts/starter-kit.sh ${{ matrix.framework }} ${{ matrix.package-manager }} "$RUNNER_TEMP/app"
 
             - name: e2e tests in the browser
               if: matrix.package-manager == 'pnpm'
@@ -50,14 +52,14 @@ jobs:
               run: |
                   pnpm install --frozen-lockfile
                   pnpm exec playwright install --with-deps chromium
-                  tests/e2e/setup.sh "$E2E_APP_DIR"
+                  tests/e2e/setup.sh "$E2E_APP_DIR" ${{ matrix.framework }}
                   pnpm run test:e2e
 
             - name: Upload the Playwright report
               if: failure() && matrix.package-manager == 'pnpm'
               uses: actions/upload-artifact@v4
               with:
-                  name: playwright-report
+                  name: playwright-report-${{ matrix.framework }}
                   path: |
                       playwright-report/
                       test-results/
