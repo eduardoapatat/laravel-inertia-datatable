@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.14.2] - 2026-11-15
+
 ### Fixed
 
 - Vue: the previous and next month buttons of the one-day date filter (`filterDate()`) are named with the `previous_month` and `next_month` texts of the table, as in the range filter, instead of an English "Previous page" / "Next page".
@@ -360,7 +362,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.2...HEAD
+[0.14.2]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.2...v0.13.0
