@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.14.3] - 2026-11-15
+
 ### Fixed
 
 - With Inertia SSR, a date cell no longer breaks the hydration when the SSR server and the browser are in different time zones (in React it threw error #418 and rendered the page again in the browser; in Vue it reported a mismatch). React renders the date in UTC on the server and while it hydrates, then in the viewer's time zone (and as a relative date with `format('relative')`); Vue keeps the date of the browser.
@@ -366,7 +368,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.2...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.3...HEAD
+[0.14.3]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.2...v0.14.3
 [0.14.2]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.1...v0.14.2
 [0.14.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.13.0...v0.14.0
