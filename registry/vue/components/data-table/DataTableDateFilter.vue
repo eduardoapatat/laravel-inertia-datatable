@@ -8,20 +8,11 @@ import {
     today,
 } from '@internationalized/date';
 import { CalendarIcon, CircleX } from '@lucide/vue';
-import {
-    type DateRange,
-    RangeCalendarRoot,
-    useDateFormatter,
-    useDirection,
-} from 'reka-ui';
+import { type DateRange, RangeCalendarRoot, useDirection } from 'reka-ui';
 import { computed, shallowRef } from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import {
-    NativeSelect,
-    NativeSelectOption,
-} from '@/components/ui/native-select';
 import {
     Popover,
     PopoverContent,
@@ -50,6 +41,7 @@ import {
     type DataTableFilterPieceProps,
     useDataTableFilterColumn,
 } from './context';
+import DataTableCalendarSelects from './DataTableCalendarSelects.vue';
 import DataTableEmptyFilter from './DataTableEmptyFilter.vue';
 
 /**
@@ -82,7 +74,6 @@ const locale = computed(
         (typeof navigator === 'undefined' ? 'en' : navigator.language),
 );
 const weekStartsOn = computed(() => getWeekStartsOn(locale.value));
-const formatter = useDateFormatter(locale.value);
 
 const dates = computed(() =>
     parseFilterValue(column?.getFilterValue()).map((value) =>
@@ -126,15 +117,6 @@ const dateText = computed(() => {
         .join(', ');
 });
 
-const months = computed(() =>
-    Array.from({ length: 12 }, (_, index) => index + 1),
-);
-const years = computed(() => {
-    const year = placeholder.value.year;
-
-    return Array.from({ length: 111 }, (_, index) => year - 100 + index);
-});
-
 function onOpenChange(open: boolean) {
     if (open) {
         placeholder.value = dates.value[0] ?? today(getLocalTimeZone());
@@ -158,25 +140,6 @@ function onRangeSelect(range: DateRange) {
 
 function onReset() {
     if (column) clearColumnFilter(column);
-}
-
-function setMonth(event: Event) {
-    placeholder.value = placeholder.value.set({
-        month: Number((event.target as HTMLSelectElement).value),
-    });
-}
-
-function setYear(event: Event) {
-    placeholder.value = placeholder.value.set({
-        year: Number((event.target as HTMLSelectElement).value),
-    });
-}
-
-function monthName(month: number) {
-    return formatter.custom(
-        toJsDate(new CalendarDate(placeholder.value.year, month, 1)),
-        { month: 'short' },
-    );
 }
 
 function parseFilterValue(value: unknown): (number | string | undefined)[] {
@@ -272,36 +235,11 @@ function toTimestamp(date: DateValue) {
                 @update:model-value="onRangeSelect"
             >
                 <RangeCalendarHeader class="px-8 pt-0">
-                    <div class="flex items-center justify-center gap-1">
-                        <NativeSelect
-                            class="h-8 pr-6 pl-2 text-xs"
-                            :model-value="placeholder.month"
-                            @change="setMonth"
-                        >
-                            <NativeSelectOption
-                                v-for="month in months"
-                                :key="month"
-                                :value="month"
-                                :selected="placeholder.month === month"
-                            >
-                                {{ monthName(month) }}
-                            </NativeSelectOption>
-                        </NativeSelect>
-                        <NativeSelect
-                            class="h-8 pr-6 pl-2 text-xs"
-                            :model-value="placeholder.year"
-                            @change="setYear"
-                        >
-                            <NativeSelectOption
-                                v-for="year in years"
-                                :key="year"
-                                :value="year"
-                                :selected="placeholder.year === year"
-                            >
-                                {{ year }}
-                            </NativeSelectOption>
-                        </NativeSelect>
-                    </div>
+                    <DataTableCalendarSelects
+                        v-model:placeholder="placeholder"
+                        :locale="locale"
+                        :table="table"
+                    />
                     <RangeCalendarPrevButton
                         :aria-label="getMessage(table, 'previous_month')"
                     />
@@ -354,10 +292,17 @@ function toTimestamp(date: DateValue) {
                 :locale="locale"
                 :week-starts-on="weekStartsOn"
                 :dir="dir"
-                layout="month-and-year"
                 initial-focus
                 @update:model-value="onSelect"
-            />
+            >
+                <template #calendar-heading>
+                    <DataTableCalendarSelects
+                        v-model:placeholder="placeholder"
+                        :locale="locale"
+                        :table="table"
+                    />
+                </template>
+            </Calendar>
             <template v-if="column.columnDef.meta?.empty">
                 <Separator />
                 <div class="p-3">

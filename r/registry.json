@@ -423,6 +423,11 @@
                     "target": "~/resources/js/components/data-table/DataTableBooleanFilter.vue"
                 },
                 {
+                    "path": "registry/vue/components/data-table/DataTableCalendarSelects.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableCalendarSelects.vue"
+                },
+                {
                     "path": "registry/vue/components/data-table/DataTableCell.vue",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/DataTableCell.vue"
@@ -771,6 +776,11 @@
                     "path": "registry/vue/components/data-table/DataTableBooleanFilter.vue",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/DataTableBooleanFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableCalendarSelects.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableCalendarSelects.vue"
                 },
                 {
                     "path": "registry/vue/components/data-table/DataTableCell.vue",

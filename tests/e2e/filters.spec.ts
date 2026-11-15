@@ -123,6 +123,13 @@ test('a date range from the URL, and its calendar opens on that month', async ({
         );
 
     expect(selected.join(' ')).toMatch(/Mar.*2025/);
+
+    // The month and year selects are named with the texts of the table.
+    const content = page.locator('[data-slot=popover-content]');
+    await expect(
+        content.getByRole('combobox', { name: 'Month' }),
+    ).toBeVisible();
+    await expect(content.getByRole('combobox', { name: 'Year' })).toBeVisible();
 });
 
 test('a boolean filter', async ({ page }) => {

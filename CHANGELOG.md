@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- The month and year selects of the date filter calendars had no accessible name in Vue, and an English one in React. They are now named with the new `month` and `year` texts of `lang/*/ui.php` (published lang files without them use the ones of the package). Update the UI with `php artisan inertia-datatable:ui --update`.
+
 ## [0.14.0] - 2026-11-15
 
 ### Added

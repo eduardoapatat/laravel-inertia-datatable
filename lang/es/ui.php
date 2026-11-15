@@ -47,6 +47,8 @@ return [
     'slider' => 'Control deslizante de :label',
     'previous_month' => 'Ir al mes anterior',
     'next_month' => 'Ir al mes siguiente',
+    'month' => 'Mes',
+    'year' => 'Año',
 
     // Paginación
     'rows_per_page' => 'Filas por página',

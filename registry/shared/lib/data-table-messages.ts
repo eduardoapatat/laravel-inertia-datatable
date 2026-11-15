@@ -40,6 +40,8 @@ export const DEFAULT_MESSAGES = {
     slider: ':label slider',
     previous_month: 'Go to the previous month',
     next_month: 'Go to the next month',
+    month: 'Month',
+    year: 'Year',
 
     rows_per_page: 'Rows per page',
     page_of: 'Page :page of :pages',

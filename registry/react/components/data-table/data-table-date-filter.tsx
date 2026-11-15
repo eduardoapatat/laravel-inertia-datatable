@@ -362,6 +362,8 @@ function useCalendarLocale(table: TableWithMeta) {
                 labelDayButton: intl({ dateStyle: 'full' }),
                 labelPrevious: () => getMessage(tableTexts, 'previous_month'),
                 labelNext: () => getMessage(tableTexts, 'next_month'),
+                labelMonthDropdown: () => getMessage(tableTexts, 'month'),
+                labelYearDropdown: () => getMessage(tableTexts, 'year'),
             },
         };
     }, [locale, messages]);
