@@ -24,4 +24,5 @@ if ! grep -q "routes/e2e.php\|/e2e.php" routes/web.php; then
 fi
 
 php artisan migrate:fresh --seed --seeder='Database\Seeders\E2eSeeder' --force --no-interaction
-npm run build
+# With the bundle of Inertia SSR: playwright.config.ts starts its server.
+npm run build:ssr

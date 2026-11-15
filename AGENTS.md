@@ -8,7 +8,7 @@ Laravel package (`type: library`) for server-driven data tables, with a shadcn r
 - `registry/` (sources), `registry.json` and `r/` (built output): the shadcn registry. `registry/react/` and `registry/vue/` (shadcn-vue) hold the components of each framework, `registry/shared/lib/` the code both install; each framework has its own `lib/data-table-tanstack.ts`, the only `lib/` file that imports TanStack Table or the framework. The hook of React and the composable of Vue are tested with the same cases (`registry/shared/test/use-server-data-table.cases.ts`), each in a Vitest project with Inertia mocked; the test files are not in `registry.json`, so they never reach an app.
 - `skill/laravel-inertia-datatable/`: the skill shipped to package users. It is not a skill for working on this repo.
 - `stubs/`: templates used by the `make:datatable` command.
-- `tests/`: Pest with Orchestra Testbench (`Feature/`, `Unit/`, `Fixtures/`, `ArchTest.php`), and `e2e/`: Playwright tests of the UI in a React and a Vue starter kit (the same specs), with the products scenario of `e2e/fixture/`: `shared/` (PHP, fixed data in `E2eSeeder`) and the pages of each framework in `react/` and `vue/`.
+- `tests/`: Pest with Orchestra Testbench (`Feature/`, `Unit/`, `Fixtures/`, `ArchTest.php`), and `e2e/`: Playwright tests of the UI in a React and a Vue starter kit (the same specs), served with Inertia SSR, with the products scenario of `e2e/fixture/`: `shared/` (PHP, fixed data in `E2eSeeder`) and the pages of each framework in `react/` and `vue/`.
 
 ## Commands
 

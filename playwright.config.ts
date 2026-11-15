@@ -32,11 +32,23 @@ export default defineConfig({
         trace: 'retain-on-failure',
     },
     projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-    webServer: {
-        command: `php artisan serve --port=${port} --no-reload`,
-        cwd: appDir,
-        url: `${baseURL}/login`,
-        reuseExistingServer: !process.env.CI,
-        timeout: 60_000,
-    },
+    webServer: [
+        // Inertia SSR, as in production. It runs in UTC and the browser of
+        // ssr.spec.ts in another time zone, so the dates differ on each side.
+        {
+            command: 'php artisan inertia:start-ssr',
+            cwd: appDir,
+            env: { TZ: 'UTC' },
+            url: 'http://127.0.0.1:13714/health',
+            reuseExistingServer: !process.env.CI,
+            timeout: 60_000,
+        },
+        {
+            command: `php artisan serve --port=${port} --no-reload`,
+            cwd: appDir,
+            url: `${baseURL}/login`,
+            reuseExistingServer: !process.env.CI,
+            timeout: 60_000,
+        },
+    ],
 });

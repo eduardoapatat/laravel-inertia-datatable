@@ -14,4 +14,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'products' => Inertia::defer(fn () => ProductsTable::make()),
         'productsConfig' => fn () => ProductsTable::make()->config(),
     ]))->name('products.index');
+
+    // The same page with the rows in the response, so Inertia SSR renders them (ssr.spec.ts).
+    Route::get('products/eager', fn () => Inertia::render($page, [
+        'products' => ProductsTable::make(),
+        'productsConfig' => fn () => ProductsTable::make()->config(),
+    ]))->name('products.eager');
 });
