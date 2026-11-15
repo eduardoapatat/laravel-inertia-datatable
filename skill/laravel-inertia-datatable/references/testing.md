@@ -52,7 +52,7 @@ Useful paths in the prop:
 What is worth a test in an app:
 
 - Guests are redirected / unauthorized users get 403, as for any page.
-- Each filter, sort or search the page depends on, with known data and known expected rows.
+- Each filter, sort or search the page depends on, with known data and known expected rows. A filter relative to today (`filter[published_at]=rel.-7d`) needs a fixed today: `$this->travelTo(now()->setDate(2026, 11, 15))` before the request, or data created relative to `now()`.
 - Scoping: a parent-model table never shows rows of another parent.
 - Hidden columns are absent from `data` (`->missing('products.data.0.cost')`) when the data is sensitive.
 

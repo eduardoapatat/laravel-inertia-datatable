@@ -270,7 +270,7 @@ The popover filters also take `title`, `icon` (`null` hides it), `class` (the bu
 </DataTableToolbar>
 ```
 
-The filter list edits the same filters as the toolbar, so a toolbar filter shows up as a row of the list. Each row offers only the columns with a filter in the PHP class and the operators of their variant; a row without a value stays in the list but is not sent until it has one. From the second row, a select combines the filters with `and` (the default) or `or`; with `or` the toolbar filters are combined with OR as well, and the counts of the select options only apply the search. "Add filter" stops at `max_filters` and "Add sort" at `max_sorts` (`config/inertia-datatable.php`).
+The filter list edits the same filters as the toolbar, so a toolbar filter shows up as a row of the list. Each row offers only the columns with a filter in the PHP class and the operators of their variant; a row without a value stays in the list but is not sent until it has one. From the second row, a select combines the filters with `and` (the default) or `or`; with `or` the toolbar filters are combined with OR as well, and the counts of the select options only apply the search. On date columns, "Is relative to today" picks a period (Today, Past 7 days, This month…) instead of a day; the server resolves it on every request and the title of the value shows the days it resolved to. "Add filter" stops at `max_filters` and "Add sort" at `max_sorts` (`config/inertia-datatable.php`).
 
 The kind of filter is decided in PHP: to change it, change the column in the table class, not the component.
 
@@ -305,6 +305,6 @@ Call the composable once per table with its own prop and give each backend table
 - `components/data-table/DataTableCell.vue` — the default cell; the other type cells next to it.
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
 - `lib/data-table-tanstack.ts` — TanStack Table and the Vue types the other `lib/` files use; they import TanStack from here.
-- `lib/data-table-{advanced,columns,features,filter-options,filter-values,format,loading,messages,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted/*`.
+- `lib/data-table-{advanced,columns,features,filter-options,filter-values,format,loading,messages,relative-date,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted/*`.
 
 These files belong to the project after installation: adapt styles there. `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.
