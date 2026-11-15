@@ -133,6 +133,12 @@ export type DataTableColumnMeta = {
     /** Bounds of a range filter, from the server data. */
     min?: number;
     max?: number;
+    /**
+     * Each row has a list of values (a to-many relation in PHP): the cells
+     * show several and the filters match when some value does. Filled by
+     * `useServerDataTable`.
+     */
+    multiple?: boolean;
 };
 
 export interface ColumnFilterItem<

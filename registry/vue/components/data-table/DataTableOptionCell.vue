@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed, type VNodeChild } from 'vue';
 
-import { getOption, getOwn, toPrimitive } from '@/lib/data-table-format';
+import { Badge } from '@/components/ui/badge';
+import {
+    getOption,
+    getOwn,
+    splitVisible,
+    toPrimitive,
+} from '@/lib/data-table-format';
 import type { ColumnSelectOption } from '@/lib/data-table-types';
 
 import {
@@ -58,32 +64,40 @@ const view = computed(() => {
     const values = (Array.isArray(value) ? value : [value])
         .map(toPrimitive)
         .filter((item): item is OptionValue => item !== null && item !== '');
+    const { shown, hidden } = splitVisible(values, meta);
 
-    return values.map((item) => {
-        const option = getOption(meta, item);
+    return {
+        asBadge,
+        hidden: hidden.length,
+        rest: hidden
+            .map((item) => getOption(meta, item)?.label ?? String(item))
+            .join(', '),
+        items: shown.map((item) => {
+            const option = getOption(meta, item);
 
-        return {
-            key: String(item),
-            value: item,
-            option,
-            asBadge,
-            badge: {
-                variant: (getOwn(display?.variants, String(item)) ??
-                    display?.variant ??
-                    'outline') as DataTableBadgeVariant,
-                ...props.badge?.(option, item),
-            },
-        };
-    });
+            return {
+                key: String(item),
+                value: item,
+                option,
+                asBadge,
+                badge: {
+                    variant: (getOwn(display?.variants, String(item)) ??
+                        display?.variant ??
+                        'outline') as DataTableBadgeVariant,
+                    ...props.badge?.(option, item),
+                },
+            };
+        }),
+    };
 });
 </script>
 
 <template>
-    <DataTableEmptyCell v-if="view.length === 0" :cell="cell" />
+    <DataTableEmptyCell v-if="view.items.length === 0" :cell="cell" />
     <!-- `max-w-full` and the `truncate` label keep the "…" of the cell: an
          inline-flex box is clipped without it. -->
     <span v-else class="inline-flex max-w-full flex-wrap items-center gap-1.5">
-        <template v-for="item in view" :key="item.key">
+        <template v-for="item in view.items" :key="item.key">
             <slot
                 v-if="$slots.option"
                 name="option"
@@ -113,6 +127,24 @@ const view = computed(() => {
                 <span class="truncate">{{
                     item.option?.label ?? String(item.value)
                 }}</span>
+            </span>
+        </template>
+        <template v-if="view.hidden > 0">
+            <Badge
+                v-if="view.asBadge"
+                data-slot="data-table-more"
+                variant="secondary"
+                :title="view.rest"
+            >
+                +{{ view.hidden }}
+            </Badge>
+            <span
+                v-else
+                data-slot="data-table-more"
+                class="text-muted-foreground"
+                :title="view.rest"
+            >
+                +{{ view.hidden }}
             </span>
         </template>
     </span>

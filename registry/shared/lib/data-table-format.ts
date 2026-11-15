@@ -612,7 +612,32 @@ export function getEmptyLabel(
         : getMessage(table, 'no_value');
 }
 
+/** Values an option cell shows in a `multiple` column before "+N". */
+export const DEFAULT_MAX_VISIBLE = 3;
+
+/**
+ * The values a cell shows and the ones it leaves for a "+N": in a column with
+ * several values per row (`multiple`), up to `display.max` (3 by default); in
+ * any other column, all of them.
+ */
+export function splitVisible<T>(
+    values: T[],
+    meta: DataTableColumnMeta | undefined,
+): { shown: T[]; hidden: T[] } {
+    const max = meta?.display?.type === 'option' ? meta.display.max : undefined;
+    const limit = meta?.multiple
+        ? Math.max(1, max ?? DEFAULT_MAX_VISIBLE)
+        : values.length;
+
+    return { shown: values.slice(0, limit), hidden: values.slice(limit) };
+}
+
 export function toText(value: unknown): string {
+    // The values of a to-many text column.
+    if (Array.isArray(value)) {
+        return value.map(toText).filter(Boolean).join(', ');
+    }
+
     switch (typeof value) {
         case 'string':
             return value;

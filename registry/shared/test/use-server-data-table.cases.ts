@@ -553,6 +553,62 @@ export function defineUseServerDataTableTests(driver: HookDriver): void {
             ]);
         });
 
+        it('marks a column with several values per row and sends its filters as any other', async () => {
+            const base = serverTable();
+            mount({
+                table: {
+                    ...base,
+                    config: {
+                        ...base.config,
+                        columns: base.config.columns.map((column) =>
+                            column.id === 'status'
+                                ? {
+                                      ...column,
+                                      sortable: false,
+                                      display: { type: 'option', max: 2 },
+                                      filter: { variant: 'multi-select' },
+                                      multiple: true,
+                                  }
+                                : column,
+                        ),
+                    },
+                },
+            });
+
+            expect(table().getColumn('status')?.columnDef.meta).toMatchObject({
+                multiple: true,
+                display: { type: 'option', max: 2 },
+            });
+            expect(table().getColumn('name')?.columnDef.meta?.multiple).toBe(
+                undefined,
+            );
+
+            await act(() =>
+                table().setColumnFilters([
+                    {
+                        id: 'status',
+                        variant: 'multi-select',
+                        operator: 'inArray',
+                        value: ['active'],
+                        filterId: 'a',
+                    },
+                    {
+                        id: 'status',
+                        variant: 'multi-select',
+                        operator: 'inArray',
+                        value: ['draft'],
+                        filterId: 'b',
+                    },
+                ]),
+            );
+            await wait(1000);
+
+            // One filter per value: the rows with both values (`in` is implicit).
+            expect(
+                lastVisit().url.searchParams.getAll('filter[status][]'),
+            ).toEqual(['active', 'draft']);
+        });
+
         it('takes the locale and the texts of the server, under the ones of the page', () => {
             mount({ messages: { reset: 'Limpiar' } });
 

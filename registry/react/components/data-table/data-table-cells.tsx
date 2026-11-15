@@ -17,6 +17,7 @@ import {
     isEmptyValue,
     isEmail,
     isSafeUrl,
+    splitVisible,
     toPrimitive,
     toText,
     truncate,
@@ -375,11 +376,16 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
         return <DataTableEmptyCell {...props} />;
     }
 
+    const { shown, hidden } = splitVisible(values, meta);
+    const rest = hidden
+        .map((item) => getOption(meta, item)?.label ?? String(item))
+        .join(', ');
+
     // `max-w-full` and the `truncate` label keep the "…" of the cell: an
     // inline-flex box is clipped without it.
     return (
         <span className="inline-flex max-w-full flex-wrap items-center gap-1.5">
-            {values.map((item) => {
+            {shown.map((item) => {
                 const option = getOption(meta, item);
 
                 if (renderOption) {
@@ -425,6 +431,24 @@ export function DataTableOptionCell<TData extends RowData, TValue>({
                     </span>
                 );
             })}
+            {hidden.length > 0 &&
+                (asBadge ? (
+                    <Badge
+                        data-slot="data-table-more"
+                        variant="secondary"
+                        title={rest}
+                    >
+                        +{hidden.length}
+                    </Badge>
+                ) : (
+                    <span
+                        data-slot="data-table-more"
+                        className="text-muted-foreground"
+                        title={rest}
+                    >
+                        +{hidden.length}
+                    </span>
+                ))}
         </span>
     );
 }

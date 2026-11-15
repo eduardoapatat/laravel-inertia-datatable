@@ -124,6 +124,26 @@ describe('withColumnMeta', () => {
         });
     });
 
+    it('marks the columns with several values per row', () => {
+        const tags = withColumnMeta<Row>(
+            { id: 'tags' },
+            server('tags', {
+                sortable: false,
+                display: { type: 'option', max: 2 },
+                filter: { variant: 'multi-select' },
+                multiple: true,
+            }),
+            [],
+        );
+        const name = withColumnMeta<Row>({ id: 'name' }, server('name'), []);
+
+        expect(metaOf(tags)).toMatchObject({
+            multiple: true,
+            display: { type: 'option', max: 2 },
+        });
+        expect(metaOf(name).multiple).toBeUndefined();
+    });
+
     it('merges a page display of the same type key by key', () => {
         const column = withColumnMeta<Row>(
             {

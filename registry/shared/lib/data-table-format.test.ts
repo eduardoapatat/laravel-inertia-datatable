@@ -13,8 +13,41 @@ import {
     isDateOnly,
     isEmptyValue,
     isSafeUrl,
+    splitVisible,
+    toText,
     truncate,
 } from './data-table-format';
+
+describe('splitVisible', () => {
+    const values = ['a', 'b', 'c', 'd', 'e'];
+
+    it('shows every value outside the columns with several values', () => {
+        expect(splitVisible(values, { display: { type: 'option' } })).toEqual({
+            shown: values,
+            hidden: [],
+        });
+    });
+
+    it('shows up to the max of the display, 3 by default', () => {
+        expect(splitVisible(values, { multiple: true })).toEqual({
+            shown: ['a', 'b', 'c'],
+            hidden: ['d', 'e'],
+        });
+        expect(
+            splitVisible(values, {
+                multiple: true,
+                display: { type: 'option', max: 1 },
+            }),
+        ).toEqual({ shown: ['a'], hidden: ['b', 'c', 'd', 'e'] });
+        expect(splitVisible(['a', 'b'], { multiple: true }).hidden).toEqual([]);
+    });
+});
+
+describe('toText', () => {
+    it('joins the values of a list with commas, skipping the empty ones', () => {
+        expect(toText(['Red', null, '', 'Blue', 3])).toBe('Red, Blue, 3');
+    });
+});
 
 // West of Greenwich, where a date at midnight UTC falls on the previous day.
 beforeAll(() => {

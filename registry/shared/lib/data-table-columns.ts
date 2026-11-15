@@ -189,6 +189,7 @@ function serverMeta(
             : undefined,
         min: range?.min ?? undefined,
         max: range?.max ?? undefined,
+        multiple: server.multiple,
     };
 }
 

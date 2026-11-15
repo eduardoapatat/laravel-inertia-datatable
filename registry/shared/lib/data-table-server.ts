@@ -109,6 +109,11 @@ export type ServerColumnDisplay = (
           variant?: string;
           /** Badge variant per option value. */
           variants?: Record<string, string>;
+          /**
+           * In a column with several values (`multiple`), how many the cell
+           * shows before a "+N" with the rest (`->maxVisible()`); 3 when missing.
+           */
+          max?: number;
       }
 ) & {
     /**
@@ -135,6 +140,11 @@ export interface ServerColumnConfig {
     display: ServerColumnDisplay;
     /** Null: the column has no filter. */
     filter: ServerColumnFilter | null;
+    /**
+     * The value of each row is a list (a to-many relation): the filters match
+     * when some value does, and the negations when none does.
+     */
+    multiple?: true;
 }
 
 export interface ServerFacetOption {
