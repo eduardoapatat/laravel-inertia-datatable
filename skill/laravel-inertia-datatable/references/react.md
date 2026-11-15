@@ -255,6 +255,8 @@ The popover filters also take `title` (the column label by default), `icon` (`nu
 | `DataTableFilter` | `data-table-toolbar` | A single filter with the component of its type, without props: `column="status"`. Use the component of the type to customize it. |
 | `DataTableResetButton` | `data-table-toolbar` | Only visible while a filter or the search is active. It clears the filters and the search and goes back to page 1; the sorting, the page size and the visible columns stay. `children` replace the text and are its accessible name; `icon` (`null` hides it). |
 | `DataTableViewOptions` | `data-table-view-options` | Column visibility menu: `className` (the button), `contentClassName`, `align`, `icon`. Visible at every width; the toolbar hides it below `lg`. |
+| `DataTableFilterList` | `data-table-filter-list` | Advanced filters: a row per filter with its column, operator and value, combined with AND or OR (`join=or`). Same props as `DataTableViewOptions`. See below. |
+| `DataTableSortList` | `data-table-sort-list` | Sorting by several columns: a row per column with its direction, in order of priority, up to `max_sorts`. Same props as `DataTableViewOptions`. |
 | `DataTablePagination` | `data-table-pagination` | All the pagination; use with `<DataTable pagination={false}>`. |
 | `DataTablePageSize` | `data-table-pagination` | Rows per page: `pageSizeOptions`, `side`, `hideLabel`. |
 | `DataTablePageInfo` | `data-table-pagination` | "Page 2 of 31". |
@@ -287,6 +289,17 @@ The popover filters also take `title` (the column label by default), `icon` (`nu
     </div>
 </DataTableProvider>
 ```
+
+**Advanced filters and multi-sort.** `DataTableFilterList` and `DataTableSortList` are not part of the default toolbar; pass them as its children:
+
+```tsx
+<DataTableToolbar table={table}>
+    <DataTableFilterList table={table} />
+    <DataTableSortList table={table} />
+</DataTableToolbar>
+```
+
+The filter list edits the same filters as the toolbar, so a toolbar filter shows up as a row of the list. Each row offers only the columns with a filter in the PHP class and the operators of their variant; a row without a value stays in the list but is not sent until it has one. From the second row, a select combines the filters with `and` (the default) or `or`; with `or` the toolbar filters are combined with OR as well, and the counts of the select options only apply the search. "Add filter" stops at `max_filters` and "Add sort" at `max_sorts` (`config/inertia-datatable.php`).
 
 Children of `<DataTable>` render above the table, so a toolbar made of pieces can also stay inside it. The kind of filter is decided in PHP: to change it (for example, a select instead of a text input), change the column in the table class, not the component.
 
@@ -332,6 +345,6 @@ Call the hook once per table with its own prop and give each backend table a `na
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
 - `lib/data-table-tanstack.ts` — TanStack Table and the React types the other `lib/` files use; they import TanStack from here.
 - `components/data-table/data-table-context.tsx` — `DataTableProvider` and `useDataTable`.
-- `lib/data-table-{columns,features,filter-options,filter-values,format,loading,messages,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
+- `lib/data-table-{advanced,columns,features,filter-options,filter-values,format,loading,messages,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
 
 These files belong to the project after installation: adapt styles there (texts are translated with the lang files, see above). `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.

@@ -155,6 +155,7 @@ Language and formats (defaults from the app; the most specific layer wins):
 | `sort` | `sort=-created_at,name` | Multi-sort; `-` = descending |
 | `filter[col]` | `filter[status]=active,draft` | `[operator.]value`; implicit operator per variant |
 | `filter[col][]` | `filter[price][]=gte.10&filter[price][]=lte.50` | Several filters on one column (AND) |
+| `join` | `join=or` | Combine the filters with OR (each filter one term; the search stays AND); `and` by default. Select counts then only apply the search |
 | `search` | `search=ana perez` | Global search |
 | `columns` | `columns=name,email` | Visible columns |
 

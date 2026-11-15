@@ -4,6 +4,14 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- `join=or` in the URL: the filters are combined with OR (each filter is its own term, also those of the same column; the search stays combined with AND). The response sends it in `state.join`, and with `join=or` the counts of the select options only apply the search. The parameter name is in `config.query.join` (`inertia-datatable.query.join`).
+- `config.max_sorts` and `config.max_filters` in the response, from `inertia-datatable.max_sorts` and `inertia-datatable.max_filters`.
+- `DataTableFilterList` (React and Vue): advanced filters with a row per filter (column, operator and value), combined with AND or OR, like tablecn's. It edits the same filters as the toolbar. Install it with `php artisan inertia-datatable:ui --update` and place it in the toolbar: `<DataTableToolbar table={table}><DataTableFilterList table={table} /></DataTableToolbar>`.
+- `DataTableSortList` (React and Vue): sorting by several columns, a row per column with its direction, moved up and down to change the priority.
+- `useServerDataTable` passes `join`, `setJoin`, `maxFilters` and `maxSorts` in the table meta, and the new UI texts are in `lang/{en,es}/ui.php`.
+
 ## [0.14.3] - 2026-11-15
 
 ### Fixed

@@ -234,7 +234,7 @@ Every piece of the toolbar and the pagination is its own component. To change th
 
 The popover filters also take `title`, `icon` (`null` hides it), `class` (the button), `contentClass` (the popover), `align` and `disabled`.
 
-**Other pieces**, all from `@/components/data-table`: `DataTableProvider`, `DataTableSearch` (`searchable`, `placeholder`, `class`), `DataTableFilters` (`:columns="['status', 'price']"`), `DataTableFilter` (`column="status"`), `DataTableResetButton` (its default slot replaces the text and is its accessible name; `icon`), `DataTableViewOptions` (`class`, `contentClass`, `align`, `icon`), `DataTablePagination`, `DataTablePageSize` (`pageSizeOptions`, `side`, `hideLabel`), `DataTablePageInfo`, `DataTablePageNav` (`firstLast`) and `DataTableSelectedRows`.
+**Other pieces**, all from `@/components/data-table`: `DataTableProvider`, `DataTableSearch` (`searchable`, `placeholder`, `class`), `DataTableFilters` (`:columns="['status', 'price']"`), `DataTableFilter` (`column="status"`), `DataTableResetButton` (its default slot replaces the text and is its accessible name; `icon`), `DataTableViewOptions` (`class`, `contentClass`, `align`, `icon`), `DataTableFilterList` and `DataTableSortList` (the same props; see below), `DataTablePagination`, `DataTablePageSize` (`pageSizeOptions`, `side`, `hideLabel`), `DataTablePageInfo`, `DataTablePageNav` (`firstLast`) and `DataTableSelectedRows`.
 
 ```vue
 <DataTableProvider :table="table">
@@ -260,6 +260,17 @@ The popover filters also take `title`, `icon` (`null` hides it), `class` (the bu
     </div>
 </DataTableProvider>
 ```
+
+**Advanced filters and multi-sort.** `DataTableFilterList` (a row per filter with its column, operator and value, combined with AND or OR: `join=or`) and `DataTableSortList` (a row per sorted column with its direction, in order of priority) are not part of the default toolbar; put them in its default slot:
+
+```vue
+<DataTableToolbar :table="table">
+    <DataTableFilterList :table="table" />
+    <DataTableSortList :table="table" />
+</DataTableToolbar>
+```
+
+The filter list edits the same filters as the toolbar, so a toolbar filter shows up as a row of the list. Each row offers only the columns with a filter in the PHP class and the operators of their variant; a row without a value stays in the list but is not sent until it has one. From the second row, a select combines the filters with `and` (the default) or `or`; with `or` the toolbar filters are combined with OR as well, and the counts of the select options only apply the search. "Add filter" stops at `max_filters` and "Add sort" at `max_sorts` (`config/inertia-datatable.php`).
 
 The kind of filter is decided in PHP: to change it, change the column in the table class, not the component.
 
@@ -294,6 +305,6 @@ Call the composable once per table with its own prop and give each backend table
 - `components/data-table/DataTableCell.vue` — the default cell; the other type cells next to it.
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
 - `lib/data-table-tanstack.ts` — TanStack Table and the Vue types the other `lib/` files use; they import TanStack from here.
-- `lib/data-table-{columns,features,filter-options,filter-values,format,loading,messages,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted/*`.
+- `lib/data-table-{advanced,columns,features,filter-options,filter-values,format,loading,messages,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted/*`.
 
 These files belong to the project after installation: adapt styles there. `php artisan inertia-datatable:ui --update` brings the latest version of exactly these files (and nothing else in `components/ui/`), overwriting local changes — check `git diff` afterwards and re-apply the project's customizations.
