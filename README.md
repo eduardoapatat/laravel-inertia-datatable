@@ -217,6 +217,7 @@ The CI (`.github/workflows/`) runs:
 1. Move the `## [Unreleased]` entries of `CHANGELOG.md` to the new version.
 2. Change the version in the registry URLs of the README and the skill (`…/vX.Y.Z/r/…`) and rebuild `r/`.
 3. Commit, annotated tag `vX.Y.Z` and push the tag. Packagist publishes it by itself; `inertia-datatable:ui` installs the UI of that tag.
+4. Create the GitHub release with the version's section of the changelog as its notes: `awk '/^## \[X.Y.Z\]/{f=1;next} /^## \[/{f=0} f' CHANGELOG.md | gh release create vX.Y.Z --title vX.Y.Z --notes-file -`.
 
 ## Credits
 
