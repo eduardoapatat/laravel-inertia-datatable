@@ -219,7 +219,7 @@ Row and header classes are props of `<DataTable>`; the classes go on the `<tr>`,
 
 ## Layout: place and customize the pieces
 
-Every piece of the toolbar and the pagination is its own component. To change the layout or how a filter looks, place them yourself instead of editing `components/data-table/*`. Inside `<DataTableProvider :table="table">` (or after `provideDataTable(table)` in the `<script setup>` of the component) they take the table from the context, so they can go anywhere in the page; outside it, pass `table` to each one.
+Every piece of the toolbar and the pagination is its own component. To change the layout or how a filter looks, place them yourself instead of editing `components/data-table/*`. Inside `<DataTableProvider :table="table">` (or after `provideDataTable(table)` in the `<script setup>` of the component) they take the table from the context, so they can go anywhere in the page; outside it, pass `table` to each one. The provider and the pieces take the table once, when they mount: to show another table in the same place, give them a `:key` that changes with it so they mount again.
 
 **Filters by type.** Each one takes `column` (the id of the column in the PHP class) and only works when the class declared that kind of filter: on another variant it renders nothing and warns in the console outside production.
 
