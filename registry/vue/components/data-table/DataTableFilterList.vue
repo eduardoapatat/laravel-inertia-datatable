@@ -24,6 +24,8 @@ import {
     type FilterListRow,
     getFilterListItems,
     getRowFilters,
+    getRowJoinCells,
+    groupEmptyRows,
     reconcileFilterRows,
 } from '@/lib/data-table-advanced';
 import { getMessage } from '@/lib/data-table-messages';
@@ -94,6 +96,10 @@ watch(
 
 const join = computed(() => table.options.meta?.join ?? 'and');
 const maxFilters = computed(() => table.options.meta?.maxFilters ?? Infinity);
+// With `and`, the rows without a value of a column go next to its other rows,
+// joined with "or": that is how the server combines them.
+const shownRows = computed(() => groupEmptyRows(rows.value, join.value));
+const joinCells = computed(() => getRowJoinCells(shownRows.value, join.value));
 const addButton = ref<InstanceType<typeof Button> | null>(null);
 
 function commit(next: FilterListRow[]) {
@@ -200,11 +206,11 @@ function signature(filters: ColumnFilterItem[]) {
                 role="list"
                 class="flex max-h-80 flex-col gap-2 overflow-y-auto py-0.5"
             >
-                <template v-for="(row, index) in rows" :key="row.key">
+                <template v-for="(row, index) in shownRows" :key="row.key">
                     <DataTableFilterItem
                         v-if="getColumn(row.filter.id)"
                         :row="row"
-                        :index="index"
+                        :join-cell="joinCells[index] ?? 'and'"
                         :column="getColumn(row.filter.id)!"
                         :columns="columns"
                         :join="join"

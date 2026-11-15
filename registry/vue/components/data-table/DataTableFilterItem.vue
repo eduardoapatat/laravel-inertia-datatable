@@ -29,6 +29,7 @@ import {
     changeFilterOperator,
     createFilterListItem,
     FILTER_OPERATORS,
+    type FilterJoinCell,
     type FilterListRow,
     getFilterOperatorMessageKey,
 } from '@/lib/data-table-advanced';
@@ -37,6 +38,7 @@ import { getMessage } from '@/lib/data-table-messages';
 import type { FilterOperator, JoinOperator } from '@/lib/data-table-server';
 import type { Column, RowData } from '@/lib/data-table-tanstack';
 import type { ColumnFilterItem } from '@/lib/data-table-types';
+import { cn } from '@/lib/utils';
 
 import DataTableFilterValue from './DataTableFilterValue.vue';
 
@@ -46,7 +48,8 @@ import DataTableFilterValue from './DataTableFilterValue.vue';
  */
 const props = defineProps<{
     row: FilterListRow;
-    index: number;
+    /** What goes before the row (`getRowJoinCells`). */
+    joinCell: FilterJoinCell;
     column: Column<DataTableFeatures, TData>;
     columns: Column<DataTableFeatures, TData>[];
     join: JoinOperator;
@@ -105,14 +108,20 @@ function onOperator(value: unknown) {
         role="listitem"
         data-slot="data-table-filter-item"
         :data-column="filter.id"
-        class="flex flex-wrap items-center gap-2 sm:flex-nowrap"
+        :data-group="joinCell === 'group' ? 'empty' : undefined"
+        :class="
+            cn(
+                'flex flex-wrap items-center gap-2 sm:flex-nowrap',
+                joinCell === 'group' && 'border-s-2 ps-2',
+            )
+        "
     >
         <div class="w-18 shrink-0 text-sm text-muted-foreground">
-            <template v-if="index === 0">
+            <template v-if="joinCell === 'where'">
                 {{ getMessage(table, 'filter_where') }}
             </template>
             <Select
-                v-else-if="index === 1 && onJoinChange"
+                v-else-if="joinCell === 'select' && onJoinChange"
                 :model-value="join"
                 @update:model-value="onJoin"
             >
@@ -133,7 +142,9 @@ function onOperator(value: unknown) {
                     </SelectItem>
                 </SelectContent>
             </Select>
-            <span v-else class="lowercase">{{ joinLabel(join) }}</span>
+            <span v-else class="lowercase">{{
+                joinLabel(joinCell === 'group' ? 'or' : join)
+            }}</span>
         </div>
         <Faceted
             :model-value="filter.id"

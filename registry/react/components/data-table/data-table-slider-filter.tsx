@@ -10,6 +10,7 @@ import {
     clearColumnFilter,
     type DataTableFeatures,
     getEmptyFilter,
+    getHiddenFilterCount,
 } from '@/lib/data-table-features';
 import {
     formatNumber,
@@ -28,6 +29,7 @@ import {
     useDataTableFilterColumn,
 } from '@/components/data-table/data-table-context';
 import { DataTableEmptyFilter } from '@/components/data-table/data-table-empty-filter';
+import { DataTableHiddenFilters } from '@/components/data-table/data-table-hidden-filters';
 import { Button } from '@/components/ui/button';
 import { useDirection } from '@/components/ui/direction';
 import {
@@ -80,13 +82,15 @@ export function DataTableSliderFilter<TData extends RowData>({
             selector={() => ({
                 value: column.getFilterValue(),
                 empty: getEmptyFilter(column),
+                hidden: getHiddenFilterCount(column),
             })}
         >
-            {({ value, empty }) => (
+            {({ value, empty, hidden }) => (
                 <DataTableSliderFilterContent
                     column={column}
                     columnFilterValue={value}
                     includesEmpty={empty}
+                    hiddenCount={hidden}
                     {...props}
                 />
             )}
@@ -105,10 +109,12 @@ function DataTableSliderFilterContent<TData extends RowData>({
     disabled,
     columnFilterValue: columnFilterValueProp,
     includesEmpty,
+    hiddenCount,
 }: Omit<DataTableSliderFilterProps<TData>, 'column' | 'table'> & {
     column: Column<DataTableFeatures, TData>;
     columnFilterValue: unknown;
     includesEmpty: boolean;
+    hiddenCount: number;
 }) {
     const dir = useDirection();
     const id = React.useId();
@@ -240,7 +246,8 @@ function DataTableSliderFilterContent<TData extends RowData>({
         clearColumnFilter(column);
     }
 
-    const hasFilter = Boolean(columnFilterValue) || includesEmpty;
+    const hasFilter =
+        Boolean(columnFilterValue) || includesEmpty || hiddenCount > 0;
 
     return (
         <Popover>
@@ -279,6 +286,10 @@ function DataTableSliderFilterContent<TData extends RowData>({
                             {includesEmpty && getEmptyLabel(meta, table)}
                         </>
                     ) : null}
+                    <DataTableHiddenFilters
+                        column={column}
+                        count={hiddenCount}
+                    />
                 </Button>
             </PopoverTrigger>
             <PopoverContent

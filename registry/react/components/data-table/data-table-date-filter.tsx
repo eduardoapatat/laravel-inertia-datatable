@@ -13,6 +13,7 @@ import {
     clearColumnFilter,
     type DataTableFeatures,
     getEmptyFilter,
+    getHiddenFilterCount,
     getRelativeFilter,
     setRelativeFilter,
 } from '@/lib/data-table-features';
@@ -35,6 +36,7 @@ import {
     useDataTableFilterColumn,
 } from '@/components/data-table/data-table-context';
 import { DataTableEmptyFilter } from '@/components/data-table/data-table-empty-filter';
+import { DataTableHiddenFilters } from '@/components/data-table/data-table-hidden-filters';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useDirection } from '@/components/ui/direction';
@@ -78,15 +80,17 @@ export function DataTableDateFilter<TData extends RowData>({
                 value: column.getFilterValue(),
                 empty: getEmptyFilter(column),
                 relative: getRelativeFilter(column),
+                hidden: getHiddenFilterCount(column),
             })}
         >
-            {({ value, empty, relative }) => (
+            {({ value, empty, relative, hidden }) => (
                 <DataTableDateFilterContent
                     column={column}
                     multiple={multiple}
                     columnFilterValue={value}
                     includesEmpty={empty}
                     relativeFilter={relative}
+                    hiddenCount={hidden}
                     {...props}
                 />
             )}
@@ -106,12 +110,14 @@ function DataTableDateFilterContent<TData extends RowData>({
     columnFilterValue,
     includesEmpty,
     relativeFilter,
+    hiddenCount,
 }: Omit<DataTableDateFilterProps<TData>, 'column' | 'table'> & {
     column: Column<DataTableFeatures, TData>;
     multiple: boolean;
     columnFilterValue: unknown;
     includesEmpty: boolean;
     relativeFilter: ColumnFilter | undefined;
+    hiddenCount: number;
 }) {
     const dir = useDirection();
     const table = column.table;
@@ -197,7 +203,11 @@ function DataTableDateFilterContent<TData extends RowData>({
     const hasDates = getIsDateRange(selectedDates)
         ? Boolean(selectedDates.from || selectedDates.to)
         : selectedDates.length > 0;
-    const hasValue = hasDates || includesEmpty || relativeToken !== undefined;
+    const hasValue =
+        hasDates ||
+        includesEmpty ||
+        relativeToken !== undefined ||
+        hiddenCount > 0;
     const dateText = [
         relativeToken !== undefined
             ? getRelativeDateLabel(relativeToken, message)
@@ -260,6 +270,10 @@ function DataTableDateFilterContent<TData extends RowData>({
                         Icon && <Icon />
                     )}
                     {label}
+                    <DataTableHiddenFilters
+                        column={column}
+                        count={hiddenCount}
+                    />
                 </Button>
             </PopoverTrigger>
             <PopoverContent

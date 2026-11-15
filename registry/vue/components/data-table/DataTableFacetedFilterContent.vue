@@ -28,6 +28,7 @@ import {
     clearColumnFilter,
     type DataTableFeatures,
     getEmptyFilter,
+    getHiddenFilterCount,
     setEmptyFilter,
 } from '@/lib/data-table-features';
 import { formatNumber, getEmptyLabel } from '@/lib/data-table-format';
@@ -35,6 +36,8 @@ import { getMessage } from '@/lib/data-table-messages';
 import type { Column, DataTableIcon, RowData } from '@/lib/data-table-tanstack';
 import type { ColumnSelectOption } from '@/lib/data-table-types';
 import { cn } from '@/lib/utils';
+
+import DataTableHiddenFilters from './DataTableHiddenFilters.vue';
 
 /**
  * Value of the "without value" item inside the list: never sent, it becomes an
@@ -91,7 +94,13 @@ const selectedValues = computed(() => {
         ? [...picked, EMPTY_VALUE]
         : picked;
 });
-const hasSelection = computed(() => selectedValues.value.length > 0);
+// Filters of the column the toolbar can not show (`+N`).
+const hiddenCount = computed(() =>
+    props.column ? getHiddenFilterCount(props.column) : 0,
+);
+const hasSelection = computed(
+    () => selectedValues.value.length > 0 || hiddenCount.value > 0,
+);
 
 // With `empty: true` in PHP, the rows without a value go last.
 const emptyOption = computed<ColumnSelectOption | undefined>(() =>
@@ -160,7 +169,10 @@ function onReset() {
                         orientation="vertical"
                         class="mx-0.5 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
                     />
-                    <FacetedValue v-slot="{ selected }">
+                    <FacetedValue
+                        v-if="selectedValues.length > 0"
+                        v-slot="{ selected }"
+                    >
                         <FacetedBadgeList>
                             <FacetedBadge v-if="selected.length > 2">
                                 {{
@@ -182,6 +194,11 @@ function onReset() {
                         </FacetedBadgeList>
                     </FacetedValue>
                 </template>
+                <DataTableHiddenFilters
+                    :table="table"
+                    :label="title ?? ''"
+                    :count="hiddenCount"
+                />
             </Button>
         </FacetedTrigger>
         <FacetedContent

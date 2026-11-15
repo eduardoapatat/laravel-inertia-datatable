@@ -9,7 +9,10 @@ import {
 import { cn } from '@/lib/utils';
 import type * as React from 'react';
 
-import type { DataTableFeatures } from '@/lib/data-table-features';
+import {
+    type DataTableFeatures,
+    getHiddenFilterCount,
+} from '@/lib/data-table-features';
 import { getFilterAffixes, type FilterAffix } from '@/lib/data-table-format';
 import type { FilterComponentName } from '@/lib/data-table-filter-options';
 
@@ -17,6 +20,7 @@ import {
     type DataTableColumnRef,
     useDataTableFilterColumn,
 } from '@/components/data-table/data-table-context';
+import { DataTableHiddenFilters } from '@/components/data-table/data-table-hidden-filters';
 import { Input } from '@/components/ui/input';
 import {
     InputGroup,
@@ -117,9 +121,12 @@ function DataTableFilterInput<TData extends RowData>({
     return (
         <Subscribe
             source={column.table.atoms.columnFilters}
-            selector={() => column.getFilterValue()}
+            selector={() => ({
+                filterValue: column.getFilterValue(),
+                hidden: getHiddenFilterCount(column),
+            })}
         >
-            {(filterValue) => {
+            {({ filterValue, hidden }) => {
                 const inputProps = {
                     type,
                     ...props,
@@ -128,7 +135,7 @@ function DataTableFilterInput<TData extends RowData>({
                         column.setFilterValue(event.target.value || undefined),
                 };
 
-                if (affixes.length === 0)
+                if (affixes.length === 0 && hidden === 0)
                     return <Input {...inputProps} className={className} />;
 
                 return (
@@ -142,6 +149,14 @@ function DataTableFilterInput<TData extends RowData>({
                                 <InputGroupText>{affix.text}</InputGroupText>
                             </InputGroupAddon>
                         ))}
+                        {hidden > 0 && (
+                            <InputGroupAddon align="inline-end">
+                                <DataTableHiddenFilters
+                                    column={column}
+                                    count={hidden}
+                                />
+                            </InputGroupAddon>
+                        )}
                     </InputGroup>
                 );
             }}

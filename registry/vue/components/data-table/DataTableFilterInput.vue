@@ -8,9 +8,14 @@ import {
     InputGroupInput,
     InputGroupText,
 } from '@/components/ui/input-group';
-import type { DataTableFeatures } from '@/lib/data-table-features';
+import {
+    type DataTableFeatures,
+    getHiddenFilterCount,
+} from '@/lib/data-table-features';
 import type { FilterAffix } from '@/lib/data-table-format';
 import type { Column, RowData } from '@/lib/data-table-tanstack';
+
+import DataTableHiddenFilters from './DataTableHiddenFilters.vue';
 
 defineOptions({ inheritAttrs: false });
 
@@ -41,6 +46,9 @@ const value = computed(() => {
     return Array.isArray(filterValue) ? filterValue.join(',') : '';
 });
 
+// Filters of the column the toolbar can not show (`+N`).
+const hiddenCount = computed(() => getHiddenFilterCount(props.column));
+
 function onInput(next: string | number) {
     props.column.setFilterValue(next === '' ? undefined : String(next));
 }
@@ -48,7 +56,7 @@ function onInput(next: string | number) {
 
 <template>
     <Input
-        v-if="affixes.length === 0"
+        v-if="affixes.length === 0 && hiddenCount === 0"
         v-bind="attrs"
         :type="type"
         :model-value="value"
@@ -68,6 +76,13 @@ function onInput(next: string | number) {
             :align="affix.align"
         >
             <InputGroupText>{{ affix.text }}</InputGroupText>
+        </InputGroupAddon>
+        <InputGroupAddon v-if="hiddenCount > 0" align="inline-end">
+            <DataTableHiddenFilters
+                :table="column.table"
+                :label="column.columnDef.meta?.label ?? column.id"
+                :count="hiddenCount"
+            />
         </InputGroupAddon>
     </InputGroup>
 </template>

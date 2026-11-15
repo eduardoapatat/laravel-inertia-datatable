@@ -11,6 +11,7 @@ import {
     clearColumnFilter,
     type DataTableFeatures,
     getEmptyFilter,
+    getHiddenFilterCount,
     setEmptyFilter,
 } from '@/lib/data-table-features';
 import { formatNumber, getEmptyLabel } from '@/lib/data-table-format';
@@ -27,6 +28,7 @@ import {
     useDataTableFilterColumn,
 } from '@/components/data-table/data-table-context';
 
+import { DataTableHiddenFilters } from '@/components/data-table/data-table-hidden-filters';
 import { Button } from '@/components/ui/button';
 import { useDirection } from '@/components/ui/direction';
 import {
@@ -164,13 +166,15 @@ function ColumnFacetedFilter<TData extends RowData>({
             selector={() => ({
                 value: column.getFilterValue(),
                 empty: getEmptyFilter(column),
+                hidden: getHiddenFilterCount(column),
             })}
         >
-            {({ value, empty }) => (
+            {({ value, empty, hidden }) => (
                 <DataTableFacetedFilterContent
                     column={column}
                     columnFilterValue={value}
                     includesEmpty={empty}
+                    hiddenCount={hidden}
                     options={getFacetedFilterOptions(serverOptions, options)}
                     multiple={
                         multiple ?? meta?.filterVariant === 'multi-select'
@@ -189,6 +193,8 @@ interface DataTableFacetedFilterContentProps<
     options: ColumnSelectOption[];
     columnFilterValue?: unknown;
     includesEmpty?: boolean;
+    /** Filters of the column the toolbar can not show (`+N`). */
+    hiddenCount?: number;
 }
 
 function DataTableFacetedFilterContent<TData extends RowData>({
@@ -205,6 +211,7 @@ function DataTableFacetedFilterContent<TData extends RowData>({
     disabled,
     columnFilterValue,
     includesEmpty = false,
+    hiddenCount = 0,
 }: DataTableFacetedFilterContentProps<TData>) {
     const table = column?.table;
     const meta = column?.columnDef.meta;
@@ -221,7 +228,7 @@ function DataTableFacetedFilterContent<TData extends RowData>({
     const selectedValues = includesEmpty
         ? [...pickedValues, EMPTY_VALUE]
         : pickedValues;
-    const hasSelection = selectedValues.length > 0;
+    const hasSelection = selectedValues.length > 0 || hiddenCount > 0;
     // With `empty: true` in PHP, the rows without a value go last.
     const emptyOption = meta?.empty
         ? {
@@ -284,28 +291,42 @@ function DataTableFacetedFilterContent<TData extends RowData>({
                                 orientation="vertical"
                                 className="mx-0.5 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
                             />
-                            <FacetedValue>
-                                {(selected) => (
-                                    <FacetedBadgeList>
-                                        {selected.length > 2 ? (
-                                            <FacetedBadge>
-                                                {getMessage(table, 'selected', {
-                                                    count: selected.length,
-                                                })}
-                                            </FacetedBadge>
-                                        ) : (
-                                            selected.map((item) => (
-                                                <FacetedBadge key={item.value}>
-                                                    <span className="truncate">
-                                                        {item.label}
-                                                    </span>
+                            {selectedValues.length > 0 && (
+                                <FacetedValue>
+                                    {(selected) => (
+                                        <FacetedBadgeList>
+                                            {selected.length > 2 ? (
+                                                <FacetedBadge>
+                                                    {getMessage(
+                                                        table,
+                                                        'selected',
+                                                        {
+                                                            count: selected.length,
+                                                        },
+                                                    )}
                                                 </FacetedBadge>
-                                            ))
-                                        )}
-                                    </FacetedBadgeList>
-                                )}
-                            </FacetedValue>
+                                            ) : (
+                                                selected.map((item) => (
+                                                    <FacetedBadge
+                                                        key={item.value}
+                                                    >
+                                                        <span className="truncate">
+                                                            {item.label}
+                                                        </span>
+                                                    </FacetedBadge>
+                                                ))
+                                            )}
+                                        </FacetedBadgeList>
+                                    )}
+                                </FacetedValue>
+                            )}
                         </>
+                    )}
+                    {column && (
+                        <DataTableHiddenFilters
+                            column={column}
+                            count={hiddenCount}
+                        />
                     )}
                 </Button>
             </FacetedTrigger>

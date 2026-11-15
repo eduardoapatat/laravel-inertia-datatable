@@ -50,6 +50,7 @@ import { Separator } from '@/components/ui/separator';
 import {
     clearColumnFilter,
     getEmptyFilter,
+    getHiddenFilterCount,
     getRelativeFilter,
     setRelativeFilter,
 } from '@/lib/data-table-features';
@@ -73,6 +74,7 @@ import {
 } from './context';
 import DataTableCalendarSelects from './DataTableCalendarSelects.vue';
 import DataTableEmptyFilter from './DataTableEmptyFilter.vue';
+import DataTableHiddenFilters from './DataTableHiddenFilters.vue';
 
 /**
  * Calendar filter of a date column: one day with `->filterDate()`, a range
@@ -122,11 +124,14 @@ const relativeToken = computed(() => {
     return typeof value === 'string' && value !== '' ? value : undefined;
 });
 const hasDates = computed(() => dates.value.some(Boolean));
+// Filters of the column the toolbar can not show (`+N`).
+const hiddenCount = computed(() => (column ? getHiddenFilterCount(column) : 0));
 const hasValue = computed(
     () =>
         hasDates.value ||
         includesEmpty.value ||
-        relativeToken.value !== undefined,
+        relativeToken.value !== undefined ||
+        hiddenCount.value > 0,
 );
 
 const singleValue = computed(() =>
@@ -293,6 +298,11 @@ function toTimestamp(date: DateValue) {
                         >
                     </template>
                 </span>
+                <DataTableHiddenFilters
+                    :table="table"
+                    :label="title"
+                    :count="hiddenCount"
+                />
             </Button>
         </PopoverTrigger>
         <PopoverContent

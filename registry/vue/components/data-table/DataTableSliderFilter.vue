@@ -20,7 +20,11 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { clearColumnFilter, getEmptyFilter } from '@/lib/data-table-features';
+import {
+    clearColumnFilter,
+    getEmptyFilter,
+    getHiddenFilterCount,
+} from '@/lib/data-table-features';
 import {
     getRangeFilterBounds,
     getValidRangeFilterBounds,
@@ -40,6 +44,7 @@ import {
     useDataTableFilterColumn,
 } from './context';
 import DataTableEmptyFilter from './DataTableEmptyFilter.vue';
+import DataTableHiddenFilters from './DataTableHiddenFilters.vue';
 
 const INVALID_RING_DELAY_MS = 500;
 
@@ -132,8 +137,14 @@ const view = computed(() => {
     };
 });
 
+// Filters of the column the toolbar can not show (`+N`).
+const hiddenCount = computed(() => (column ? getHiddenFilterCount(column) : 0));
 const hasFilter = computed(() =>
-    Boolean(view.value?.filterValue || view.value?.includesEmpty),
+    Boolean(
+        view.value?.filterValue ||
+        view.value?.includesEmpty ||
+        hiddenCount.value > 0,
+    ),
 );
 
 function onInvalidChange(isInvalid: boolean) {
@@ -271,6 +282,11 @@ function parseRangeBound(value: unknown) {
                     />
                     {{ view.summary }}
                 </template>
+                <DataTableHiddenFilters
+                    :table="column.table"
+                    :label="view.title"
+                    :count="hiddenCount"
+                />
             </Button>
         </PopoverTrigger>
         <PopoverContent

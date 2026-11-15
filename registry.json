@@ -177,6 +177,11 @@
                     "target": "~/resources/js/components/data-table/data-table-filter-value.tsx"
                 },
                 {
+                    "path": "registry/react/components/data-table/data-table-hidden-filters.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-hidden-filters.tsx"
+                },
+                {
                     "path": "registry/react/components/data-table/data-table-sort-list.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-sort-list.tsx"
@@ -348,6 +353,11 @@
                     "path": "registry/react/components/data-table/data-table-filter-value.tsx",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/data-table-filter-value.tsx"
+                },
+                {
+                    "path": "registry/react/components/data-table/data-table-hidden-filters.tsx",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/data-table-hidden-filters.tsx"
                 },
                 {
                     "path": "registry/react/components/data-table/data-table-sort-list.tsx",
@@ -656,6 +666,11 @@
                     "path": "registry/vue/components/data-table/DataTableFilterValue.vue",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/DataTableFilterValue.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableHiddenFilters.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableHiddenFilters.vue"
                 },
                 {
                     "path": "registry/vue/components/data-table/DataTableSortList.vue",
@@ -1046,6 +1061,11 @@
                     "path": "registry/vue/components/data-table/DataTableFilterValue.vue",
                     "type": "registry:component",
                     "target": "~/resources/js/components/data-table/DataTableFilterValue.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableHiddenFilters.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableHiddenFilters.vue"
                 },
                 {
                     "path": "registry/vue/components/data-table/DataTableSortList.vue",
