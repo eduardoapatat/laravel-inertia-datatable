@@ -14,6 +14,7 @@ import {
 const STATUS = 4;
 const WEIGHT = 7;
 const FEATURED = 8;
+const PUBLISHED = 10;
 
 const filterList = (page: Page) =>
     page.locator('[data-slot=data-table-filter-list]');
@@ -23,8 +24,9 @@ const sortList = (page: Page) =>
     page.locator('[data-slot=data-table-sort-list]');
 
 async function openFilterList(page: Page) {
+    // "Filters 1" with filters in the URL.
     await toolbar(page)
-        .getByRole('button', { name: 'Filters', exact: true })
+        .getByRole('button', { name: /^Filters( \d+)?$/ })
         .click();
     await expect(filterList(page)).toBeVisible();
 }
@@ -164,6 +166,47 @@ test('an operator without a value, removing a row and Reset', async ({
     );
     expect(query(page)).toBe('');
     await expect(filterRows(page)).toHaveCount(0);
+});
+
+// The products were published in 2025: no period of this year has rows, and
+// the past 10 years have all of them (until 2035).
+test('a date row relative to today picks a period instead of a day', async ({
+    page,
+}) => {
+    await openFilterList(page);
+    await addFilter(page, 'Published');
+    await filterList(page)
+        .getByRole('combobox', { name: 'Published operator' })
+        .click();
+    await page
+        .getByRole('option', { name: 'Is relative to today', exact: true })
+        .click();
+
+    const value = filterList(page).getByRole('combobox', {
+        name: 'Published value',
+    });
+    await expect(value).toHaveText('Pick a period');
+    expect(query(page)).toBe('');
+
+    await value.click();
+    await visit(page, () =>
+        page.getByRole('option', { name: 'This month', exact: true }).click(),
+    );
+
+    expect(query(page)).toBe('?filter[published_at]=rel.this-month');
+    await expect(dataTable(page).getByText('No results.')).toBeVisible();
+    // The days the server resolved the period to.
+    await expect(value).toHaveAttribute('title', /\d{4}/);
+
+    await page.goto('/products/advanced?filter[published_at]=rel.-10Y');
+    await dataTable(page).waitFor();
+    expect(await columnTexts(page, PUBLISHED)).not.toContain('Unpublished');
+    expect(await columnTexts(page, PUBLISHED)).toHaveLength(10);
+
+    await openFilterList(page);
+    await expect(
+        filterList(page).getByRole('combobox', { name: 'Published value' }),
+    ).toHaveText('Past 10 years');
 });
 
 test('a toolbar filter shows up as a row of the list', async ({ page }) => {

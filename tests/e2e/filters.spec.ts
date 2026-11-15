@@ -132,6 +132,40 @@ test('a date range from the URL, and its calendar opens on that month', async ({
     await expect(content.getByRole('combobox', { name: 'Year' })).toBeVisible();
 });
 
+test('a period relative to today replaces the days of the date filter, and back', async ({
+    page,
+}) => {
+    await openProducts(page, '?filter[published_at]=2025-03-01,2025-03-31');
+
+    const button = toolbar(page).getByRole('button', { name: /Published/ });
+    await button.click();
+    const content = page.locator('[data-slot=popover-content]');
+    const pastWeek = content.getByRole('button', {
+        name: 'Past 7 days',
+        exact: true,
+    });
+
+    await visit(page, () => pastWeek.click());
+
+    // The products were published in 2025.
+    expect(query(page)).toBe('?filter[published_at]=rel.-7d');
+    await expect(pastWeek).toHaveAttribute('aria-pressed', 'true');
+    await expect(button).toContainText('Past 7 days');
+    await expect(dataTable(page).getByText('No results.')).toBeVisible();
+
+    // Two days of the calendar replace the period.
+    const days = content.getByRole('gridcell');
+    await days.getByText('10', { exact: true }).first().click();
+    await visit(page, () =>
+        days.getByText('12', { exact: true }).first().click(),
+    );
+
+    expect(query(page)).toMatch(
+        /^\?filter\[published_at\]=\d{4}-\d{2}-10,\d{4}-\d{2}-12$/,
+    );
+    await expect(pastWeek).toHaveAttribute('aria-pressed', 'false');
+});
+
 test('a one-day date filter, from the URL and from its calendar', async ({
     page,
 }) => {
