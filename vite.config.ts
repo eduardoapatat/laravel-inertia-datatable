@@ -44,6 +44,7 @@ export default defineConfig({
         singleQuote: true,
         semi: true,
         singleAttributePerLine: false,
+        htmlWhitespaceSensitivity: 'css',
         ignorePatterns: ['vendor/**', 'r/**', 'composer.json', '*.md'],
     },
 });
