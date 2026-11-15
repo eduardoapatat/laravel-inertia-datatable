@@ -132,6 +132,30 @@ test('a date range from the URL, and its calendar opens on that month', async ({
     await expect(content.getByRole('combobox', { name: 'Year' })).toBeVisible();
 });
 
+test('a one-day date filter, from the URL and from its calendar', async ({
+    page,
+}) => {
+    // Product N was created on 2026-01-(N + 1).
+    await openProducts(page, '?filter[created_at]=2026-01-06');
+
+    expect(await columnTexts(page, NAME)).toEqual(['Product 05']);
+
+    await toolbar(page)
+        .getByRole('button', { name: /Created/ })
+        .click();
+    const content = page.locator('[data-slot=popover-content]');
+    await expect(
+        content.getByRole('button', { name: 'Go to the next month' }),
+    ).toBeVisible();
+
+    await visit(page, () =>
+        content.getByRole('gridcell').getByText('10', { exact: true }).click(),
+    );
+
+    expect(query(page)).toBe('?filter[created_at]=2026-01-10');
+    expect(await columnTexts(page, NAME)).toEqual(['Product 09']);
+});
+
 test('a boolean filter', async ({ page }) => {
     await toolbar(page).getByRole('button', { name: 'Featured' }).click();
     await visit(page, () => page.getByRole('option', { name: 'Yes' }).click());

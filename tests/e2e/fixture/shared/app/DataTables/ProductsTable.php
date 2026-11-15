@@ -39,7 +39,7 @@ class ProductsTable extends DataTable
             Column::boolean('is_featured', 'Featured')->filterSelect(),
             Column::text('website')->url()->whenEmpty('—'),
             Column::date('published_at', 'Published')->sortable()->filterRange(empty: true)->whenEmpty('Unpublished'),
-            Column::date('created_at', 'Created')->sortable()->hidden(),
+            Column::date('created_at', 'Created')->sortable()->filterDate()->hidden(),
         ];
     }
 
