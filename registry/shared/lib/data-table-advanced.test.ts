@@ -8,6 +8,8 @@ import {
     getFilterOperatorMessageKey,
     getIsFilterComplete,
     getRowFilters,
+    getRowJoinCells,
+    groupEmptyRows,
     moveItem,
     reconcileFilterRows,
 } from '@/lib/data-table-advanced';
@@ -303,5 +305,68 @@ describe('moveItem', () => {
         expect(moveItem(['a', 'b', 'c'], 2, 0)).toEqual(['c', 'a', 'b']);
         expect(moveItem(['a', 'b'], 0, -1)).toEqual(['a', 'b']);
         expect(moveItem(['a', 'b'], 1, 2)).toEqual(['a', 'b']);
+    });
+});
+
+describe('groupEmptyRows and getRowJoinCells', () => {
+    const row = (
+        key: string,
+        overrides: Partial<ColumnFilterItem> & Pick<ColumnFilterItem, 'id'>,
+    ): FilterListRow => ({
+        key,
+        filter: filter({ value: 'x', ...overrides }),
+    });
+    const books = row('a', {
+        id: 'category',
+        variant: 'select',
+        operator: 'inArray',
+        value: ['Books'],
+    });
+    const price = row('b', {
+        id: 'price',
+        variant: 'range',
+        operator: 'gte',
+        value: '10',
+    });
+    const empty = row('c', {
+        id: 'category',
+        variant: 'select',
+        operator: 'isEmpty',
+        value: '',
+    });
+
+    it('puts the rows without a value next to their column, joined with or', () => {
+        const rows = groupEmptyRows([books, price, empty], 'and');
+
+        expect(rows.map((item) => item.key)).toEqual(['a', 'c', 'b']);
+        expect(getRowJoinCells(rows, 'and')).toEqual([
+            'where',
+            'group',
+            'select',
+        ]);
+    });
+
+    it('keeps the order and the join with or', () => {
+        const rows = groupEmptyRows([books, price, empty], 'or');
+
+        expect(rows.map((item) => item.key)).toEqual(['a', 'b', 'c']);
+        expect(getRowJoinCells(rows, 'or')).toEqual(['where', 'select', 'or']);
+    });
+
+    it('does not group an empty row without another complete row of its column', () => {
+        const incomplete = row('d', {
+            id: 'category',
+            variant: 'select',
+            operator: 'inArray',
+            value: [],
+        });
+        const rows = groupEmptyRows([price, empty, incomplete], 'and');
+
+        expect(rows.map((item) => item.key)).toEqual(['b', 'c', 'd']);
+        expect(getRowJoinCells(rows, 'and')).toEqual([
+            'where',
+            'select',
+            'and',
+        ]);
     });
 });

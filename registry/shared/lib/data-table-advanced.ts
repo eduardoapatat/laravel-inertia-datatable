@@ -8,6 +8,7 @@ import {
     type FilterOperator,
     type FilterVariant,
     IMPLICIT_OPERATORS,
+    type JoinOperator,
     serializeFilter,
 } from '@/lib/data-table-server';
 import type { ColumnFilterItem } from '@/lib/data-table-types';
@@ -258,6 +259,56 @@ export function getRowFilters(rows: FilterListRow[]): ColumnFilterItem[] {
         .map((row) => ({ ...row.filter, filterId: row.key }));
 }
 
+/**
+ * What goes before each row: `where` (the first one), the `select` of the join
+ * (the next one), the join as text, or `group` for an `is.empty` row that the
+ * server adds with OR to the other filters of its column (with `and`).
+ */
+export type FilterJoinCell = 'where' | 'select' | 'and' | 'or' | 'group';
+
+/**
+ * With `and`, the server adds the `is.empty` filter of a column with OR to its
+ * other filters (`(Books) OR (no category)`): the row goes right after the last
+ * row of its column, so it reads as part of it. With `or` the order is kept.
+ */
+export function groupEmptyRows(
+    rows: FilterListRow[],
+    join: JoinOperator,
+): FilterListRow[] {
+    if (join !== 'and') return rows;
+
+    const grouped = rows.filter((row) => !getIsGroupedEmptyRow(row, rows));
+
+    for (const row of rows) {
+        if (!getIsGroupedEmptyRow(row, rows)) continue;
+
+        let last = -1;
+        grouped.forEach((other, index) => {
+            if (other.filter.id === row.filter.id) last = index;
+        });
+        grouped.splice(last + 1, 0, row);
+    }
+
+    return grouped;
+}
+
+/** What goes before each row of the list, already grouped (`groupEmptyRows`). */
+export function getRowJoinCells(
+    rows: FilterListRow[],
+    join: JoinOperator,
+): FilterJoinCell[] {
+    let hasSelect = false;
+
+    return rows.map((row, index) => {
+        if (index === 0) return 'where';
+        if (join === 'and' && getIsGroupedEmptyRow(row, rows)) return 'group';
+        if (hasSelect) return join;
+
+        hasSelect = true;
+        return 'select';
+    });
+}
+
 /** The list with the item at `from` moved to `to` (the sort priority). */
 export function moveItem<T>(items: T[], from: number, to: number): T[] {
     if (to < 0 || to >= items.length || from === to) return items;
@@ -274,4 +325,17 @@ function emptyValue(operator: FilterOperator): string | string[] {
     if (operator === 'isBetween') return ['', ''];
 
     return LIST_OPERATORS.has(operator) ? [] : '';
+}
+
+function getIsGroupedEmptyRow(row: FilterListRow, rows: FilterListRow[]) {
+    return (
+        row.filter.operator === 'isEmpty' &&
+        rows.some(
+            (other) =>
+                other !== row &&
+                other.filter.id === row.filter.id &&
+                other.filter.operator !== 'isEmpty' &&
+                getIsFilterComplete(other.filter),
+        )
+    );
 }

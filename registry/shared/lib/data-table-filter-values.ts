@@ -132,6 +132,39 @@ export function getIsPlainFilter(filter: ColumnFilterItem) {
 }
 
 /**
+ * The plain filter that a filter with another operator stands for, so the
+ * toolbar shows and edits it: `eq v` of a select is `inArray [v]`, and `gte` /
+ * `lte` of a range are a range open at one end. The filter itself when it is
+ * plain; `null` when there is none.
+ */
+export function toPlainFilter(
+    filter: ColumnFilterItem,
+): ColumnFilterItem | null {
+    if (getIsPlainFilter(filter)) return filter;
+    if (Array.isArray(filter.value) || filter.value.trim() === '') return null;
+
+    const { variant, operator, value } = filter;
+
+    if (
+        (variant === 'select' || variant === 'multi-select') &&
+        operator === 'eq'
+    ) {
+        return { ...filter, operator: 'inArray', value: [value] };
+    }
+
+    if (variant === 'range' || variant === 'date-range') {
+        if (operator === 'gte') {
+            return { ...filter, operator: 'isBetween', value: [value, ''] };
+        }
+        if (operator === 'lte') {
+            return { ...filter, operator: 'isBetween', value: ['', value] };
+        }
+    }
+
+    return null;
+}
+
+/**
  * The filter of a plain value (what a filter component writes), or `null`
  * when the value is empty.
  */

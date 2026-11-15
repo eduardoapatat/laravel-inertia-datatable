@@ -33,6 +33,7 @@ import {
     getIsPlainFilter,
     getPlainFilterValue,
     normalizeColumnFilter,
+    toPlainFilter,
 } from '@/lib/data-table-filter-values';
 
 type DataTableInstance = Table<DataTableFeatures, RowData>;
@@ -91,6 +92,12 @@ function asDataTable(table: object) {
     return table as DataTableInstance;
 }
 
+/**
+ * The filter of the column that its toolbar piece reads and writes: the plain
+ * one, or else the first one that stands for a plain one (`toPlainFilter`), so
+ * a `Status is Draft` row of the filter list still shows in the toolbar and
+ * picking another option there replaces it instead of adding a second filter.
+ */
 function getPlainFilter(
     instance: DataTableInstance,
     columnId: string,
@@ -98,15 +105,23 @@ function getPlainFilter(
 ) {
     const variant =
         instance.getColumn(columnId)?.columnDef.meta?.filterVariant ?? 'text';
-    const index = filters.findIndex(
-        (filter) =>
-            filter.id === columnId &&
-            getIsPlainFilter(normalizeColumnFilter(filter, variant)),
+    const items = filters.map((filter) =>
+        filter.id === columnId ? normalizeColumnFilter(filter, variant) : null,
     );
+    let index = items.findIndex(
+        (item) => item !== null && getIsPlainFilter(item),
+    );
+
+    if (index === -1) {
+        index = items.findIndex(
+            (item) => item !== null && toPlainFilter(item) !== null,
+        );
+    }
+
+    const item = items[index];
+    const plain = item ? toPlainFilter(item) : null;
     const filter = filters[index];
-    const value = filter
-        ? getPlainFilterValue(normalizeColumnFilter(filter, variant))
-        : undefined;
+    const value = plain ? getPlainFilterValue(plain) : undefined;
 
     return { index, filter, value };
 }
@@ -258,6 +273,37 @@ export function setRelativeFilter<TData extends RowData, TValue>(
                   },
               ];
     });
+}
+
+/**
+ * Filters of the column that its toolbar piece can not show (made in the
+ * filter list, like `Name is mesa`), for its `+N` mark. Not counted: the one
+ * the piece edits, the rows without a value when the column offers them
+ * (`empty: true`) and the period relative to today of a date column.
+ */
+export function getHiddenFilterCount<TData extends RowData, TValue>(
+    column: DataTableColumn<TData, TValue>,
+): number {
+    const meta = column.columnDef.meta;
+    const variant = meta?.filterVariant;
+
+    if (!variant) return 0;
+
+    const filters = column.table.atoms.columnFilters.get();
+    const { index } = getPlainFilter(
+        asDataTable(column.table),
+        column.id,
+        filters,
+    );
+    const isDate = variant === 'date' || variant === 'date-range';
+
+    return filters.filter(
+        (filter, filterIndex) =>
+            filter.id === column.id &&
+            filterIndex !== index &&
+            !(filter.operator === 'isEmpty' && meta?.empty) &&
+            !(filter.operator === 'isRelativeToToday' && isDate),
+    ).length;
 }
 
 /** Removes every filter of the column, the rows without a value included. */

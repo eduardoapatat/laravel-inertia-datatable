@@ -7,7 +7,10 @@ import {
     vi,
 } from 'vite-plus/test';
 
-import { setRelativeFilter } from '@/lib/data-table-features';
+import {
+    getHiddenFilterCount,
+    setRelativeFilter,
+} from '@/lib/data-table-features';
 import type { DataTableMessages } from '@/lib/data-table-messages';
 import type { ServerDataTable } from '@/lib/data-table-server';
 import type {
@@ -35,6 +38,7 @@ export interface TestTable {
     setColumnVisibility(visibility: Record<string, boolean>): void;
     getColumn(id: string):
         | {
+              getFilterValue(): unknown;
               setFilterValue(value: unknown): void;
               columnDef: { meta?: DataTableColumnMeta };
           }
@@ -325,6 +329,92 @@ export function defineUseServerDataTableTests(driver: HookDriver): void {
             await wait(1000);
 
             expect(visits()).toHaveLength(0);
+        });
+    });
+
+    describe('toolbar and filter list', () => {
+        const columnOf = (id: string) =>
+            table().getColumn(id) as Parameters<typeof getHiddenFilterCount>[0];
+
+        it('reads a select filter with "is" as the toolbar value and replaces it', async () => {
+            mount({
+                table: serverTable({
+                    columnFilters: [
+                        {
+                            id: 'status',
+                            filterId: 'status-0',
+                            variant: 'select',
+                            operator: 'eq',
+                            value: 'active',
+                        },
+                    ],
+                }),
+            });
+
+            expect(columnOf('status').getFilterValue()).toEqual(['active']);
+            expect(getHiddenFilterCount(columnOf('status'))).toBe(0);
+
+            await act(() =>
+                columnOf('status').setFilterValue(['active', 'draft']),
+            );
+            await wait(300);
+
+            const { searchParams } = lastVisit().url;
+            expect(searchParams.get('filter[status]')).toBe('active,draft');
+            expect(searchParams.getAll('filter[status][]')).toEqual([]);
+        });
+
+        it('reads a range filter with "greater or equal" as a range open at the end', () => {
+            mount({
+                table: serverTable({
+                    columnFilters: [
+                        {
+                            id: 'price',
+                            filterId: 'price-0',
+                            variant: 'range',
+                            operator: 'gte',
+                            value: '20',
+                        },
+                    ],
+                }),
+            });
+
+            expect(columnOf('price').getFilterValue()).toEqual([20, undefined]);
+        });
+
+        it('counts the filters of a column that the toolbar can not show', () => {
+            mount({
+                table: serverTable({
+                    columnFilters: [
+                        {
+                            id: 'name',
+                            filterId: 'name-0',
+                            variant: 'text',
+                            operator: 'iLike',
+                            value: 'a',
+                        },
+                        {
+                            id: 'name',
+                            filterId: 'name-1',
+                            variant: 'text',
+                            operator: 'notILike',
+                            value: 'b',
+                        },
+                        {
+                            id: 'status',
+                            filterId: 'status-0',
+                            variant: 'select',
+                            operator: 'ne',
+                            value: 'draft',
+                        },
+                    ],
+                }),
+            });
+
+            expect(columnOf('name').getFilterValue()).toBe('a');
+            expect(getHiddenFilterCount(columnOf('name'))).toBe(1);
+            expect(getHiddenFilterCount(columnOf('status'))).toBe(1);
+            expect(getHiddenFilterCount(columnOf('price'))).toBe(0);
         });
     });
 

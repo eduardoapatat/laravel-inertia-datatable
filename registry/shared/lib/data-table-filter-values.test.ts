@@ -8,6 +8,7 @@ import {
     getValidRangeFilterBounds,
     normalizeColumnFilter,
     pickDateRangeDay,
+    toPlainFilter,
 } from './data-table-filter-values';
 
 describe('pickDateRangeDay', () => {
@@ -174,5 +175,37 @@ describe('getValidRangeFilterBounds', () => {
         expect(getValidRangeFilterBounds(['x', ''])).toBeNull();
         expect(getValidRangeFilterBounds(['', '200'], [0, 100])).toBeNull();
         expect(getValidRangeFilterBounds(['20', '10'])).toBeNull();
+    });
+});
+
+describe('toPlainFilter', () => {
+    const item = (
+        variant: 'select' | 'range' | 'date-range' | 'text',
+        operator: 'eq' | 'gte' | 'lte' | 'ne' | 'inArray' | 'iLike',
+        value: string | string[],
+    ) => ({ id: 'col', variant, operator, value, filterId: 'col-0' }) as const;
+
+    it('reads a filter with an equivalent operator as the plain one', () => {
+        expect(toPlainFilter(item('select', 'eq', 'draft'))).toMatchObject({
+            operator: 'inArray',
+            value: ['draft'],
+            filterId: 'col-0',
+        });
+        expect(toPlainFilter(item('range', 'gte', '10'))?.value).toEqual([
+            '10',
+            '',
+        ]);
+        expect(
+            toPlainFilter(item('date-range', 'lte', '2026-01-31'))?.value,
+        ).toEqual(['', '2026-01-31']);
+    });
+
+    it('keeps a plain filter and has none for the rest', () => {
+        const plain = item('select', 'inArray', ['a']);
+
+        expect(toPlainFilter(plain)).toBe(plain);
+        expect(toPlainFilter(item('select', 'ne', 'draft'))).toBeNull();
+        expect(toPlainFilter(item('text', 'eq', 'mesa'))).toBeNull();
+        expect(toPlainFilter(item('select', 'eq', ''))).toBeNull();
     });
 });

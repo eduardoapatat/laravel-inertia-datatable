@@ -110,6 +110,8 @@ export const DEFAULT_MESSAGES = {
     sort_direction: ':label direction',
     move_up: 'Move :label up',
     move_down: 'Move :label down',
+    hidden_filters: '+:count',
+    hidden_filters_label: ':count more filters of :label in the filter list',
 
     rows_per_page: 'Rows per page',
     page_of: 'Page :page of :pages',

@@ -119,6 +119,8 @@ return [
     'sort_direction' => 'Dirección de :label',
     'move_up' => 'Subir :label',
     'move_down' => 'Bajar :label',
+    'hidden_filters' => '+:count',
+    'hidden_filters_label' => ':count filtros más de :label en la lista de filtros',
 
     // Paginación
     'rows_per_page' => 'Filas por página',
