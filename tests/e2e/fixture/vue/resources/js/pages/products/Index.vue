@@ -19,6 +19,7 @@ defineOptions({
 defineProps<{
     products?: ServerDataTable<Product>;
     productsConfig: ServerTableConfig;
+    advanced?: boolean;
 }>();
 </script>
 
@@ -34,7 +35,11 @@ defineProps<{
                     :sizes="PRODUCT_COLUMN_SIZES"
                 />
             </template>
-            <ProductsTable v-if="products" :products="products" />
+            <ProductsTable
+                v-if="products"
+                :products="products"
+                :advanced="advanced"
+            />
         </Deferred>
     </div>
 </template>

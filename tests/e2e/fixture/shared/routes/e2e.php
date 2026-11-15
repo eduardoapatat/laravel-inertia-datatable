@@ -20,4 +20,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'products' => ProductsTable::make(),
         'productsConfig' => fn () => ProductsTable::make()->config(),
     ]))->name('products.eager');
+
+    // The table with DataTableFilterList and DataTableSortList (advanced-filters.spec.ts).
+    Route::get('products/advanced', fn () => Inertia::render($page, [
+        'products' => ProductsTable::make(),
+        'productsConfig' => fn () => ProductsTable::make()->config(),
+        'advanced' => true,
+    ]))->name('products.advanced');
 });

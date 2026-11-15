@@ -13,10 +13,11 @@ import type {
 type Props = {
     products?: ServerDataTable<Product>;
     productsConfig: ServerTableConfig;
+    advanced?: boolean;
 };
 
 export default function ProductsIndex(props: Props) {
-    const { products, productsConfig } = props;
+    const { products, productsConfig, advanced } = props;
     const skeleton = (
         <DataTableSkeleton
             config={productsConfig}
@@ -29,7 +30,12 @@ export default function ProductsIndex(props: Props) {
             <Head title="Products" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
                 <Deferred data="products" fallback={skeleton}>
-                    {products && <ProductsTable products={products} />}
+                    {products && (
+                        <ProductsTable
+                            products={products}
+                            advanced={advanced}
+                        />
+                    )}
                 </Deferred>
             </div>
         </>

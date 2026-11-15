@@ -20,7 +20,12 @@ export const PRODUCT_COLUMN_SIZES = { name: 320 };
 
 <script setup lang="ts">
 import { createColumnHelper } from '@tanstack/vue-table';
-import { DataTable, DataTableToolbar } from '@/components/data-table';
+import {
+    DataTable,
+    DataTableFilterList,
+    DataTableSortList,
+    DataTableToolbar,
+} from '@/components/data-table';
 import { useServerDataTable } from '@/composables/useServerDataTable';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import type { ServerDataTable } from '@/lib/data-table-server';
@@ -29,8 +34,10 @@ const props = withDefaults(
     defineProps<{
         products: ServerDataTable<Product>;
         prop?: string;
+        /** With the filter list and the sort list (`/products/advanced`). */
+        advanced?: boolean;
     }>(),
-    { prop: 'products' },
+    { prop: 'products', advanced: false },
 );
 
 const columnHelper = createColumnHelper<DataTableFeatures, Product>();
@@ -48,6 +55,11 @@ const { table } = useServerDataTable({
 
 <template>
     <DataTable :table="table" aria-label="Products">
-        <DataTableToolbar :table="table" />
+        <DataTableToolbar :table="table">
+            <template v-if="advanced">
+                <DataTableFilterList :table="table" />
+                <DataTableSortList :table="table" />
+            </template>
+        </DataTableToolbar>
     </DataTable>
 </template>
