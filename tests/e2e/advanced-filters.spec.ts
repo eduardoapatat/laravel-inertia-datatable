@@ -307,3 +307,106 @@ test('every control of the lists has a name', async ({ page }) => {
         ).toBeVisible();
     }
 });
+
+test('a select row with "is" still shows in the toolbar, which replaces it', async ({
+    page,
+}) => {
+    const status = toolbar(page).getByRole('button', { name: /^Status/ });
+
+    await status.click();
+    await visit(page, () =>
+        page.getByRole('option', { name: /Draft/ }).click(),
+    );
+    await page.keyboard.press('Escape');
+
+    await openFilterList(page);
+    await filterList(page)
+        .getByRole('combobox', { name: 'Status operator' })
+        .click();
+    await visit(page, () =>
+        page.getByRole('option', { name: 'Is', exact: true }).click(),
+    );
+    await page.keyboard.press('Escape');
+
+    expect(query(page)).toBe('?filter[status]=eq.draft');
+    await expect(status).toContainText('Draft');
+    await expect(
+        toolbar(page).locator('[data-slot=data-table-hidden-filters]'),
+    ).toHaveCount(0);
+
+    await status.click();
+    await visit(page, () =>
+        page.getByRole('option', { name: /Active/ }).click(),
+    );
+
+    // Status is a single select: the toolbar replaces the row, it does not add
+    // a second filter.
+    expect(query(page)).toBe('?filter[status]=active');
+});
+
+test('the rows without a value join the other rows of their column with or', async ({
+    page,
+}) => {
+    await openFilterList(page);
+
+    await addFilter(page, 'Category');
+    await filterList(page)
+        .getByRole('button', { name: 'Category value' })
+        .click();
+    await visit(page, () =>
+        page.getByRole('option', { name: /Books/ }).click(),
+    );
+    await page.keyboard.press('Escape');
+
+    await addFilter(page, 'Price');
+
+    await addFilter(page, 'Category');
+    await filterRows(page)
+        .last()
+        .getByRole('combobox', { name: 'Category operator' })
+        .click();
+    await visit(page, () =>
+        page.getByRole('option', { name: 'Is empty', exact: true }).click(),
+    );
+
+    // The server adds the rows without a category with OR to Books.
+    expect(query(page)).toMatch(
+        /^\?filter\[category\]\[\d*\]=Books&filter\[category\]\[\d*\]=is\.empty$/,
+    );
+    await expect(filterRows(page)).toHaveCount(3);
+    const empty = filterRows(page).nth(1);
+    await expect(empty).toHaveAttribute('data-column', 'category');
+    await expect(empty).toHaveAttribute('data-group', 'empty');
+    await expect(empty).toContainText('or');
+    await expect(filterRows(page).nth(2)).toHaveAttribute(
+        'data-column',
+        'price',
+    );
+    await expect(
+        filterRows(page)
+            .nth(2)
+            .getByRole('combobox', { name: 'Combine filters' }),
+    ).toHaveText('and');
+});
+
+test('a toolbar filter marks the filters of its column it can not show', async ({
+    page,
+}) => {
+    await openFilterList(page);
+    await addFilter(page, 'Name');
+    await filterList(page)
+        .getByRole('combobox', { name: 'Name operator' })
+        .click();
+    await page.getByRole('option', { name: 'Is', exact: true }).click();
+    await visit(page, () =>
+        filterList(page)
+            .getByRole('textbox', { name: 'Name value' })
+            .fill('Product 01'),
+    );
+    await page.keyboard.press('Escape');
+
+    expect(query(page)).toBe('?filter[name]=eq.Product 01');
+    await expect(
+        toolbar(page).locator('[data-slot=data-table-hidden-filters]'),
+    ).toContainText('+1');
+});
