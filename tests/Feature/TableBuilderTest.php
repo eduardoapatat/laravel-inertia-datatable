@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use InertiaDataTable\Column;
@@ -65,3 +66,31 @@ it('rejects a number column that reads a to-many relation', function () {
 
     expect(fn () => $table->toArray())->toThrow(LogicException::class, 'The column [price] uses the to-many relation [products], so only option and text columns can hold a list of values.');
 });
+
+it('takes today of the relative date filters in the time zone of the table', function () {
+    Route::get('/quick', fn () => DataTable::for(Product::query())
+        ->columns([Column::text('name'), Column::date('released_on')->filterDate()])
+        ->timezone('America/Santiago'));
+    Product::factory()->create(['name' => 'Atril', 'released_on' => '2026-01-20']);
+    // 23:00 of January 20 in Santiago (UTC-3).
+    $this->travelTo(CarbonImmutable::parse('2026-01-21 02:00', 'UTC'));
+
+    getJson('/quick?filter[released_on]=rel.today')->assertOk()->assertJsonPath('data.*.name', ['Atril']);
+});
+
+it('starts the relative weeks on the first day of the week of the locale', function (string $locale, array $range) {
+    // Without intl every week starts on Monday.
+    if (! extension_loaded('intl') && $locale === 'en-US') {
+        $this->markTestSkipped('Needs the intl extension.');
+    }
+
+    Route::get('/quick', fn () => DataTable::for(Product::query())
+        ->columns([Column::date('released_on')->filterDate()])
+        ->locale($locale));
+    $this->travelTo(CarbonImmutable::parse('2026-11-18 12:00', 'UTC'));
+
+    getJson('/quick?filter[released_on]=rel.this-week')->assertOk()->assertJsonPath('state.columnFilters.0.range', $range);
+})->with([
+    'Sunday in en-US' => ['en-US', ['2026-11-15', '2026-11-21']],
+    'Monday in es-CL' => ['es-CL', ['2026-11-16', '2026-11-22']],
+]);

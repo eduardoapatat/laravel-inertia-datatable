@@ -56,6 +56,10 @@ return [
     | date_format: preset of the date columns without ->format(): short,
     | medium, long, datetime or relative.
     |
+    | timezone: time zone of "today" for the relative date filters
+    | (filter[col]=rel.-7d). With null, the app time zone (config app.timezone),
+    | the one the dates are compared in. A table can override it with timezone().
+    |
     | The UI texts follow the app language; publish them to translate or
     | change them: php artisan vendor:publish --tag=inertia-datatable-lang
     |
@@ -66,6 +70,8 @@ return [
     'currency' => null,
 
     'date_format' => 'long',
+
+    'timezone' => null,
 
     /*
     |--------------------------------------------------------------------------

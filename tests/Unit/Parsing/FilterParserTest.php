@@ -25,6 +25,7 @@ it('parses a parameter into its operator and normalized value', function (Column
     'range bounds in reverse order' => [Column::number('price')->filterRange(), '50,10', FilterOperator::IsBetween, ['10', '50']],
     'range with an open lower bound' => [Column::number('price')->filterRange(), ',100', FilterOperator::IsBetween, ['', '100']],
     'date between' => [Column::date('released_on')->filterDate(), 'between.2026-01-31,2026-01-01', FilterOperator::IsBetween, ['2026-01-01', '2026-01-31']],
+    'date relative to today' => [Column::date('released_on')->filterRange(), 'rel.This-Month', FilterOperator::IsRelativeToToday, 'this-month'],
     'boolean in upper case' => [Column::boolean('featured')->filterSelect(), 'TRUE', FilterOperator::Eq, 'true'],
     'declared options keep known values' => [Column::option('status')->options(['active' => 'Activo', 'draft' => 'Borrador'])->filterSelect(), 'active,unknown', FilterOperator::InArray, ['active']],
 ]);
@@ -38,6 +39,7 @@ it('discards a parameter whose value does not fit the variant', function (Column
     'range without bounds' => [Column::number('price')->filterRange(), ','],
     'range with an invalid bound' => [Column::number('price')->filterRange(), '10,abc'],
     'impossible date' => [Column::date('released_on')->filterDate(), '2026-02-30'],
+    'invalid relative date' => [Column::date('released_on')->filterDate(), 'rel.soon'],
     'boolean other than true or false' => [Column::boolean('featured')->filterSelect(), 'yes'],
     'only undeclared options' => [Column::option('status')->options(['active' => 'Activo'])->filterMultiSelect(), 'unknown'],
     'column without filter' => [Column::text('name'), 'anything'],

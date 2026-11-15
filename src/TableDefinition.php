@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace InertiaDataTable;
 
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use IntlCalendar;
 use InvalidArgumentException;
 
 /**
@@ -50,6 +52,7 @@ final readonly class TableDefinition
         ?array $alwaysInclude = null,
         public ?Closure $transformer = null,
         public ?string $locale = null,
+        public ?string $timezone = null,
     ) {
         $this->query = $query instanceof Relation ? self::relationQuery($query) : $query;
 
@@ -85,6 +88,35 @@ final readonly class TableDefinition
         if ($name !== null && preg_match('/^[A-Za-z][A-Za-z0-9_]*$/', $name) !== 1) {
             throw new InvalidArgumentException("The table name [{$name}] may only contain letters, numbers and underscores.");
         }
+    }
+
+    /**
+     * Today in the time zone of the table, `inertia-datatable.timezone` or the app's:
+     * the day `rel` filters are relative to.
+     */
+    public function today(): CarbonImmutable
+    {
+        /** @var string|null $timezone */
+        $timezone = $this->timezone ?? config('inertia-datatable.timezone') ?? config('app.timezone');
+
+        return CarbonImmutable::now($timezone ?? 'UTC')->startOfDay();
+    }
+
+    /**
+     * First day of the week in the locale of the table (0 = Sunday), as the calendar
+     * of the UI shows it; Monday without the `intl` extension.
+     */
+    public function weekStartsOn(): int
+    {
+        $locale = $this->locale ?? config('inertia-datatable.locale') ?? app()->getLocale();
+        $locale = $locale === 'browser' ? app()->getLocale() : (string) $locale;
+
+        if (! class_exists(IntlCalendar::class)) {
+            return 1;
+        }
+
+        // IntlCalendar counts from 1 (Sunday).
+        return (IntlCalendar::createInstance(null, str_replace('_', '-', $locale))->getFirstDayOfWeek() - 1) % 7;
     }
 
     public function column(string $id): ?Column

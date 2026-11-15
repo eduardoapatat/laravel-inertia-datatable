@@ -26,7 +26,7 @@ use LogicException;
  *     state: array{
  *         pagination: array{pageIndex: int, pageSize: int},
  *         sorting: list<array{id: string, desc: bool}>,
- *         columnFilters: list<array{id: string, filterId: string, variant: string, operator: string, value: string|list<string>}>,
+ *         columnFilters: list<array{id: string, filterId: string, variant: string, operator: string, value: string|list<string>, range?: array{string, string}}>,
  *         join: string,
  *         globalFilter: string,
  *         columnVisibility: array<string, bool>,
@@ -295,7 +295,7 @@ final class DataTableEngine
     }
 
     /**
-     * @return list<array{id: string, filterId: string, variant: string, operator: string, value: string|list<string>}>
+     * @return list<array{id: string, filterId: string, variant: string, operator: string, value: string|list<string>, range?: array{string, string}}>
      */
     private function columnFilters(TableState $state): array
     {

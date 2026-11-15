@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace InertiaDataTable\Parsing;
 
+use Carbon\CarbonImmutable;
 use DateTimeImmutable;
 use InertiaDataTable\Column;
 use InertiaDataTable\Columns\OptionColumn;
 use InertiaDataTable\Enums\FilterOperator;
 use InertiaDataTable\Enums\FilterVariant;
 use InertiaDataTable\FilterItem;
+use InertiaDataTable\Query\RelativeDate;
 
 /**
  * Parses a `filter[<col>]=[<operator>.]<value>` parameter.
@@ -23,7 +25,11 @@ final class FilterParser
 
     private const int MAX_TEXT_LENGTH = 255;
 
-    public function parse(Column $column, string $param): ?FilterItem
+    /**
+     * @param  CarbonImmutable|null  $today  The day `rel` filters are relative to; null is today in the app time zone.
+     * @param  int  $weekStartsOn  First day of the week of `rel` weeks (0 = Sunday).
+     */
+    public function parse(Column $column, string $param, ?CarbonImmutable $today = null, int $weekStartsOn = 1): ?FilterItem
     {
         $variant = $column->variantOfFilter();
 
@@ -35,6 +41,15 @@ final class FilterParser
 
         if ($operator->isValueless()) {
             return new FilterItem($column->id(), $variant, $operator, '');
+        }
+
+        if ($operator === FilterOperator::IsRelativeToToday) {
+            $relative = RelativeDate::parse($rawValue);
+
+            return $relative === null ? null : new FilterItem(
+                $column->id(), $variant, $operator, $relative->token,
+                $relative->range($today ?? CarbonImmutable::now(), $weekStartsOn),
+            );
         }
 
         if ($operator === FilterOperator::IsBetween) {

@@ -43,10 +43,15 @@ enum FilterVariant: string
                 FilterOperator::ILike, FilterOperator::NotILike, FilterOperator::Eq, FilterOperator::Ne,
                 FilterOperator::IsEmpty, FilterOperator::IsNotEmpty,
             ],
-            self::Number, self::Range, self::Date, self::DateRange => [
+            self::Number, self::Range => [
                 FilterOperator::Eq, FilterOperator::Ne, FilterOperator::Lt, FilterOperator::Lte,
                 FilterOperator::Gt, FilterOperator::Gte, FilterOperator::IsBetween,
                 FilterOperator::IsEmpty, FilterOperator::IsNotEmpty,
+            ],
+            self::Date, self::DateRange => [
+                FilterOperator::Eq, FilterOperator::Ne, FilterOperator::Lt, FilterOperator::Lte,
+                FilterOperator::Gt, FilterOperator::Gte, FilterOperator::IsBetween,
+                FilterOperator::IsRelativeToToday, FilterOperator::IsEmpty, FilterOperator::IsNotEmpty,
             ],
             self::Boolean => [FilterOperator::Eq, FilterOperator::Ne, FilterOperator::IsEmpty, FilterOperator::IsNotEmpty],
             self::Select => [

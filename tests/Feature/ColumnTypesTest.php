@@ -66,6 +66,11 @@ it('offers the rows without a value in the list, range and date filters', functi
         ->and(filterOf(Column::option('status')->filterMultiSelect(empty: true)))->toBe(['variant' => 'multi-select', 'empty' => true]);
 });
 
+it('offers presets relative to today in the date filters', function () {
+    expect(filterOf(Column::date('published_at')->filterDate(presets: true)))->toBe(['variant' => 'date', 'presets' => true])
+        ->and(filterOf(Column::date('published_at')->filterRange(empty: true, presets: true)))->toBe(['variant' => 'date-range', 'presets' => true, 'empty' => true]);
+});
+
 it('has one filter per column', function () {
     Column::number('price')->filterInput()->filterRange();
 })->throws(LogicException::class, 'The column [price] already has a number filter.');

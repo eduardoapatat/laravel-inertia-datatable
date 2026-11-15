@@ -258,6 +258,8 @@ final class QueryApplier
             FilterOperator::ILike => $this->whereContains($query, $column, (string) (is_array($value) ? ($value[0] ?? '') : $value)),
             FilterOperator::InArray => $query->whereIn($column, (array) $value),
             FilterOperator::IsBetween => $this->whereBetween($query, $column, $variant, (array) $value),
+            // The parser resolved the token to its days: the same as `between`.
+            FilterOperator::IsRelativeToToday => $this->whereBetween($query, $column, $variant, $filter->range ?? ['', '']),
             FilterOperator::Eq => $this->whereEquals($query, $column, $variant, (string) (is_array($value) ? ($value[0] ?? '') : $value)),
             default => $this->whereCompare($query, $column, $variant, $operator, (string) (is_array($value) ? ($value[0] ?? '') : $value)),
         };

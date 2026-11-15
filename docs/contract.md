@@ -79,8 +79,8 @@ filter[<col>]=[<operator>.]<value>
 | `text` | `ilike` | `ilike`, `not.ilike`, `eq`, `neq`, `is.empty`, `not.is.empty` | text |
 | `number` | `eq` | `eq`, `neq`, `lt`, `lte`, `gt`, `gte`, `between`, `is.empty`, `not.is.empty` | number (`.` decimal) |
 | `range` | `between` | same as `number` | `min,max`; one end may be empty (`10,` / `,100`) |
-| `date` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `is.empty`, `not.is.empty` | `YYYY-MM-DD` |
-| `date-range` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`) |
+| `date` | `eq` | `eq`, `neq`, `lt`, `gt`, `lte`, `gte`, `between`, `rel`, `is.empty`, `not.is.empty` | `YYYY-MM-DD`; with `rel`, a token (below) |
+| `date-range` | `between` | same as `date` | `from,to` (`YYYY-MM-DD`); with `rel`, a token (below) |
 | `boolean` | `eq` | `eq`, `neq`, `is.empty`, `not.is.empty` | `true` / `false` |
 | `select` | `in` | `in`, `eq`, `neq`, `is.empty`, `not.is.empty` | value or list |
 | `multi-select` | `in` | `in`, `not.in`, `is.empty`, `not.is.empty` | list |
@@ -93,11 +93,28 @@ filter[<col>]=[<operator>.]<value>
 | `eq` / `neq` | `=` / `<>`; in `date` it compares the whole day (`whereDate`); in `text` it is case-insensitive |
 | `lt` `lte` `gt` `gte` | comparison; in `date` by day (`lte` 2026-01-31 includes that whole day) |
 | `between` | both ends inclusive; with one empty end it is equivalent to `gte` / `lte` |
+| `rel` | the days the token resolves to, as `between` (by day, both ends inclusive) |
 | `in` / `not.in` | `whereIn` / `whereNotIn` |
 | `is.empty` / `not.is.empty` | `IS NULL` (or `''` in `text`) / the opposite |
 
 - Negations (`not.ilike`, `neq`, `not.in`) include rows without a value (`NULL`): "is not X" also holds for what has no value. On relation columns they include rows without the relation.
 - "Case-insensitive" depends on the database: in MySQL/MariaDB (`_ci` collation) and PostgreSQL (`ILIKE`, `lower()`) it works with any letter; in SQLite only with ASCII letters (`Á` ≠ `á`).
+
+#### `rel`: dates relative to today
+
+`filter[published_at]=rel.-7d` keeps meaning "the last 7 days" whenever the URL is opened: the server resolves the token against today on each request, to a range of whole days applied as `between`.
+
+| Token | Days (both ends inclusive) |
+|---|---|
+| `today`, `yesterday`, `tomorrow` | that day |
+| `-<N>d`, `-<N>w`, `-<N>m`, `-<N>y` | the last N days, weeks, months or years, **today included**: `-7d` = today and the 6 days before; `-1m` on March 31 = March 1 to 31 |
+| `+<N>d`, `+<N>w`, `+<N>m`, `+<N>y` | the next N, today included: `+7d` = today and the 6 days after |
+| `this-week`, `this-month`, `this-quarter`, `this-year` | the whole calendar period that contains today |
+| `last-week` … `last-year`, `next-week` … `next-year` | the previous or next calendar period |
+
+- **Today** is the date in the time zone of the table (`timezone()` / `->timezone()`), else `inertia-datatable.timezone`, else the app's (`app.timezone`): the zone the dates are compared in (`whereDate`), so `rel.today` and `eq.<today's date>` match the same rows. The client never computes the days: it shows the label of the token and the `range` of `state` (§2.4), so the server and the browser (also with SSR) agree.
+- **Weeks** start on the first day of the week of the table locale (§2.6), the same as the calendar of the UI (Sunday in `en-US`, Monday in `es-CL`); with the `browser` locale, the one of the app locale; Monday without the PHP `intl` extension.
+- `rel` has no negation and no list. It goes with other filters of the column (`filter[published_at][]=rel.this-month&filter[published_at][]=is.empty`) and with `join=or` like any other filter.
 
 #### Normalization
 
@@ -105,6 +122,7 @@ filter[<col>]=[<operator>.]<value>
 - A text value is cut at 255 characters.
 - A value that does not match the variant (`filter[price]=abc`, invalid date, boolean other than `true`/`false`) drops that filter.
 - `between` with `min > max` swaps the ends.
+- A `rel` token is case-insensitive and written in its canonical form (`-07D` → `-7d`); N below 1 is 1 and above about ten years is cut (3660 days, 522 weeks, 120 months, 10 years). An unknown token drops the filter.
 - In `select` / `multi-select` with declared options, values not in the list are dropped.
 - Columns from `belongsTo` / `hasOne` relations are filtered the same way (see §5). Columns of to-many relations have several values per row; §5.5 says what each operator means for them.
 
@@ -118,8 +136,7 @@ filter[<col>]=[<operator>.]<value>
 
 #### Phases
 
-- **Implemented:** all the variants and operators in the table, several filters per column, `join` (`and`, with OR for `is.empty` within its column, or `or`) and columns of to-many relations (§5.5).
-- **Future phase:** the `rel` operator (dates relative to today).
+- **Implemented:** all the variants and operators in the table, including `rel`, several filters per column, `join` (`and`, with OR for `is.empty` within its column, or `or`) and columns of to-many relations (§5.5).
 
 ### 1.5 `search`
 
@@ -183,7 +200,8 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
     "columnFilters": [
       { "id": "status", "filterId": "status-0", "variant": "multi-select", "operator": "inArray", "value": ["active", "pending"] },
       { "id": "email", "filterId": "email-0", "variant": "text", "operator": "iLike", "value": "gmail" },
-      { "id": "price", "filterId": "price-0", "variant": "range", "operator": "isBetween", "value": ["10", "100"] }
+      { "id": "price", "filterId": "price-0", "variant": "range", "operator": "isBetween", "value": ["10", "100"] },
+      { "id": "created_at", "filterId": "created_at-0", "variant": "date-range", "operator": "isRelativeToToday", "value": "-7d", "range": ["2026-11-09", "2026-11-15"] }
     ],
     "join": "and",
     "globalFilter": "ana",
@@ -239,7 +257,7 @@ Same as Laravel's `LengthAwarePaginator` (in snake_case). `from` and `to` are `n
 
 The **normalized and applied** state, with the TanStack Table v9 shapes (`PaginationState`, `SortingState`, `ColumnFiltersState`, `globalFilter`, `VisibilityState`) so it can be passed to the table as is. `pageIndex` is 0-based (`page - 1`).
 
-Each `columnFilters` item has the frontend's `ColumnFilterItem` shape: `id`, `filterId` (`<id>-<index>`), `variant`, `operator` (operator key: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) and `value` (`string` or `string[]`, always as text, just like in the URL).
+Each `columnFilters` item has the frontend's `ColumnFilterItem` shape: `id`, `filterId` (`<id>-<index>`), `variant`, `operator` (operator key: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `isRelativeToToday`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) and `value` (`string` or `string[]`, always as text, just like in the URL). A `rel` filter (`isRelativeToToday`) also has `range`: the first and last day the server resolved its token to (`["2026-11-09", "2026-11-15"]`), for the UI to show them without computing dates.
 
 `join` is `"and"` or `"or"` (§1.4); it is not part of TanStack's state.
 
@@ -277,13 +295,13 @@ Each column:
   "filter": { "variant": "range" } }
 ```
 
-`filter` is `null` or `{ "variant": …, "placeholder"?: …, "empty"?: true }`, with the variants of §1.4. `empty: true` (`filterRange(empty: true)`, `filterSelect(empty: true)`…, not in `filterInput()`) makes the filter offer the rows without a value, sent as `is.empty` next to the column's other filters (OR, §1.4); with `inertia-datatable.validate_columns`, it throws on a `NOT NULL` column and on a `belongsTo` column whose foreign key and related column are both `NOT NULL`. Each type of column allows only some of them:
+`filter` is `null` or `{ "variant": …, "placeholder"?: …, "presets"?: true, "empty"?: true }`, with the variants of §1.4. `presets: true` (`filterDate(presets: true)` / `filterRange(presets: true)`) makes the toolbar date filter offer days relative to today next to the calendar, sent as `rel` (§1.4). `empty: true` (`filterRange(empty: true)`, `filterSelect(empty: true)`…, not in `filterInput()`) makes the filter offer the rows without a value, sent as `is.empty` next to the column's other filters (OR, §1.4); with `inertia-datatable.validate_columns`, it throws on a `NOT NULL` column and on a `belongsTo` column whose foreign key and related column are both `NOT NULL`. Each type of column allows only some of them:
 
 | Column | `display.type` | Filter variants |
 |---|---|---|
 | `Column::text()` | `text` | `text` (`filterInput('…')`, with its `placeholder`) |
 | `Column::number()` | `number` | `number` (`filterInput()`, with its `placeholder`), `range` (`filterRange()`, bounds in `facets`) |
-| `Column::date()` | `date` | `date` (`filterDate()`), `date-range` (`filterRange()`) |
+| `Column::date()` | `date` | `date` (`filterDate()`), `date-range` (`filterRange()`); both with `presets: true` |
 | `Column::boolean()` | `boolean` | `boolean` (`filterSelect()`) |
 | `Column::option()` | `option` | `select` (`filterSelect()`), `multi-select` (`filterMultiSelect()`); options in `facets` |
 

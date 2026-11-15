@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -359,6 +360,45 @@ it('shows the default visible columns when no columns are requested', function (
         'status' => 'active', 'category' => 'Hogar', 'featured' => true,
     ]);
 });
+
+it('filters dates relative to today', function (string $query, array $expected) {
+    seedCatalog();
+    $this->travelTo(CarbonImmutable::parse('2026-01-21 12:00', 'UTC'));
+
+    getJson("/products?{$query}")->assertOk()->assertJsonPath('data.*.name', $expected);
+})->with([
+    'yesterday' => ['filter[released_on]=rel.yesterday', ['Silla']],
+    'last 12 days, today included' => ['filter[released_on]=rel.-12d', ['Lámpara', 'Silla']],
+    'last 11 days' => ['filter[released_on]=rel.-11d', ['Silla']],
+    'this month' => ['filter[released_on]=rel.this-month', ['Lámpara', 'Silla']],
+    'next month' => ['filter[released_on]=rel.next-month', ['Mesa']],
+    'this quarter' => ['filter[released_on]=rel.this-quarter', ['Lámpara', 'Mesa', 'Silla', 'Teclado']],
+    'with join or' => ['filter[released_on]=rel.yesterday&filter[price]=gte.100&join=or', ['Mesa', 'Silla']],
+    'with other filters of the column' => ['filter[released_on][]=rel.this-month&filter[released_on][]=gt.2026-01-15', ['Silla']],
+    'invalid token drops the filter' => ['filter[released_on]=rel.soon', ['Lámpara', 'Mesa', 'Silla', 'Teclado']],
+    'without a token' => ['filter[released_on]=rel', ['Lámpara', 'Mesa', 'Silla', 'Teclado']],
+]);
+
+it('echoes a relative date filter with the days it resolved to', function () {
+    seedCatalog();
+    $this->travelTo(CarbonImmutable::parse('2026-01-21 12:00', 'UTC'));
+
+    getJson('/products?filter[released_on]=rel.-07D')->assertOk()->assertJsonPath('state.columnFilters', [
+        ['id' => 'released_on', 'filterId' => 'released_on-0', 'variant' => 'date', 'operator' => 'isRelativeToToday', 'value' => '-7d', 'range' => ['2026-01-15', '2026-01-21']],
+    ]);
+});
+
+it('takes today in the configured time zone', function (?string $timezone, array $expected) {
+    seedCatalog();
+    config(['inertia-datatable.timezone' => $timezone]);
+    // 23:00 of January 20 in Santiago (UTC-3).
+    $this->travelTo(CarbonImmutable::parse('2026-01-21 02:00', 'UTC'));
+
+    getJson('/products?filter[released_on]=rel.today')->assertOk()->assertJsonPath('data.*.name', $expected);
+})->with([
+    'app time zone (UTC)' => [null, []],
+    'America/Santiago' => ['America/Santiago', ['Silla']],
+]);
 
 it('echoes the applied filters in the ColumnFilterItem shape', function () {
     seedCatalog();

@@ -99,6 +99,16 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
+     * Time zone of "today" for the `rel` date filters (`'America/Santiago'`, or the
+     * one of the authenticated user); null uses `inertia-datatable.timezone` or the
+     * app time zone.
+     */
+    public function timezone(): ?string
+    {
+        return null;
+    }
+
+    /**
      * Keys included in every row even when they are not visible columns.
      *
      * @return list<string>|null
@@ -132,6 +142,7 @@ abstract class DataTable implements Arrayable, JsonSerializable, Responsable
             alwaysInclude: $this->alwaysInclude(),
             transformer: $overridesTransform ? $this->transform(...) : null,
             locale: $this->locale(),
+            timezone: $this->timezone(),
         );
     }
 }

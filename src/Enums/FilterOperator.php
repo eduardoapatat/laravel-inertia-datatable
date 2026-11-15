@@ -25,6 +25,7 @@ enum FilterOperator: string
     case Gt = 'gt';
     case Gte = 'gte';
     case IsBetween = 'isBetween';
+    case IsRelativeToToday = 'isRelativeToToday';
 
     public function urlName(): string
     {
@@ -42,6 +43,7 @@ enum FilterOperator: string
             self::Gt => 'gt',
             self::Gte => 'gte',
             self::IsBetween => 'between',
+            self::IsRelativeToToday => 'rel',
         };
     }
 

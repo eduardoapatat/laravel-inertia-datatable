@@ -17,6 +17,8 @@ final class DateColumn extends Column
     /** @var string|array<string, mixed>|null */
     private string|array|null $format = null;
 
+    private bool $presets = false;
+
     /**
      * A preset (`short`, `medium`, `long`, `datetime`, `relative`) or Intl.DateTimeFormat options.
      *
@@ -35,21 +37,32 @@ final class DateColumn extends Column
 
     /**
      * Calendar in the toolbar to pick one day. The URL also accepts other
-     * operators (`lt.2026-01-01`, `is.empty`…, docs/contract.md §1.4).
-     * `empty: true` adds a check for the rows without a date.
+     * operators (`lt.2026-01-01`, `rel.-7d`, `is.empty`…, docs/contract.md §1.4).
+     * `empty: true` adds a check for the rows without a date; `presets: true`,
+     * days relative to today (Today, Last 7 days, This month…) next to the calendar.
      */
-    public function filterDate(bool $empty = false): self
+    public function filterDate(bool $empty = false, bool $presets = false): self
     {
+        $this->presets = $presets;
+
         return $this->withFilter(FilterVariant::Date, $empty);
     }
 
     /**
      * Calendar in the toolbar to pick a from / to range of days. `empty: true`
-     * adds a check for the rows without a date.
+     * adds a check for the rows without a date; `presets: true`, ranges relative
+     * to today (Today, Last 7 days, This month…) next to the calendar.
      */
-    public function filterRange(bool $empty = false): self
+    public function filterRange(bool $empty = false, bool $presets = false): self
     {
+        $this->presets = $presets;
+
         return $this->withFilter(FilterVariant::DateRange, $empty);
+    }
+
+    protected function filterOptions(): array
+    {
+        return $this->presets ? ['presets' => true] : [];
     }
 
     public function display(): array

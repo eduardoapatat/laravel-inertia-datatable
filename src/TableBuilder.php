@@ -42,6 +42,8 @@ final class TableBuilder implements Arrayable, JsonSerializable, Responsable
 
     private ?string $locale = null;
 
+    private ?string $timezone = null;
+
     /**
      * @param  Builder<covariant Model>|Relation<covariant Model, covariant Model, mixed>  $query
      */
@@ -109,6 +111,16 @@ final class TableBuilder implements Arrayable, JsonSerializable, Responsable
     }
 
     /**
+     * Time zone of "today" for the `rel` date filters (`'America/Santiago'`).
+     */
+    public function timezone(string $timezone): self
+    {
+        $this->timezone = $timezone;
+
+        return $this;
+    }
+
+    /**
      * @param  Closure(Model): array<string, mixed>  $transformer
      */
     public function transform(Closure $transformer): self
@@ -133,6 +145,7 @@ final class TableBuilder implements Arrayable, JsonSerializable, Responsable
             alwaysInclude: $this->alwaysInclude,
             transformer: $this->transformer,
             locale: $this->locale,
+            timezone: $this->timezone,
         );
     }
 }

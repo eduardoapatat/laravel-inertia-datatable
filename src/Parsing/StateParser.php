@@ -85,6 +85,9 @@ final class StateParser
 
         $maxFilters = (int) config('inertia-datatable.max_filters', 20);
         $filters = [];
+        // One instant for every filter of the request.
+        $today = $definition->today();
+        $weekStartsOn = $definition->weekStartsOn();
 
         foreach ($value as $columnId => $params) {
             $column = $definition->column((string) $columnId);
@@ -98,7 +101,7 @@ final class StateParser
                     continue;
                 }
 
-                $filter = $this->filterParser->parse($column, $param);
+                $filter = $this->filterParser->parse($column, $param, $today, $weekStartsOn);
 
                 if ($filter !== null) {
                     $filters[] = $filter;
