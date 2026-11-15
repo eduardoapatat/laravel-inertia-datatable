@@ -160,7 +160,7 @@ const view = computed(() => {
                                 filter?.kind === 'text'
                                     ? 'h-9 w-40 lg:w-56'
                                     : filter
-                                      ? 'h-9 w-40'
+                                      ? 'h-9 w-30' // the number input
                                       : 'h-8 w-24',
                             )
                         "
