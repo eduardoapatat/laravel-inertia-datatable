@@ -4,6 +4,11 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- Vue: the previous and next month buttons of the one-day date filter (`filterDate()`) are named with the `previous_month` and `next_month` texts of the table, as in the range filter, instead of an English "Previous page" / "Next page".
+- Vue: `h(DataTableColumnHeader, { column, label })` type checks in a custom `header`, with the column of any table.
+
 ## [0.14.1] - 2026-11-15
 
 ### Fixed

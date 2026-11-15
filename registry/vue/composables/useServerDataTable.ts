@@ -11,7 +11,6 @@ import {
 } from 'vue';
 
 import DataTableCell from '@/components/data-table/DataTableCell.vue';
-import type { DataTableAnyColumn } from '@/components/data-table/cells';
 import DataTableDefaultHeader from '@/components/data-table/DataTableDefaultHeader.vue';
 import {
     type DataTableColumn,
@@ -430,9 +429,7 @@ function withDefaults<TData extends RowData>(
         header:
             column.header ??
             (({ column }: HeaderContext<DataTableFeatures, TData, unknown>) =>
-                h(DataTableDefaultHeader, {
-                    column: column as DataTableAnyColumn,
-                })),
+                h(DataTableDefaultHeader, { column })),
         cell:
             column.cell ??
             (({ cell }: CellContext<DataTableFeatures, TData, unknown>) =>

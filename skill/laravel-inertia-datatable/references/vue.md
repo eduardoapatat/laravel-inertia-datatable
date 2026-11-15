@@ -143,6 +143,7 @@ columnHelper.accessor('category', {
 }),
 ```
 
+- A custom `header` keeps the sort and hide menu with `DataTableColumnHeader`: `header: ({ column }) => h(DataTableColumnHeader, { column, label: 'Code' })`.
 - `DataTableOptionBadge` (`option`, `value`, `variant` and the default slot) is the badge of `->badge()`, for fully custom cells. Never draw a badge by hand with Tailwind classes; use the project's `components/ui/badge`.
 - For plain strings, `formatCellValue(meta, value, getFormatContext(table))`, `getOptionLabel(meta, value)` and `getOption(meta, value)` are exported from `@/components/data-table` (and `@/lib/data-table-format`). `row.original` gives the other visible fields of the row.
 

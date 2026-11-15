@@ -3,7 +3,8 @@ import type { FunctionalComponent, HTMLAttributes, VNodeChild } from 'vue';
 import type { BadgeVariants } from '@/components/ui/badge';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getFormatContext } from '@/lib/data-table-format';
-import type { Cell, Column } from '@/lib/data-table-tanstack';
+import type { TableWithMeta } from '@/lib/data-table-messages';
+import type { Cell, SortingState } from '@/lib/data-table-tanstack';
 import type { DataTableColumnMeta } from '@/lib/data-table-types';
 
 /**
@@ -12,8 +13,23 @@ import type { DataTableColumnMeta } from '@/lib/data-table-types';
  */
 export type DataTableAnyCell = Cell<DataTableFeatures, any>;
 
-/** A column of any row type: the header components read its label and its menu. */
-export type DataTableAnyColumn = Column<DataTableFeatures, any, any>;
+/**
+ * A column of any row type, with only what the headers read: its label and its
+ * sort and hide menu. A TanStack column of any table fits it, so
+ * `h(DataTableColumnHeader, { column, label })` type checks in a custom header.
+ */
+export interface DataTableAnyColumn {
+    id: string;
+    table: TableWithMeta & {
+        atoms: { sorting: { get: () => SortingState } };
+    };
+    columnDef: { meta?: DataTableColumnMeta };
+    getCanSort: () => boolean;
+    getCanHide: () => boolean;
+    clearSorting: () => void;
+    toggleSorting: (desc?: boolean, isMulti?: boolean) => void;
+    toggleVisibility: (value?: boolean) => void;
+}
 
 /**
  * Props of the type cells: the TanStack cell (`h(DataTableNumberCell, { cell })`).

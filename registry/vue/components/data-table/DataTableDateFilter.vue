@@ -8,11 +8,27 @@ import {
     today,
 } from '@internationalized/date';
 import { CalendarIcon, CircleX } from '@lucide/vue';
-import { type DateRange, RangeCalendarRoot, useDirection } from 'reka-ui';
+import {
+    CalendarRoot,
+    type DateRange,
+    RangeCalendarRoot,
+    useDirection,
+} from 'reka-ui';
 import { computed, shallowRef } from 'vue';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import {
+    CalendarCell,
+    CalendarCellTrigger,
+    CalendarGrid,
+    CalendarGridBody,
+    CalendarGridHead,
+    CalendarGridRow,
+    CalendarHeadCell,
+    CalendarHeader,
+    CalendarNextButton,
+    CalendarPrevButton,
+} from '@/components/ui/calendar';
 import {
     Popover,
     PopoverContent,
@@ -285,24 +301,74 @@ function toTimestamp(date: DateValue) {
                     </RangeCalendarGrid>
                 </div>
             </RangeCalendarRoot>
-            <Calendar
+            <CalendarRoot
                 v-else
+                v-slot="{ grid, weekDays }"
                 v-model:placeholder="placeholder"
                 :model-value="singleValue"
                 :locale="locale"
                 :week-starts-on="weekStartsOn"
                 :dir="dir"
                 initial-focus
+                data-slot="calendar"
+                class="p-3"
                 @update:model-value="onSelect"
             >
-                <template #calendar-heading>
+                <CalendarHeader class="pt-0">
                     <DataTableCalendarSelects
                         v-model:placeholder="placeholder"
                         :locale="locale"
                         :table="table"
                     />
-                </template>
-            </Calendar>
+                    <nav
+                        class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-1"
+                    >
+                        <CalendarPrevButton
+                            :aria-label="getMessage(table, 'previous_month')"
+                        />
+                        <CalendarNextButton
+                            :aria-label="getMessage(table, 'next_month')"
+                        />
+                    </nav>
+                </CalendarHeader>
+                <div
+                    class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0"
+                >
+                    <CalendarGrid
+                        v-for="month in grid"
+                        :key="month.value.toString()"
+                    >
+                        <CalendarGridHead>
+                            <CalendarGridRow>
+                                <CalendarHeadCell
+                                    v-for="day in weekDays"
+                                    :key="day"
+                                >
+                                    {{ day }}
+                                </CalendarHeadCell>
+                            </CalendarGridRow>
+                        </CalendarGridHead>
+                        <CalendarGridBody>
+                            <CalendarGridRow
+                                v-for="(weekDates, index) in month.rows"
+                                :key="`weekDate-${index}`"
+                                class="mt-2 w-full"
+                            >
+                                <CalendarCell
+                                    v-for="weekDate in weekDates"
+                                    :key="weekDate.toString()"
+                                    :date="weekDate"
+                                >
+                                    <CalendarCellTrigger
+                                        :day="weekDate"
+                                        :month="month.value"
+                                    />
+                                </CalendarCell>
+                            </CalendarGridRow>
+                        </CalendarGridBody>
+                    </CalendarGrid>
+                </div>
+            </CalendarRoot>
             <template v-if="column.columnDef.meta?.empty">
                 <Separator />
                 <div class="p-3">
