@@ -330,7 +330,7 @@ function formatDateRange(range: DateRange, locale?: string) {
  * Month and day names, first day of the week and navigation texts of the
  * calendar in the table locale, with Intl (no date-fns locales needed).
  */
-function useCalendarLocale(table: TableWithMeta) {
+export function useCalendarLocale(table: TableWithMeta) {
     const locale = table.options.meta?.locale;
     const messages = table.options.meta?.messages;
 
