@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-11-15
+
 ### Fixed
 
 - `DataTableFilterList` (React and Vue): with `join=and`, the "Is empty" row of a column goes next to the other rows of that column joined with "or", since the server adds it with OR to them; it read as "and", something no row could match.
@@ -403,7 +405,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.1...HEAD
+[0.16.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.3...v0.15.0
 [0.14.3]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.2...v0.14.3
