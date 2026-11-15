@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-15
+
 ### Added
 
 - Vue UI, for apps with Laravel's Vue starter kit (shadcn-vue, `@tanstack/vue-table` and `@inertiajs/vue3`): the registry items `data-table-vue` and `data-table-vue-files`, with the `useServerDataTable` composable, `DataTable`, the toolbar, the filters of every type, the pagination pieces and the first-load skeleton, as in React. See the skill's `references/vue.md`.
@@ -347,7 +349,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.2...v0.13.0
 [0.12.2]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.12.0...v0.12.1
