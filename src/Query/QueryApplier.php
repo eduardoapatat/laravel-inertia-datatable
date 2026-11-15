@@ -206,7 +206,11 @@ final class QueryApplier
             // Qualified: a through relation joins a table that may have the same column.
             $attribute = fn (Builder $where): string => $where->qualifyColumn($column->attribute());
 
-            if ($operator === FilterOperator::IsEmpty) {
+            // To-many: "empty" is a row without related rows. The other operators already
+            // read as "some related row matches" and their negations as "none does".
+            if ($operator->isValueless() && $this->relations->isToMany($query->getModel(), $column)) {
+                $operator === FilterOperator::IsEmpty ? $query->whereDoesntHave($relation) : $query->whereHas($relation);
+            } elseif ($operator === FilterOperator::IsEmpty) {
                 $query->whereDoesntHave($relation, fn (Builder $where) => $this->whereNotEmpty($where, $attribute($where), $filter->variant));
             } elseif ($operator === FilterOperator::IsNotEmpty) {
                 $query->whereHas($relation, fn (Builder $where) => $this->whereNotEmpty($where, $attribute($where), $filter->variant));

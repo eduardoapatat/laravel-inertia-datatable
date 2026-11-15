@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace InertiaDataTable;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use InertiaDataTable\Columns\OptionColumn;
+use InertiaDataTable\Columns\TextColumn;
 use InertiaDataTable\Enums\DatePreset;
 use InertiaDataTable\Parsing\StateParser;
 use InertiaDataTable\Query\ColumnValidator;
 use InertiaDataTable\Query\FacetResolver;
 use InertiaDataTable\Query\QueryApplier;
 use InertiaDataTable\Query\RelationResolver;
+use LogicException;
 
 /**
  * Resolves a table for a request and builds the contract response (docs/contract.md).
@@ -46,7 +50,7 @@ final class DataTableEngine
      */
     public function resolve(TableDefinition $definition, Request $request): array
     {
-        $this->ensureRelationsAreToOne($definition);
+        $this->ensureRelationsAreSupported($definition);
         $validate = $this->validator->enabled();
 
         if ($validate) {
@@ -124,7 +128,12 @@ final class DataTableEngine
     public function config(TableDefinition $definition): array
     {
         return [
-            'columns' => array_values(array_map(fn (Column $column): array => $column->toConfig(), $definition->columns)),
+            'columns' => array_values(array_map(
+                fn (Column $column): array => $this->relations->isToMany($definition->query->getModel(), $column)
+                    ? [...$column->toConfig(), 'multiple' => true]
+                    : $column->toConfig(),
+                $definition->columns,
+            )),
             'searchable' => $definition->isSearchable(),
             'locale' => $this->locale($definition),
             'date_format' => $this->dateFormat(),
@@ -188,15 +197,29 @@ final class DataTableEngine
     }
 
     /**
-     * Fails as soon as a column of a to-many relation is declared, even if it is only displayed.
+     * Fails as soon as a column uses a relation that is not supported, even if it is only
+     * displayed. A to-many column holds a list of values: only option and text columns,
+     * and it cannot be sorted.
      */
-    private function ensureRelationsAreToOne(TableDefinition $definition): void
+    private function ensureRelationsAreSupported(TableDefinition $definition): void
     {
         $model = $definition->query->getModel();
+        $defaultSort = array_map(fn (SortItem $item): string => $item->id, $definition->defaultSort);
 
         foreach ($definition->columns as $column) {
-            if ($column->relation() !== null) {
-                $this->relations->relation($model, $column);
+            if (! $this->relations->isToMany($model, $column)) {
+                continue;
+            }
+
+            $problem = match (true) {
+                ! $column instanceof OptionColumn && ! $column instanceof TextColumn => 'only option and text columns can hold a list of values.',
+                $column->isSortable() => 'it cannot be sortable: a row has several values.',
+                in_array($column->id(), $defaultSort, true) => 'it cannot be in the default sort: a row has several values.',
+                default => null,
+            };
+
+            if ($problem !== null) {
+                throw new LogicException(sprintf('The column [%s] uses the to-many relation [%s], so %s', $column->id(), $column->relation(), $problem));
             }
         }
     }
@@ -236,7 +259,18 @@ final class DataTableEngine
             }
 
             $related = $model->getRelation($relation);
-            $row[$id] = $related instanceof Model ? ($related->toArray()[$column->attribute()] ?? null) : null;
+
+            $row[$id] = match (true) {
+                $related instanceof Model => $related->toArray()[$column->attribute()] ?? null,
+                // To-many: the distinct values, in the order of the relation, without empty ones.
+                $related instanceof Collection => $related
+                    ->map(fn (Model $item): mixed => $item->toArray()[$column->attribute()] ?? null)
+                    ->reject(fn (mixed $value): bool => $value === null || $value === '')
+                    ->unique()
+                    ->values()
+                    ->all(),
+                default => null,
+            };
         }
 
         return $row;

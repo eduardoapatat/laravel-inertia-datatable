@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace InertiaDataTable\Query;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use InertiaDataTable\Column;
@@ -79,6 +80,11 @@ final class ColumnValidator
             $column = $definition->columns[$id];
             $relation = $column->relation();
             $model = $relation === null ? $row : $row->getRelation($relation);
+
+            // To-many: the first related row, when there is one.
+            if ($model instanceof Collection) {
+                $model = $model->first();
+            }
 
             if (! $model instanceof Model || array_key_exists($column->attribute(), $model->toArray())) {
                 continue;

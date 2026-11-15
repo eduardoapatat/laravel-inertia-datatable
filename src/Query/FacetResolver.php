@@ -134,6 +134,10 @@ final class FacetResolver
      */
     private function groupedCounts(Builder $query, Column $column): array
     {
+        if ($this->relations->isToMany($query->getModel(), $column)) {
+            return $this->toManyCounts($query, $column);
+        }
+
         $rows = $query->getQuery()->newQuery()
             ->fromSub($this->valueQuery($query, $column), 'facet')
             ->select('facet_value')
@@ -153,6 +157,38 @@ final class FacetResolver
                 $counts[(string) $row->facet_value] = (int) $row->facet_count;
             }
         }
+
+        return [$counts, $emptyCount];
+    }
+
+    /**
+     * Rows per value of a to-many column: a row counts once in each option it has, so the
+     * counts may add up to more than the rows. The rows without related rows are counted
+     * apart, only when the filter offers them.
+     *
+     * @param  Builder<covariant Model>  $query
+     * @return array{array<string, int>, int}
+     */
+    private function toManyCounts(Builder $query, Column $column): array
+    {
+        $rows = $query->getQuery()->newQuery()
+            ->fromSub($this->relations->toManyValueQuery($query, $column), 'facet')
+            ->select('facet_value')
+            ->selectRaw('count(*) as facet_count')
+            ->groupBy('facet_value')
+            ->orderBy('facet_value')
+            ->get();
+
+        $counts = [];
+
+        foreach ($rows as $row) {
+            /** @var object{facet_value: string|int|float|bool, facet_count: int|string} $row */
+            $counts[(string) $row->facet_value] = (int) $row->facet_count;
+        }
+
+        $emptyCount = $column->filtersEmpty()
+            ? (clone $query)->whereDoesntHave((string) $column->relation())->toBase()->getCountForPagination()
+            : 0;
 
         return [$counts, $emptyCount];
     }

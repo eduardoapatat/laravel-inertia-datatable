@@ -7,6 +7,7 @@ namespace InertiaDataTable\Tests\Fixtures\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Note extends Model
 {
@@ -30,5 +31,13 @@ class Note extends Model
     public function team(): HasOneThrough
     {
         return $this->hasOneThrough(Team::class, Member::class, 'id', 'id', 'member_id', 'team_id');
+    }
+
+    /**
+     * @return MorphMany<Comment, $this>
+     */
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable');
     }
 }

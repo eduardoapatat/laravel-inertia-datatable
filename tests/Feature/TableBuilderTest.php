@@ -58,10 +58,10 @@ it('removes hidden column keys from transformed rows and keeps the other keys', 
     $response->assertOk()->assertJsonPath('data.0', ['name' => 'Atril', 'url' => "/products/{$product->id}"]);
 });
 
-it('rejects a column that reads a to-many relation', function () {
+it('rejects a number column that reads a to-many relation', function () {
     $table = DataTable::for(Category::query())
-        ->columns([Column::text('product')->from('products.name')])
+        ->columns([Column::number('price')->from('products.price')])
         ->withRequest(Request::create('/'));
 
-    expect(fn () => $table->toArray())->toThrow(LogicException::class, 'is not a to-one relation');
+    expect(fn () => $table->toArray())->toThrow(LogicException::class, 'The column [price] uses the to-many relation [products], so only option and text columns can hold a list of values.');
 });

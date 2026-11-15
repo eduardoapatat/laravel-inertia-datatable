@@ -30,6 +30,8 @@ final class OptionColumn extends Column
 
     private bool $withCounts = true;
 
+    private ?int $maxVisible = null;
+
     /**
      * A list of values, a value => label map or a backed enum. The enum gives
      * the label of each case with a `label()` method and, with `badge()`, its
@@ -75,6 +77,21 @@ final class OptionColumn extends Column
     }
 
     /**
+     * In a column with several values per row (a to-many relation), how many the cell
+     * shows before a "+N" with the rest. By default, 3.
+     */
+    public function maxVisible(int $values): self
+    {
+        if ($values < 1) {
+            throw new InvalidArgumentException(sprintf('The column [%s] must show at least one value, %d given.', $this->id(), $values));
+        }
+
+        $this->maxVisible = $values;
+
+        return $this;
+    }
+
+    /**
      * Declared options (value => label), or null to take them from the data.
      *
      * @return array<string, string>|null
@@ -97,7 +114,7 @@ final class OptionColumn extends Column
             $badge['variants'] = [...$this->enumVariants, ...$badge['variants'] ?? []];
         }
 
-        return ['type' => 'option', ...$badge];
+        return ['type' => 'option', ...$badge, ...($this->maxVisible === null ? [] : ['max' => $this->maxVisible])];
     }
 
     /**
