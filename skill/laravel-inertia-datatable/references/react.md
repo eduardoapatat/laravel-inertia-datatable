@@ -330,6 +330,7 @@ Call the hook once per table with its own prop and give each backend table a `na
 - `hooks/use-server-data-table.ts` — the hook and `getOptionLabel`.
 - `components/data-table/data-table-default-column.tsx` — default header and cell for columns the component does not customize.
 - `lib/data-table-server.ts` — response types (`ServerDataTable<T>`) and state ↔ URL serialization.
+- `lib/data-table-tanstack.ts` — TanStack Table and the React types the other `lib/` files use; they import TanStack from here.
 - `components/data-table/data-table-context.tsx` — `DataTableProvider` and `useDataTable`.
 - `lib/data-table-{columns,features,filter-options,filter-values,format,loading,messages,types,utils}.ts`, `components/data-table/*`, `components/ui/faceted.tsx`.
 

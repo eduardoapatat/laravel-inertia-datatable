@@ -15,31 +15,54 @@ class UiCommand extends Command
      */
     protected $signature = 'inertia-datatable:ui
         {--update : Overwrite the data table files with the latest version from the registry}
-        {--force : Do not ask for confirmation before updating}';
+        {--force : Do not ask for confirmation before updating}
+        {--react : Install the React UI (by default, the framework of the Inertia adapter in package.json)}
+        {--vue : Install the Vue UI (by default, the framework of the Inertia adapter in package.json)}';
 
     /**
      * @var string
      */
-    protected $description = 'Install or update the React UI of the data table';
+    protected $description = 'Install or update the React or Vue UI of the data table';
 
     public function handle(UiInstaller $installer): int
     {
-        if ($this->option('update')) {
-            return $this->update($installer);
+        $frontend = $this->frontend($installer);
+
+        if ($frontend === null) {
+            return self::FAILURE;
         }
 
-        if ($installer->isInstalled()) {
+        if ($this->option('update')) {
+            return $this->update($installer, $frontend);
+        }
+
+        if ($installer->isInstalled($frontend)) {
             $this->components->info('The data table UI is already installed. Use --update to get the latest version.');
 
             return self::SUCCESS;
         }
 
-        return $this->runInstaller($installer, $installer->installCommand());
+        return $this->runInstaller($installer, $frontend, $installer->installCommand($frontend));
     }
 
-    private function update(UiInstaller $installer): int
+    private function frontend(UiInstaller $installer): ?Frontend
     {
-        $this->components->warn('This overwrites components/data-table/*, components/ui/faceted.tsx, hooks/use-server-data-table.ts and lib/data-table-*.ts. Local changes in those files will be lost; other components/ui files are not touched.');
+        if ($this->option('react') && $this->option('vue')) {
+            $this->components->error('Use --react or --vue, not both.');
+
+            return null;
+        }
+
+        return match (true) {
+            (bool) $this->option('react') => Frontend::React,
+            (bool) $this->option('vue') => Frontend::Vue,
+            default => $installer->detectFrontend(),
+        };
+    }
+
+    private function update(UiInstaller $installer, Frontend $frontend): int
+    {
+        $this->components->warn("This overwrites {$frontend->updatedFiles()}. Local changes in those files will be lost; other components/ui files are not touched.");
 
         if (! $this->option('force') && ! $this->confirm('Update the data table UI?')) {
             $this->components->info('Update cancelled.');
@@ -47,10 +70,10 @@ class UiCommand extends Command
             return self::FAILURE;
         }
 
-        $result = $this->runInstaller($installer, $installer->updateCommand());
+        $result = $this->runInstaller($installer, $frontend, $installer->updateCommand($frontend));
 
         if ($result === self::SUCCESS) {
-            foreach ($installer->deleteObsoleteFiles() as $file) {
+            foreach ($installer->deleteObsoleteFiles($frontend) as $file) {
                 $this->components->info("Deleted resources/js/{$file}: the new version no longer has it.");
             }
         }
@@ -61,17 +84,17 @@ class UiCommand extends Command
     /**
      * @param  list<string>  $command
      */
-    private function runInstaller(UiInstaller $installer, array $command): int
+    private function runInstaller(UiInstaller $installer, Frontend $frontend, array $command): int
     {
         $this->components->info('Running: '.implode(' ', $command));
 
-        if (! $installer->run($command, fn (string $type, string $output) => $this->output->write($output))) {
+        if (! $installer->run($command, fn (string $type, string $output) => $this->output->write($output), $frontend)) {
             $this->components->error('The data table UI could not be installed. Run the command above manually.');
 
             return self::FAILURE;
         }
 
-        $this->components->info('The data table UI is ready.');
+        $this->components->info("The {$frontend->label()} data table UI is ready.");
 
         return self::SUCCESS;
     }

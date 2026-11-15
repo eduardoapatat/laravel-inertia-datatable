@@ -1,6 +1,6 @@
 # Third-party notices
 
-Part of the code in `registry/react/` (the `components/data-table/` components, `ui/faceted.tsx` and `lib/data-table-*.ts`) is derived from software published under the following license:
+Part of the code of the registry (the `components/data-table/` components and `ui/faceted.tsx` in `registry/react/`, their Vue port in `registry/vue/`, and the `lib/data-table-*.ts` files in `registry/shared/`) is derived from software published under the following license:
 
 ## MIT License
 

@@ -37,47 +37,52 @@
                     "target": "~/resources/js/lib/data-table-server.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-features.ts",
+                    "path": "registry/react/lib/data-table-tanstack.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-tanstack.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-features.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-features.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-format.ts",
+                    "path": "registry/shared/lib/data-table-format.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-format.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-messages.ts",
+                    "path": "registry/shared/lib/data-table-messages.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-messages.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-types.ts",
+                    "path": "registry/shared/lib/data-table-types.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-types.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-utils.ts",
+                    "path": "registry/shared/lib/data-table-utils.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-utils.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-columns.ts",
+                    "path": "registry/shared/lib/data-table-columns.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-columns.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-options.ts",
+                    "path": "registry/shared/lib/data-table-filter-options.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-options.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-values.ts",
+                    "path": "registry/shared/lib/data-table-filter-values.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-values.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-loading.ts",
+                    "path": "registry/shared/lib/data-table-loading.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-loading.ts"
                 },
@@ -180,47 +185,52 @@
                     "target": "~/resources/js/lib/data-table-server.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-features.ts",
+                    "path": "registry/react/lib/data-table-tanstack.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-tanstack.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-features.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-features.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-format.ts",
+                    "path": "registry/shared/lib/data-table-format.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-format.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-messages.ts",
+                    "path": "registry/shared/lib/data-table-messages.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-messages.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-types.ts",
+                    "path": "registry/shared/lib/data-table-types.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-types.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-utils.ts",
+                    "path": "registry/shared/lib/data-table-utils.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-utils.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-columns.ts",
+                    "path": "registry/shared/lib/data-table-columns.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-columns.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-options.ts",
+                    "path": "registry/shared/lib/data-table-filter-options.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-options.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-filter-values.ts",
+                    "path": "registry/shared/lib/data-table-filter-values.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-filter-values.ts"
                 },
                 {
-                    "path": "registry/react/lib/data-table-loading.ts",
+                    "path": "registry/shared/lib/data-table-loading.ts",
                     "type": "registry:lib",
                     "target": "~/resources/js/lib/data-table-loading.ts"
                 },
@@ -307,10 +317,728 @@
             ]
         },
         {
+            "name": "data-table-vue",
+            "type": "registry:block",
+            "title": "Data Table (Vue + Inertia)",
+            "description": "DataTable de shadcn-vue/TanStack Table v9 con paginación, orden, filtros, búsqueda y visibilidad resueltos en el servidor por eduardoapatat/laravel-inertia-datatable.",
+            "dependencies": [
+                "@tanstack/vue-table@^9.3.1",
+                "reka-ui",
+                "@vueuse/core",
+                "@lucide/vue",
+                "@internationalized/date"
+            ],
+            "registryDependencies": [
+                "badge",
+                "button",
+                "calendar",
+                "range-calendar",
+                "checkbox",
+                "dropdown-menu",
+                "input",
+                "input-group",
+                "label",
+                "native-select",
+                "popover",
+                "select",
+                "separator",
+                "skeleton",
+                "slider",
+                "table"
+            ],
+            "files": [
+                {
+                    "path": "registry/shared/lib/data-table-server.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-server.ts"
+                },
+                {
+                    "path": "registry/vue/lib/data-table-tanstack.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-tanstack.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-features.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-features.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-format.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-format.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-messages.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-messages.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-types.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-types.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-utils.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-utils.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-columns.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-columns.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-filter-options.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-options.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-filter-values.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-values.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-loading.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-loading.ts"
+                },
+                {
+                    "path": "registry/vue/composables/useServerDataTable.ts",
+                    "type": "registry:file",
+                    "target": "~/resources/js/composables/useServerDataTable.ts"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTable.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTable.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableBooleanCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableBooleanCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableBooleanFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableBooleanFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableColumnHeader.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableColumnHeader.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableDateCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableDateCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableDateFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableDateFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableDefaultHeader.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableDefaultHeader.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableEmptyCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableEmptyCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableEmptyFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableEmptyFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFacetedFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFacetedFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFacetedFilterContent.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFacetedFilterContent.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFilterInput.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFilterInput.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFilters.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFilters.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableNumberCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableNumberCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableNumberFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableNumberFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableOptionBadge.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableOptionBadge.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableOptionCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableOptionCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePageInfo.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePageInfo.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePageNav.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePageNav.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePageSize.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePageSize.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePagination.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePagination.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableProvider.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableProvider.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableResetButton.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableResetButton.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSearch.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSearch.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSelectedRows.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSelectedRows.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSkeleton.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSkeleton.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSliderFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSliderFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableTextCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableTextCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableTextFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableTextFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableToolbar.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableToolbar.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableToolbarFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableToolbarFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableViewOptions.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableViewOptions.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/cells.ts",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/cells.ts"
+                },
+                {
+                    "path": "registry/vue/components/data-table/context.ts",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/context.ts"
+                },
+                {
+                    "path": "registry/vue/components/data-table/index.ts",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/index.ts"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/Faceted.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/Faceted.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedBadge.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedBadge.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedBadgeList.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedBadgeList.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedClear.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedClear.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedContent.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedContent.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedEmpty.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedEmpty.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedGroup.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedGroup.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedInput.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedInput.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItem.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItem.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItemCheckbox.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItemCheckbox.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItemCount.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItemCount.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItemIndicator.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItemIndicator.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedList.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedList.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedSeparator.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedSeparator.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedTrigger.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedTrigger.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedValue.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedValue.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/context.ts",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/context.ts"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/index.ts",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/index.ts"
+                }
+            ]
+        },
+        {
+            "name": "data-table-vue-files",
+            "type": "registry:block",
+            "title": "Data Table (Vue + Inertia), solo archivos propios",
+            "description": "Los mismos archivos de data-table-vue sin las primitivas de shadcn-vue: para actualizar con --overwrite sin tocar los componentes ui/ del proyecto.",
+            "dependencies": [
+                "@tanstack/vue-table@^9.3.1",
+                "reka-ui",
+                "@vueuse/core",
+                "@lucide/vue",
+                "@internationalized/date"
+            ],
+            "files": [
+                {
+                    "path": "registry/shared/lib/data-table-server.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-server.ts"
+                },
+                {
+                    "path": "registry/vue/lib/data-table-tanstack.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-tanstack.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-features.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-features.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-format.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-format.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-messages.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-messages.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-types.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-types.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-utils.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-utils.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-columns.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-columns.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-filter-options.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-options.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-filter-values.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-filter-values.ts"
+                },
+                {
+                    "path": "registry/shared/lib/data-table-loading.ts",
+                    "type": "registry:lib",
+                    "target": "~/resources/js/lib/data-table-loading.ts"
+                },
+                {
+                    "path": "registry/vue/composables/useServerDataTable.ts",
+                    "type": "registry:file",
+                    "target": "~/resources/js/composables/useServerDataTable.ts"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTable.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTable.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableBooleanCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableBooleanCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableBooleanFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableBooleanFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableColumnHeader.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableColumnHeader.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableDateCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableDateCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableDateFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableDateFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableDefaultHeader.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableDefaultHeader.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableEmptyCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableEmptyCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableEmptyFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableEmptyFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFacetedFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFacetedFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFacetedFilterContent.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFacetedFilterContent.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFilterInput.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFilterInput.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableFilters.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableFilters.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableNumberCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableNumberCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableNumberFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableNumberFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableOptionBadge.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableOptionBadge.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableOptionCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableOptionCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePageInfo.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePageInfo.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePageNav.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePageNav.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePageSize.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePageSize.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTablePagination.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTablePagination.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableProvider.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableProvider.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableResetButton.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableResetButton.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSearch.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSearch.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSelectedRows.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSelectedRows.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSkeleton.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSkeleton.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableSliderFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableSliderFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableTextCell.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableTextCell.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableTextFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableTextFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableToolbar.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableToolbar.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableToolbarFilter.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableToolbarFilter.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/DataTableViewOptions.vue",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/DataTableViewOptions.vue"
+                },
+                {
+                    "path": "registry/vue/components/data-table/cells.ts",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/cells.ts"
+                },
+                {
+                    "path": "registry/vue/components/data-table/context.ts",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/context.ts"
+                },
+                {
+                    "path": "registry/vue/components/data-table/index.ts",
+                    "type": "registry:component",
+                    "target": "~/resources/js/components/data-table/index.ts"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/Faceted.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/Faceted.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedBadge.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedBadge.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedBadgeList.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedBadgeList.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedClear.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedClear.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedContent.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedContent.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedEmpty.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedEmpty.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedGroup.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedGroup.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedInput.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedInput.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItem.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItem.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItemCheckbox.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItemCheckbox.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItemCount.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItemCount.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedItemIndicator.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedItemIndicator.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedList.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedList.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedSeparator.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedSeparator.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedTrigger.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedTrigger.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/FacetedValue.vue",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/FacetedValue.vue"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/context.ts",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/context.ts"
+                },
+                {
+                    "path": "registry/vue/ui/faceted/index.ts",
+                    "type": "registry:ui",
+                    "target": "~/resources/js/components/ui/faceted/index.ts"
+                }
+            ]
+        },
+        {
             "name": "data-table-skill",
             "type": "registry:item",
             "title": "Claude Code skill: laravel-inertia-datatable",
-            "description": "Skill de Claude Code que guía la instalación del paquete y la creación de tablas server-side (make:datatable, controlador, página React y tests).",
+            "description": "Skill de Claude Code que guía la instalación del paquete y la creación de tablas server-side (make:datatable, controlador, página React o Vue y tests).",
             "files": [
                 {
                     "path": "skill/laravel-inertia-datatable/SKILL.md",
@@ -326,6 +1054,11 @@
                     "path": "skill/laravel-inertia-datatable/references/react.md",
                     "type": "registry:file",
                     "target": "~/.claude/skills/laravel-inertia-datatable/references/react.md"
+                },
+                {
+                    "path": "skill/laravel-inertia-datatable/references/vue.md",
+                    "type": "registry:file",
+                    "target": "~/.claude/skills/laravel-inertia-datatable/references/vue.md"
                 },
                 {
                     "path": "skill/laravel-inertia-datatable/references/testing.md",

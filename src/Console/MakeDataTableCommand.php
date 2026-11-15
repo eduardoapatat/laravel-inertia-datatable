@@ -32,36 +32,44 @@ class MakeDataTableCommand extends GeneratorCommand
 
     public function handle(): bool|int|null
     {
+        if ($this->option('react') && $this->option('vue')) {
+            $this->components->error('Use --react or --vue, not both.');
+
+            return self::FAILURE;
+        }
+
+        $installer = $this->laravel->make(UiInstaller::class);
+        $frontend = $this->frontend($installer);
         $model = $this->modelClass();
         $result = $model === null ? false : parent::handle();
-        $wantsReact = $this->option('react') || $this->wantsPage();
+        $wantsComponent = $this->option('react') || $this->option('vue') || $this->wantsPage();
 
-        // An existing class still gets the React files it lacks, so they can be added later.
-        $existingTable = $model !== null && $result === false && $wantsReact
+        // An existing class still gets the component files it lacks, so they can be added later.
+        $existingTable = $model !== null && $result === false && $wantsComponent
             && $this->alreadyExists($this->getNameInput());
 
         if ($model === null || ($result === false && ! $existingTable)) {
             // The UI does not depend on the table: --install-ui installs it even if the class is not created.
             if ($this->option('install-ui')) {
-                $this->ensureUiIsInstalled($this->laravel->make(UiInstaller::class));
+                $this->ensureUiIsInstalled($installer, $frontend);
             }
 
             return $model === null ? self::FAILURE : false;
         }
 
-        if ($wantsReact) {
-            $this->writeReactComponent($model);
+        if ($wantsComponent) {
+            $this->writeComponent($model, $frontend);
         }
 
         if ($this->wantsPage()) {
-            $this->writeReactPage($model);
+            $this->writePage($model, $frontend);
         }
 
-        if (($wantsReact || $this->option('install-ui')) && ! $this->ensureUiIsInstalled($this->laravel->make(UiInstaller::class))) {
+        if (($wantsComponent || $this->option('install-ui')) && ! $this->ensureUiIsInstalled($installer, $frontend)) {
             return self::FAILURE;
         }
 
-        $this->showNextSteps($model);
+        $this->showNextSteps($model, $frontend);
 
         return $result;
     }
@@ -115,12 +123,26 @@ class MakeDataTableCommand extends GeneratorCommand
         return [
             ['model', 'm', InputOption::VALUE_REQUIRED, 'The model of the table (defaults to the singular of the class name)'],
             ['react', null, InputOption::VALUE_NONE, 'Also create a React component that renders the table (its columns come from the server)'],
-            ['page', null, InputOption::VALUE_NONE, 'Also create the React component and an Inertia page that renders it'],
+            ['vue', null, InputOption::VALUE_NONE, 'Also create a Vue component that renders the table (its columns come from the server)'],
+            ['page', null, InputOption::VALUE_NONE, 'Also create the table component and an Inertia page that renders it, in React or Vue as package.json says'],
             ['defer', null, InputOption::VALUE_NONE, 'Create the page with the table deferred and a skeleton meanwhile (implies --page)'],
-            ['install-ui', null, InputOption::VALUE_NONE, 'Install the data-table-react registry item if the project does not have it'],
+            ['install-ui', null, InputOption::VALUE_NONE, 'Install the data table UI from the registry if the project does not have it'],
             ['empty', null, InputOption::VALUE_NONE, 'Do not guess the columns from the model'],
             ['force', 'f', InputOption::VALUE_NONE, 'Overwrite the files if they already exist'],
         ];
+    }
+
+    /**
+     * Framework of the files: `--react` or `--vue`, else the Inertia adapter of
+     * `package.json`, else React.
+     */
+    private function frontend(UiInstaller $installer): Frontend
+    {
+        return match (true) {
+            (bool) $this->option('react') => Frontend::React,
+            (bool) $this->option('vue') => Frontend::Vue,
+            default => $installer->detectFrontend(),
+        };
     }
 
     /**
@@ -199,18 +221,18 @@ PHP;
     }
 
     /**
-     * Table component (row type, hook and DataTable), reusable in any page.
-     * The table class decides the columns and their order.
+     * Table component (row type, hook or composable and DataTable), reusable in
+     * any page. The table class decides the columns and their order.
      *
      * @param  class-string<Model>  $model
      */
-    private function writeReactComponent(string $model): void
+    private function writeComponent(string $model, Frontend $frontend): void
     {
         $names = $this->resourceNames($model);
         $columns = $this->guessColumns($model);
 
         $this->writeFile(
-            $this->laravel->resourcePath("js/components/data-tables/{$names['file']}.tsx"),
+            $this->laravel->resourcePath('js/components/data-tables/'.$this->componentFile($names, $frontend)),
             str_replace(
                 ['{{ rowType }}', '{{ rowFields }}', '{{ prop }}', '{{ example }}', '{{ component }}', '{{ title }}'],
                 [
@@ -232,9 +254,9 @@ PHP;
                     $names['component'],
                     $names['title'],
                 ],
-                $this->files->get($this->resolveStubPath('datatable-react-component.stub')),
+                $this->files->get($this->resolveStubPath("datatable-{$frontend->value}-component.stub")),
             ),
-            'React component',
+            "{$frontend->label()} component",
         );
     }
 
@@ -243,18 +265,19 @@ PHP;
      *
      * @param  class-string<Model>  $model
      */
-    private function writeReactPage(string $model): void
+    private function writePage(string $model, Frontend $frontend): void
     {
         $names = $this->resourceNames($model);
+        $stub = $this->option('defer') ? "datatable-{$frontend->value}-page-deferred.stub" : "datatable-{$frontend->value}-page.stub";
 
         $this->writeFile(
-            $this->laravel->resourcePath("js/pages/{$names['resource']}/index.tsx"),
+            $this->laravel->resourcePath('js/pages/'.$this->pageName($names, $frontend).($frontend === Frontend::Vue ? '.vue' : '.tsx')),
             str_replace(
                 ['{{ component }}', '{{ file }}', '{{ rowType }}', '{{ prop }}', '{{ page }}', '{{ title }}', '{{ url }}'],
                 [$names['component'], $names['file'], $names['row'], $names['prop'], $names['page'], $names['title'], '/'.$names['resource']],
-                $this->files->get($this->resolveStubPath($this->option('defer') ? 'datatable-react-page-deferred.stub' : 'datatable-react-page.stub')),
+                $this->files->get($this->resolveStubPath($stub)),
             ),
-            'React page',
+            "{$frontend->label()} page",
         );
     }
 
@@ -275,13 +298,13 @@ PHP;
      * The generic components (DataTable, toolbar, filters, hook) are installed once per
      * project from the registry; all tables share them.
      */
-    private function ensureUiIsInstalled(UiInstaller $installer): bool
+    private function ensureUiIsInstalled(UiInstaller $installer, Frontend $frontend): bool
     {
-        if ($installer->isInstalled()) {
+        if ($installer->isInstalled($frontend)) {
             return true;
         }
 
-        $command = $installer->installCommand();
+        $command = $installer->installCommand($frontend);
 
         if (! $this->option('install-ui')) {
             $this->components->warn('The data table UI is not installed yet. Run: '.implode(' ', $command).' (or use --install-ui)');
@@ -291,7 +314,7 @@ PHP;
 
         $this->components->info('Installing the data table UI: '.implode(' ', $command));
 
-        if (! $installer->run($command, fn (string $type, string $output) => $this->output->write($output))) {
+        if (! $installer->run($command, fn (string $type, string $output) => $this->output->write($output), $frontend)) {
             $this->components->error('The data table UI could not be installed. Run the command above manually.');
 
             return false;
@@ -319,6 +342,26 @@ PHP;
         ];
     }
 
+    /**
+     * File of the table component: `products-table.tsx` in React, `ProductsTable.vue` in Vue.
+     *
+     * @param  array{resource: string, prop: string, component: string, file: string, page: string, title: string, row: string}  $names
+     */
+    private function componentFile(array $names, Frontend $frontend): string
+    {
+        return $frontend === Frontend::Vue ? "{$names['component']}.vue" : "{$names['file']}.tsx";
+    }
+
+    /**
+     * Name of the Inertia page: `products/index` in React, `products/Index` in Vue.
+     *
+     * @param  array{resource: string, prop: string, component: string, file: string, page: string, title: string, row: string}  $names
+     */
+    private function pageName(array $names, Frontend $frontend): string
+    {
+        return $names['resource'].($frontend === Frontend::Vue ? '/Index' : '/index');
+    }
+
     private function wantsPage(): bool
     {
         return (bool) ($this->option('page') || $this->option('defer'));
@@ -327,7 +370,7 @@ PHP;
     /**
      * @param  class-string<Model>  $model
      */
-    private function showNextSteps(string $model): void
+    private function showNextSteps(string $model, Frontend $frontend): void
     {
         $names = $this->resourceNames($model);
         $class = class_basename($this->qualifyClass($this->getNameInput()));
@@ -337,12 +380,14 @@ PHP;
             : "['{$names['prop']}' => fn () => {$class}::make()]";
 
         $steps = [
-            "Return it from a controller: Inertia::render('{$names['resource']}/index', {$props})",
+            "Return it from a controller: Inertia::render('{$this->pageName($names, $frontend)}', {$props})",
             "Register a route: Route::get('{$names['resource']}', [{$names['row']}Controller::class, 'index'])->name('{$names['resource']}.index')",
         ];
 
-        if ($this->option('react') && ! $this->wantsPage()) {
-            $steps[] = "Render it in a page: <{$names['component']} {$names['prop']}={{$names['prop']}} /> from '@/components/data-tables/{$names['file']}'";
+        if (($this->option('react') || $this->option('vue')) && ! $this->wantsPage()) {
+            $steps[] = $frontend === Frontend::Vue
+                ? "Render it in a page: <{$names['component']} :{$names['prop']}=\"{$names['prop']}\" /> from '@/components/data-tables/{$names['component']}.vue'"
+                : "Render it in a page: <{$names['component']} {$names['prop']}={{$names['prop']}} /> from '@/components/data-tables/{$names['file']}'";
         }
 
         $this->components->bulletList($steps);

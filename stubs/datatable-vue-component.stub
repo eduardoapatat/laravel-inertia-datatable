@@ -1,0 +1,68 @@
+<script lang="ts">
+/**
+ * Rows only include the visible columns, so most fields are optional.
+ */
+export type {{ rowType }} = {
+    id: number;
+{{ rowFields }}
+};
+</script>
+
+<script setup lang="ts">
+import { createColumnHelper } from '@tanstack/vue-table';
+import { DataTable, DataTableToolbar } from '@/components/data-table';
+import { useServerDataTable } from '@/composables/useServerDataTable';
+import type { DataTableFeatures } from '@/lib/data-table-features';
+import type { ServerDataTable } from '@/lib/data-table-server';
+
+const props = withDefaults(
+    defineProps<{
+        {{ prop }}: ServerDataTable<{{ rowType }}>;
+        /** Name of the Inertia prop, so visits only reload this table. */
+        prop?: string;
+    }>(),
+    { prop: '{{ prop }}' },
+);
+
+const columnHelper = createColumnHelper<DataTableFeatures, {{ rowType }}>();
+
+/**
+ * The table class decides which columns are shown, in which order, how they
+ * filter and how they are formatted (`->money('CLP')`, `->format('long')`…).
+ * Declare a column here only to customize it (same id), for example:
+ *
+ *     columnHelper.accessor('{{ example }}', {
+ *         cell: ({ cell }) => h('strong', h(DataTableTextCell, { cell })),
+ *     }),
+ *
+ * Inside a custom cell, the cells of `@/components/data-table` keep what PHP
+ * declares (`->limit()`, `->whenEmpty()`, links, formats):
+ * `h(DataTableTextCell, { cell })`, `DataTableNumberCell`,
+ * `DataTableDateCell`, `DataTableOptionCell`…; `cell.getValue()` alone shows
+ * the raw value. The format can also be set here
+ * with `meta: { display: { type: 'number', format: { style: 'percent' } } }`.
+ *
+ * Columns that only exist here (actions, selection) go at the end, or at the
+ * start with `meta: { position: 'start' }`.
+ */
+const columns = columnHelper.columns([]);
+
+const { table } = useServerDataTable({
+    table: () => props.{{ prop }},
+    prop: props.prop,
+    columns,
+});
+</script>
+
+<template>
+    <DataTable :table="table" aria-label="{{ title }}">
+        <!-- To change the layout, replace the toolbar with its pieces
+             (anywhere inside <DataTableProvider :table="table">):
+             DataTableSearch, the filter of each type
+             (DataTableFacetedFilter, DataTableSliderFilter,
+             DataTableDateFilter, DataTableTextFilter…),
+             DataTableResetButton, DataTableViewOptions and, with
+             :pagination="false", DataTablePagination or its pieces. -->
+        <DataTableToolbar :table="table" />
+    </DataTable>
+</template>

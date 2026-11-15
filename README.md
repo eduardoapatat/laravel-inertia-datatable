@@ -3,16 +3,16 @@
 [![tests](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/tests.yml/badge.svg)](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/tests.yml)
 [![starter kit](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/starter-kit.yml/badge.svg)](https://github.com/eduardoapatat/laravel-inertia-datatable/actions/workflows/starter-kit.yml)
 
-Reusable DataTable for **Laravel + Inertia + React**, built on shadcn/ui and TanStack Table, with pagination, sorting, filters, global search and column visibility **resolved on the server**.
+Reusable DataTable for **Laravel + Inertia** with **React** or **Vue**, built on shadcn/ui (shadcn-vue in Vue) and TanStack Table, with pagination, sorting, filters, global search and column visibility **resolved on the server**.
 
-> Version 0.11: backend and React UI. The Vue version is in progress. Changes in [`CHANGELOG.md`](CHANGELOG.md).
+> Backend and UI for React and Vue. Changes in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## What this repo contains
 
 | Part | Where | How to install it |
 |---|---|---|
 | Composer package (backend) | `src/`, `config/` | `composer require eduardoapatat/laravel-inertia-datatable` |
-| shadcn registry (React) | `registry.json`, `registry/`, `r/` | `php artisan inertia-datatable:ui` or `pnpm dlx shadcn@latest add <url>` |
+| shadcn registry (React and Vue) | `registry.json`, `registry/`, `r/` | `php artisan inertia-datatable:ui`, or `pnpm dlx shadcn@latest add <url>` (`shadcn-vue@latest` in Vue) |
 | Claude Code skill | `skill/` | `pnpm dlx shadcn@latest add <url>` |
 
 The contract between frontend and backend is in [`docs/contract.md`](docs/contract.md).
@@ -47,7 +47,8 @@ With these repositories: `composer require eduardoapatat/laravel-inertia-datatab
 ```bash
 php artisan make:datatable ProductsTable                 # only the class (guessed model: App\Models\Product)
 php artisan make:datatable ProductsTable --react         # + component components/data-tables/products-table.tsx
-php artisan make:datatable ProductsTable --page          # + component + page pages/products/index.tsx
+php artisan make:datatable ProductsTable --vue           # + component components/data-tables/ProductsTable.vue
+php artisan make:datatable ProductsTable --page          # + component + page pages/products/index.tsx (Index.vue in Vue)
 php artisan make:datatable ProductsTable --defer         # the same page, with the table deferred and a skeleton
 php artisan make:datatable ProductsTable --react --install-ui   # also installs the generic UI if missing
 php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
@@ -55,9 +56,9 @@ php artisan make:datatable OrdersTable --model=Domain/Sales/Order --empty
 
 It proposes the columns from the model casts and the table schema, only with what is needed to show them: text, numbers (`decimals(N)` for `decimal:N` casts), booleans, dates, enums (`Column::option()->options(Enum::class)`), only from the model's own columns: foreign keys (`category_id`) are left out, and relation columns (`Column::option('category')->from('category.name')`) are added by hand. The global search goes on a `name` column, else on a `title` one; sorting, filters and hiding are yours to add (with a `created_at` column it writes `defaultSort()` as `-created_at`). It skips the primary key, `$hidden` attributes, `updated_at`, `deleted_at` and sensitive columns (`password`, `remember_token`, `two_factor_*`…). The React files are named after the model, not the class (`--model=Order` writes `orders-table.tsx`), and `--force` overwrites the class and the React files.
 
-React has two levels: the generic components (`components/data-table/`, hook and libs) are installed once per project from the registry, and each table has its own component (`components/data-tables/<resource>-table.tsx`) reusable in any page. The PHP class decides which columns are shown and in which order (also the order of the filters): the columns the component does not declare are rendered with a default cell for their type, and the component only declares the columns it wants to customize (for example, a cell with a badge) or the ones that only exist on the client (actions or selection, at the end unless `meta: { position: 'start' }`).
+`--page` and `--defer` write React or Vue files after the Inertia adapter of `package.json` (`@inertiajs/react` or `@inertiajs/vue3`); `--react` or `--vue` choose it. The UI has two levels: the generic components (`components/data-table/`, hook or composable and libs) are installed once per project from the registry, and each table has its own component (`components/data-tables/<resource>-table.tsx`, or `<Resource>Table.vue` in Vue) reusable in any page. The PHP class decides which columns are shown and in which order (also the order of the filters): the columns the component does not declare are rendered with a default cell for their type, and the component only declares the columns it wants to customize (for example, a cell with a badge) or the ones that only exist on the client (actions or selection, at the end unless `meta: { position: 'start' }`).
 
-The layout (search, filters, Reset, column menu and pagination) is also changed in each table's component, without touching the shared components: every piece is its own component, and inside `<DataTableProvider table={table}>` they go anywhere in the page (a sidebar, a header) without a `table` prop each. Each filter type has its component with props (`DataTableFacetedFilter column="status" counts={false}`, `DataTableSliderFilter column="price" step={1000}`, `DataTableDateFilter`, `DataTableBooleanFilter`, `DataTableTextFilter`, `DataTableNumberFilter`: `title`, `icon`, `className`, `contentClassName`, `align`), which only renders on a column whose PHP class declares that kind of filter; `DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton` and `DataTableViewOptions` complete the toolbar, and with `<DataTable pagination={false}>` the pagination goes wherever you want, whole (`DataTablePagination`) or in pieces (`DataTablePageSize`, `DataTablePageInfo`, `DataTablePageNav`, `DataTableSelectedRows`). `--install-ui` runs `shadcn add` with the lockfile's package manager and answers "no" to overwriting existing `ui/` files; the registry URL is set in `inertia-datatable.registry_url` or with the `INERTIA_DATATABLE_REGISTRY_URL` variable (a URL or a local folder with the compiled JSON, for example to pin the UI to a version). The UI is installed even when the table is not created (unknown model or existing class), and with `--react` or `--page` an existing class gets the React files it is missing, without overwriting the ones it has. When the model does not exist, the command lists the available models.
+The layout (search, filters, Reset, column menu and pagination) is also changed in each table's component, without touching the shared components: every piece is its own component, and inside `<DataTableProvider table={table}>` they go anywhere in the page (a sidebar, a header) without a `table` prop each. Each filter type has its component with props (`DataTableFacetedFilter column="status" counts={false}`, `DataTableSliderFilter column="price" step={1000}`, `DataTableDateFilter`, `DataTableBooleanFilter`, `DataTableTextFilter`, `DataTableNumberFilter`: `title`, `icon`, `className`, `contentClassName`, `align`), which only renders on a column whose PHP class declares that kind of filter; `DataTableSearch`, `DataTableFilters`, `DataTableFilter`, `DataTableResetButton` and `DataTableViewOptions` complete the toolbar, and with `<DataTable pagination={false}>` the pagination goes wherever you want, whole (`DataTablePagination`) or in pieces (`DataTablePageSize`, `DataTablePageInfo`, `DataTablePageNav`, `DataTableSelectedRows`). `--install-ui` runs `shadcn add` with the lockfile's package manager and answers "no" to overwriting existing `ui/` files; the registry URL is set in `inertia-datatable.registry_url` or with the `INERTIA_DATATABLE_REGISTRY_URL` variable (a URL or a local folder with the compiled JSON, for example to pin the UI to a version). The UI is installed even when the table is not created (unknown model or existing class), and with `--react`, `--vue` or `--page` an existing class gets the component files it is missing, without overwriting the ones it has. When the model does not exist, the command lists the available models.
 
 ### Columns, formats and filters
 
@@ -100,8 +101,8 @@ Column::option('category', 'Category')->from('category.name')->sortable()->filte
 - `badge()` uses the project's shadcn `Badge` with any variant of its `badge.tsx` (`outline` by default), for the column and per value. In boolean columns the values are `true` and `false`; without `labels()`, booleans show Yes / No in the app language.
 - `options()` with a map whose values are the numbers 0, 1, 2… in order (`[0 => 'Low', 1 => 'High']`) is read as a list of the values "Low" and "High", because PHP cannot tell them apart: use an int backed enum for those columns.
 - With `options(Enum::class)`, the enum can give the label (`label()`) and the badge variant (`badgeVariant()`) of each case, so every table that uses it looks the same: `Column::option('status')->options(ProductStatus::class)->badge()`. A variant passed to `badge('…', [...])` wins.
-- In the React component you can set or override the format (`meta: { display: … }`), add icons per value (`meta: { icons: { active: CircleCheck } }`, shown in the filter and in the cells of option and boolean columns) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. Option cells take `badge` (props of the same Badge per value) or `renderOption` (anything else, such as a colored dot), and `DataTableOptionBadge` is exported for fully custom cells. See the skill's React reference.
-- Column width and classes also live in the React component: `size: 280` (px) or Tailwind classes, responsive too, in `meta: { className: 'w-40 md:w-80' }` (`headerClassName` / `cellClassName` for one of them; `cellClassName` can be a function of the cell for classes by value). Alignment is `meta.align` (`start`, `center` or `end`; numbers are `end` by default), which moves the header and the cells together. Row height and row colors go in `<DataTable headerClassName="[&>th]:h-8" rowClassName={(row) => …}>`.
+- In the table component (React or Vue) you can set or override the format (`meta: { display: … }`), add icons per value (`meta: { icons: { active: CircleCheck } }`, shown in the filter and in the cells of option and boolean columns) or write a custom `cell` that reuses the type cells (`DataTableNumberCell`, `DataTableDateCell`, `DataTableOptionCell`…) to render a value differently while keeping its format. Option cells take `badge` (props of the same Badge per value) or `renderOption` (anything else, such as a colored dot), and `DataTableOptionBadge` is exported for fully custom cells. See the skill's React and Vue references.
+- Column width and classes also live in the table component: `size: 280` (px) or Tailwind classes, responsive too, in `meta: { className: 'w-40 md:w-80' }` (`headerClassName` / `cellClassName` for one of them; `cellClassName` can be a function of the cell for classes by value). Alignment is `meta.align` (`start`, `center` or `end`; numbers are `end` by default), which moves the header and the cells together. Row height and row colors go in `<DataTable headerClassName="[&>th]:h-8" rowClassName={(row) => …}>`.
 
 ### Language and formats
 
@@ -111,7 +112,7 @@ The defaults come from your Laravel app and each layer can change them; the most
 |---|---|
 | Locale of numbers, currencies and dates | `useServerDataTable({ locale })` → the table (`locale()` in the class, `->locale()` in `DataTable::for`) → `inertia-datatable.locale` → `app()->getLocale()` (`APP_LOCALE`) |
 | UI texts (Search, Reset, Rows per page…) | `useServerDataTable({ messages })` → `lang/vendor/inertia-datatable/{lang}/ui.php` → the package texts (`en`, `es`) in the app language → English |
-| Format of a column | your own `cell` → React `meta.display` → the column method (`->money()`, `->format()`…) → `inertia-datatable.currency` / `inertia-datatable.date_format` |
+| Format of a column | your own `cell` → `meta.display` of the component → the column method (`->money()`, `->format()`…) → `inertia-datatable.currency` / `inertia-datatable.date_format` |
 
 ```php
 // config/inertia-datatable.php
@@ -128,7 +129,7 @@ The defaults come from your Laravel app and each layer can change them; the most
 php artisan vendor:publish --tag=inertia-datatable-lang   # → lang/vendor/inertia-datatable/{en,es}/ui.php
 ```
 
-Add a language by copying `en/ui.php` to `lang/vendor/inertia-datatable/{lang}/ui.php`; keys missing in a file fall back to English. In React, `useServerDataTable({ messages: { search: 'Find products…' } })` changes texts for one table.
+Add a language by copying `en/ui.php` to `lang/vendor/inertia-datatable/{lang}/ui.php`; keys missing in a file fall back to English. In the component, `useServerDataTable({ messages: { search: 'Find products…' } })` changes texts for one table.
 
 ### Column validation
 
@@ -146,23 +147,24 @@ php artisan inertia-datatable:ui            # installs the generic UI if missing
 php artisan inertia-datatable:ui --update   # updates only the DataTable files (asks for confirmation; --force to skip it)
 ```
 
-The update uses the `data-table-react-files` item, which overwrites `components/data-table/*`, `components/ui/faceted.tsx`, the hook and `lib/data-table-*.ts`, without touching the rest of the project's `components/ui/`. Local changes to those files are lost.
+The update uses the `data-table-react-files` item (`data-table-vue-files` in Vue), which overwrites `components/data-table/*`, `components/ui/faceted.tsx` (`components/ui/faceted/*` in Vue), the hook or composable and `lib/data-table-*.ts`, without touching the rest of the project's `components/ui/`. Both commands pick React or Vue by the Inertia adapter of `package.json`; `--react` or `--vue` force one. Local changes to those files are lost.
 
 The stubs can be customized with `php artisan vendor:publish --tag=inertia-datatable-stubs`.
 
-## Frontend installation (React)
+## Frontend installation (React or Vue)
 
-In a project with Laravel's React starter kit:
+In a project with Laravel's React or Vue starter kit:
 
 ```bash
 php artisan inertia-datatable:ui            # or make:datatable … --install-ui
 php artisan inertia-datatable:ui --update   # brings the new version of the DataTable files
 ```
 
-From the registry of the same version as the package, it installs `@tanstack/react-table` v9, the `useServerDataTable` hook, the components in `resources/js/components/data-table/` and the missing shadcn primitives, answering "no" to overwriting the existing `ui/` files (the DataTable only uses variants the starter kit already has). By hand:
+From the registry of the same version as the package, it installs TanStack Table v9 (`@tanstack/react-table` or `@tanstack/vue-table`), `useServerDataTable` (a hook in React, a composable in `resources/js/composables/` in Vue), the components in `resources/js/components/data-table/` and the missing shadcn or shadcn-vue primitives, answering "no" to overwriting the existing `ui/` files (the DataTable only uses variants the starter kit already has). By hand:
 
 ```bash
 pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.13.0/r/data-table-react.json
+pnpm dlx shadcn-vue@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.13.0/r/data-table-vue.json   # Vue
 ```
 
 Inertia writes the URL with brackets and commas encoded (`filter%5Bstatus%5D=a%2Cb`). For readable URLs, add this to the app's `HandleInertiaRequests` middleware (it affects every Inertia page, so the package does not do it by itself):
@@ -174,7 +176,7 @@ public function urlResolver(): ?Closure
 }
 ```
 
-For usage in pages, see `make:datatable --react` above and the skill's React reference (`skill/laravel-inertia-datatable/references/react.md`).
+For usage in pages, see `make:datatable --react` / `--vue` above and the skill's references (`skill/laravel-inertia-datatable/references/react.md` and `vue.md`).
 
 ## Claude Code skill
 
@@ -206,7 +208,7 @@ Tests use in-memory SQLite; for another engine pass Testbench's variables, for e
 The CI (`.github/workflows/`) runs:
 
 - **tests**: Pest with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL 8.4 and Postgres 17, and the registry (format, tests, types and that `r/` is rebuilt).
-- **starter kit**: creates a clean React starter kit, installs the package and the UI of the commit with `make:datatable --react --page --install-ui` (with npm and with pnpm) and runs the starter kit's `composer ci:check`. It also runs every week, because the installer uses `shadcn@latest`. It can be run locally with `.github/scripts/starter-kit.sh npm /tmp/app`.
+- **starter kit**: creates clean React and Vue starter kits, installs the package and the UI of the commit with `make:datatable --react --page --install-ui` (`--vue` in Vue; with npm and with pnpm), runs the starter kit's `composer ci:check` and, with pnpm, the e2e tests of `tests/e2e`. It also runs every week, because the installer uses `shadcn@latest` and `shadcn-vue@latest`. It can be run locally with `.github/scripts/starter-kit.sh vue npm /tmp/app`.
 
 ## Releasing a version
 

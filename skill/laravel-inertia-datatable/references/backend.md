@@ -86,7 +86,7 @@ Format (only changes how cells look; the row keeps the raw value and the UI form
 - `empty: true` in `filterSelect()`, `filterMultiSelect()`, `filterRange()` (number and date) and `filterDate()` (not `filterInput()`) offers the rows without a value (NULL, or no related record; `''` only counts as empty for the `is.empty` operator of text filters): last option of the list with its count, or an "Include …" check under the slider / calendar, added with OR to what is picked (URL `filter[col][]=…&filter[col][]=is.empty`). Named after `whenEmpty()`, else the `no_value` UI text. Use it only on nullable columns or relations: with `validate_columns` (debug), a `NOT NULL` column throws a `LogicException`, and so does a `belongsTo` column whose foreign key and related column are both `NOT NULL`. When the business stores "empty" as a value (`'none'`, `0`), make it a normal option instead.
 - One filter per column: calling two filter methods (`->filterInput()->filterRange()`) throws a `LogicException`. `url()` with `email()` and `hidden()` with `hideable(false)` throw too.
 - `unit()` goes after plain numbers in the cells and next to the filter inputs. It cannot be combined with `money()` or `percent()` (`InvalidArgumentException`): `money()` already shows the currency in the cells and the filter inputs.
-- `badge()` / `badge('secondary', ['archived' => 'destructive'])` shows the labels with the project's shadcn `Badge` (and the icons of the React `meta.icons`): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge.tsx`. `badge(false)` = plain labels.
+- `badge()` / `badge('secondary', ['archived' => 'destructive'])` shows the labels with the project's shadcn `Badge` (and the icons of `meta.icons` in the React or Vue component): the column variant (`outline` by default) and a variant per value; any variant of the project's `badge` component. `badge(false)` = plain labels.
 - An option column without a filter still sends the labels of its declared options, so the cells show `Archived` instead of `archived`.
 
 `make:datatable` proposes `decimals(N)` for `decimal:N` casts; it never guesses a currency.
@@ -99,12 +99,12 @@ Column::option('status', 'Status')->options(OrderStatus::class)->badge()->filter
 ```
 
 - Relations: one level, to-one only (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`; `morphTo` throws a `LogicException`). The relation is eager loaded automatically and the row gets the flat value under the column id (`"category": "Books"`). Sorting uses a correlated subquery, filtering uses `whereHas`.
-- Enums: labels come from a `label()` method on the enum when it exists, otherwise from the case name; with `badge()`, the variant of each value comes from a `badgeVariant()` method when it exists (the map passed to `badge()` wins). Keep icons in React (`meta.icons`): they are components, not data. The cast on the model makes rows serialize the enum value.
+- Enums: labels come from a `label()` method on the enum when it exists, otherwise from the case name; with `badge()`, the variant of each value comes from a `badgeVariant()` method when it exists (the map passed to `badge()` wins). Keep icons in the React or Vue component (`meta.icons`): they are components, not data. The cast on the model makes rows serialize the enum value.
 - Facet counts are crossed: each option counts rows with every other filter and the search applied, except its own column's filter.
 
 ## Tables scoped to a parent model
 
-For "the orders of this customer" use a table whose query starts from the relation. The quickest way: generate it (`php artisan make:datatable CustomerOrdersTable --model=Order`; with `--react` the files are named after the model, `orders-table.tsx`, so they would collide with the ones of an `OrdersTable`), then add the constructor, return the relation from `query()` and drop the column that points back to the parent (every row has the same customer).
+For "the orders of this customer" use a table whose query starts from the relation. The quickest way: generate it (`php artisan make:datatable CustomerOrdersTable --model=Order`; with `--react` or `--vue` the files are named after the model, `orders-table.tsx` or `OrdersTable.vue`, so they would collide with the ones of an `OrdersTable`), then add the constructor, return the relation from `query()` and drop the column that points back to the parent (every row has the same customer).
 
 ```php
 class CustomerOrdersTable extends DataTable
@@ -142,9 +142,9 @@ Never expose attributes only because a column exists: `$hidden` still applies to
 
 Language and formats (defaults from the app; the most specific layer wins):
 
-- Locale of numbers and dates: React `useServerDataTable({ locale })` → the table (`public function locale(): ?string` in the class, `->locale('es-CL')` in the quick form) → `inertia-datatable.locale` → `app()->getLocale()`. `'browser'` at any level = the browser's. Use a locale with a region (`es-CL`, not `es`) for local currency symbols.
+- Locale of numbers and dates: `useServerDataTable({ locale })` in React or Vue → the table (`public function locale(): ?string` in the class, `->locale('es-CL')` in the quick form) → `inertia-datatable.locale` → `app()->getLocale()`. `'browser'` at any level = the browser's. Use a locale with a region (`es-CL`, not `es`) for local currency symbols.
 - `inertia-datatable.currency`: default of `money()` (`null`: `money()` without a currency throws). `inertia-datatable.date_format`: default of date columns without `format()`.
-- UI texts follow the app language (`en` and `es` included, English fallback). To translate or change them: `php artisan vendor:publish --tag=inertia-datatable-lang` → `lang/vendor/inertia-datatable/{lang}/ui.php`; never edit the React components for this.
+- UI texts follow the app language (`en` and `es` included, English fallback). To translate or change them: `php artisan vendor:publish --tag=inertia-datatable-lang` → `lang/vendor/inertia-datatable/{lang}/ui.php`; never edit the React or Vue components for this.
 
 ## URL contract (query string)
 

@@ -9,9 +9,16 @@
         "noEmit": true,
         "skipLibCheck": true,
         "isolatedModules": true,
-        "verbatimModuleSyntax": true
+        "verbatimModuleSyntax": true,
+        "paths": {
+            "@/lib/data-table-tanstack": [
+                "./registry/react/lib/data-table-tanstack.ts"
+            ],
+            "@/lib/*": ["./registry/shared/lib/*"]
+        }
     },
     "include": [
+        "registry/react/lib/*.ts",
         "registry/shared/**/*.ts",
         "tests/e2e/*.ts",
         "playwright.config.ts",

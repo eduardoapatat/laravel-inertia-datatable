@@ -4,6 +4,16 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Vue UI, for apps with Laravel's Vue starter kit (shadcn-vue, `@tanstack/vue-table` and `@inertiajs/vue3`): the registry items `data-table-vue` and `data-table-vue-files`, with the `useServerDataTable` composable, `DataTable`, the toolbar, the filters of every type, the pagination pieces and the first-load skeleton, as in React. See the skill's `references/vue.md`.
+- `php artisan inertia-datatable:ui` installs or updates the UI of the app's framework, read from the Inertia adapter of `package.json` (`--react` or `--vue` force one), with `shadcn-vue` in Vue.
+- `make:datatable --vue` writes the table component as `components/data-tables/<Resource>Table.vue`; `--page` and `--defer` write the page of the app's framework (`pages/<resource>/Index.vue` in Vue). The Vue stubs can be published with the others (`--tag=inertia-datatable-stubs`).
+
+### Changed
+
+- The `lib/data-table-*.ts` files of the UI import TanStack Table and the React types from a new file, `lib/data-table-tanstack.ts`, so they are shared with the Vue version. Nothing changes in the pages; `php artisan inertia-datatable:ui --update` adds the new file.
+
 ## [0.13.0] - 2026-11-12
 
 ### Added

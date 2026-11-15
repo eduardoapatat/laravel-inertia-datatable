@@ -1,0 +1,20 @@
+export type {
+    FacetedOption,
+    FacetedValue as FacetedSelection,
+} from './context';
+export { default as Faceted } from './Faceted.vue';
+export { default as FacetedBadge } from './FacetedBadge.vue';
+export { default as FacetedBadgeList } from './FacetedBadgeList.vue';
+export { default as FacetedClear } from './FacetedClear.vue';
+export { default as FacetedContent } from './FacetedContent.vue';
+export { default as FacetedEmpty } from './FacetedEmpty.vue';
+export { default as FacetedGroup } from './FacetedGroup.vue';
+export { default as FacetedInput } from './FacetedInput.vue';
+export { default as FacetedItem } from './FacetedItem.vue';
+export { default as FacetedItemCheckbox } from './FacetedItemCheckbox.vue';
+export { default as FacetedItemCount } from './FacetedItemCount.vue';
+export { default as FacetedItemIndicator } from './FacetedItemIndicator.vue';
+export { default as FacetedList } from './FacetedList.vue';
+export { default as FacetedSeparator } from './FacetedSeparator.vue';
+export { default as FacetedTrigger } from './FacetedTrigger.vue';
+export { default as FacetedValue } from './FacetedValue.vue';

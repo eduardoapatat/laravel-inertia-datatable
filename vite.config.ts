@@ -5,17 +5,18 @@ const fromRoot = (path: string) =>
 
 export default defineConfig({
     resolve: {
-        // The `@/lib/...` imports of the registry, as shadcn installs them.
+        // The `@/lib/...` imports of the registry, as shadcn installs them. The
+        // shared libs are tested with the React bridge to TanStack Table.
         alias: [
             {
-                find: /^@\/lib\/data-table-server$/,
+                find: /^@\/lib\/data-table-tanstack$/,
                 replacement: fromRoot(
-                    './registry/shared/lib/data-table-server.ts',
+                    './registry/react/lib/data-table-tanstack.ts',
                 ),
             },
             {
                 find: /^@\/lib\/(.*)$/,
-                replacement: `${fromRoot('./registry/react/lib/')}$1`,
+                replacement: `${fromRoot('./registry/shared/lib/')}$1`,
             },
         ],
     },
@@ -23,13 +24,14 @@ export default defineConfig({
         include: ['registry/**/*.test.ts'],
     },
     lint: {
-        // The React code is type-checked by the starter kit CI job, where its
-        // dependencies (shadcn, TanStack, Inertia) are installed.
+        // The React and Vue code is type-checked by the starter kit CI jobs,
+        // where its dependencies (shadcn, TanStack, Inertia) are installed.
         ignorePatterns: [
             'vendor/**',
             'node_modules/**',
             'r/**',
             'registry/react/**',
+            'registry/vue/**',
         ],
         options: {
             denyWarnings: true,
