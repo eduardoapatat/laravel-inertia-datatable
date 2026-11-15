@@ -4,6 +4,7 @@ import {
     formatBoolean,
     formatCellValue,
     formatDateValue,
+    formatDateValueInUtc,
     formatNumber,
     formatNumberCell,
     getOption,
@@ -100,6 +101,42 @@ describe('formatDateValue', () => {
     it('returns values that are not dates as they are', () => {
         expect(formatDateValue('soon')).toBe('soon');
         expect(formatDateValue(null)).toBe('');
+    });
+});
+
+describe('formatDateValueInUtc', () => {
+    it('formats in UTC, whatever the time zone of the process', () => {
+        // 01:30 UTC of the 16th is still the 15th in Santiago.
+        expect(
+            formatDateValueInUtc('2026-01-16T01:30:00Z', 'long', 'en-US'),
+        ).toBe('January 16, 2026');
+        expect(formatDateValue('2026-01-16T01:30:00Z', 'long', 'en-US')).toBe(
+            'January 15, 2026',
+        );
+    });
+
+    it('shows relative dates as absolute ones, which do not change with the clock', () => {
+        expect(formatDateValueInUtc('2026-11-04', 'relative', 'en-US')).toBe(
+            'November 4, 2026',
+        );
+        expect(
+            formatDateValueInUtc('2026-11-04T10:30:00Z', 'relative', 'en-US'),
+        ).toBe(
+            formatDateValueInUtc('2026-11-04T10:30:00Z', 'datetime', 'en-US'),
+        );
+        expect(
+            formatDateValueInUtc('2026-11-04T10:30:00Z', 'relative', 'en-US'),
+        ).toContain('10:30');
+    });
+
+    it('keeps the time zone of the format', () => {
+        expect(
+            formatDateValueInUtc(
+                '2026-01-16T01:30:00Z',
+                { dateStyle: 'long', timeZone: 'America/Santiago' },
+                'en-US',
+            ),
+        ).toBe('January 15, 2026');
     });
 });
 

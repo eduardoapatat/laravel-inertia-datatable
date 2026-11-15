@@ -263,6 +263,44 @@ export function formatDateValue(
     }
 }
 
+/**
+ * A date as `formatDateValue()` shows it, but with the same text wherever it
+ * is formatted: in UTC, unless the format gives a time zone, and absolute
+ * instead of `relative`, which changes with the clock. For the HTML of Inertia
+ * SSR and its hydration, so the server and the browser agree.
+ */
+export function formatDateValueInUtc(
+    value: unknown,
+    format: ColumnDisplayDateFormat = 'long',
+    locale?: string,
+): string {
+    const parsed = parseDate(value);
+
+    if (parsed === null) {
+        return toText(value);
+    }
+
+    const absolute =
+        format === 'relative'
+            ? parsed.dateOnly
+                ? 'long'
+                : 'datetime'
+            : format;
+    const options = getDateOptions(
+        typeof absolute === 'string' ? DATE_PRESETS[absolute] : absolute,
+        parsed.dateOnly,
+    );
+
+    try {
+        return new Intl.DateTimeFormat(locale, {
+            timeZone: 'UTC',
+            ...options,
+        }).format(parsed.date);
+    } catch {
+        return toText(value);
+    }
+}
+
 const TIME_OPTIONS = ['timeStyle', 'hour', 'minute', 'second'] as const;
 const TIME_ONLY_OPTIONS = [
     'fractionalSecondDigits',

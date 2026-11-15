@@ -8,6 +8,7 @@ import {
     formatBoolean,
     formatCellValue,
     formatDateValue,
+    formatDateValueInUtc,
     formatNumberCell,
     getFormatContext,
     getOption,
@@ -178,20 +179,39 @@ export function DataTableNumberCell<TData extends RowData, TValue>(
     );
 }
 
+const subscribeNever = () => () => {};
+
+/**
+ * False in the HTML of Inertia SSR and while React hydrates it, true after
+ * that, and from the start in an app without SSR.
+ */
+function useHydrated(): boolean {
+    return React.useSyncExternalStore(
+        subscribeNever,
+        () => true,
+        () => false,
+    );
+}
+
 /**
  * Date with the preset or Intl options of `->format()`; relative dates
- * keep the full date in the tooltip.
+ * keep the full date in the tooltip. With SSR the server and the browser
+ * first show it in UTC, which is the same on both, so the hydration does not
+ * fail; then the browser shows it in the viewer's time zone.
  */
 export function DataTableDateCell<TData extends RowData, TValue>(
     props: DataTableCellProps<TData, TValue>,
 ) {
     const { meta, locale, context } = cellSetup(props);
+    const hydrated = useHydrated();
     const value = props.cell.getValue();
     const format =
         (meta?.display?.type === 'date' ? meta.display.format : undefined) ??
         context.dateFormat ??
         'long';
-    const text = formatDateValue(value, format, locale);
+    const text = hydrated
+        ? formatDateValue(value, format, locale)
+        : formatDateValueInUtc(value, format, locale);
 
     if (text === '') {
         return <DataTableEmptyCell {...props} />;
@@ -201,7 +221,7 @@ export function DataTableDateCell<TData extends RowData, TValue>(
         <time
             dateTime={typeof value === 'string' ? value : undefined}
             title={
-                format === 'relative'
+                hydrated && format === 'relative'
                     ? formatDateValue(
                           value,
                           isDateOnly(value) ? 'long' : 'datetime',

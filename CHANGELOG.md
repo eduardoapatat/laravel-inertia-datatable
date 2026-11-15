@@ -6,7 +6,7 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ### Fixed
 
-- Vue: with Inertia SSR, a date cell no longer reports a hydration mismatch when the SSR server and the browser are in different time zones; the date in the browser's time zone is kept.
+- With Inertia SSR, a date cell no longer breaks the hydration when the SSR server and the browser are in different time zones (in React it threw error #418 and rendered the page again in the browser; in Vue it reported a mismatch). React renders the date in UTC on the server and while it hydrates, then in the viewer's time zone (and as a relative date with `format('relative')`); Vue keeps the date of the browser.
 
 ## [0.14.2] - 2026-11-15
 
