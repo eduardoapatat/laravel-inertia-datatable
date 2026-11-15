@@ -53,6 +53,7 @@ const config: ServerTableConfig = {
         filter: 'filter',
         search: 'search',
         columns: 'columns',
+        join: 'join',
     },
 };
 
@@ -254,6 +255,38 @@ describe('stateToQuery', () => {
         ]);
     });
 
+    it('writes join only when it is or', () => {
+        const filters: TableQueryState['filters'] = [
+            { id: 'name', variant: 'text', operator: 'iLike', value: 'a' },
+            { id: 'price', variant: 'range', operator: 'gte', value: '10' },
+        ];
+
+        expect(
+            stateToQuery({ ...defaultState, filters, join: 'and' }, config),
+        ).toEqual([
+            ['filter[name]', 'a'],
+            ['filter[price]', 'gte.10'],
+        ]);
+        expect(
+            stateToQuery({ ...defaultState, filters, join: 'or' }, config),
+        ).toEqual([
+            ['filter[name]', 'a'],
+            ['filter[price]', 'gte.10'],
+            ['join', 'or'],
+        ]);
+    });
+
+    it('leaves join out when the server does not know it', () => {
+        const { join: _join, ...keys } = config.query;
+
+        expect(
+            stateToQuery(
+                { ...defaultState, join: 'or' },
+                { ...config, query: keys },
+            ),
+        ).toEqual([]);
+    });
+
     it('keeps non hideable columns visible', () => {
         const pairs = stateToQuery(
             {
@@ -300,7 +333,7 @@ describe('stateToQuery', () => {
 describe('buildTableUrl', () => {
     it('replaces the table parameters and keeps the others readable', () => {
         const url = buildTableUrl(
-            'https://app.test/products?tab=all&page=4&filter%5Bstatus%5D=draft&filter[price][]=gte.1#list',
+            'https://app.test/products?tab=all&page=4&join=or&filter%5Bstatus%5D=draft&filter[price][]=gte.1#list',
             [
                 ['filter[status]', 'active,draft'],
                 ['search', 'mesa grande'],

@@ -13,6 +13,7 @@ import type {
     CurrencyDisplay,
     FilterOperator,
     FilterVariant,
+    JoinOperator,
     ServerColumnDisplay,
 } from '@/lib/data-table-server';
 
@@ -48,6 +49,14 @@ export interface DataTableTableMeta {
     dateFormat?: DatePreset;
     /** Texts of the UI (see `getMessage`); the English ones when missing. */
     messages?: Partial<DataTableMessages>;
+    /** How the filters are combined (`useServerDataTable`); `and` when missing. */
+    join?: JoinOperator;
+    /** Changes `join` and visits the server (`useServerDataTable`). */
+    setJoin?: (join: JoinOperator) => void;
+    /** Most filters the server applies (`config.max_filters`). */
+    maxFilters?: number;
+    /** Most columns the server sorts by (`config.max_sorts`). */
+    maxSorts?: number;
 }
 
 /**
@@ -56,7 +65,7 @@ export interface DataTableTableMeta {
  */
 export type ColumnDisplay = ServerColumnDisplay;
 
-export type { CurrencyDisplay, FilterOperator, FilterVariant };
+export type { CurrencyDisplay, FilterOperator, FilterVariant, JoinOperator };
 
 export type DatePreset = Extract<
     Extract<ColumnDisplay, { type: 'date' }>['format'],

@@ -12,6 +12,7 @@ import type { ServerDataTable } from '@/lib/data-table-server';
 import type {
     DataTableColumnMeta,
     DataTableLoadingPhase,
+    ColumnFilterItem,
     DataTableTableMeta,
 } from '@/lib/data-table-types';
 
@@ -29,6 +30,7 @@ export interface TestTable {
     setPageIndex(index: number): void;
     setPageSize(size: number): void;
     setGlobalFilter(value: string): void;
+    setColumnFilters(filters: ColumnFilterItem[]): void;
     setColumnVisibility(visibility: Record<string, boolean>): void;
     getColumn(id: string):
         | {
@@ -202,6 +204,88 @@ export function defineUseServerDataTableTests(driver: HookDriver): void {
             );
         });
 
+        it('sends the filters of the filter list with their operators', async () => {
+            mount({ debounceMs: 300 });
+
+            await act(() =>
+                table().setColumnFilters([
+                    {
+                        id: 'price',
+                        variant: 'range',
+                        operator: 'gte',
+                        value: '10',
+                        filterId: 'a',
+                    },
+                    {
+                        id: 'name',
+                        variant: 'text',
+                        operator: 'notILike',
+                        value: 'x',
+                        filterId: 'b',
+                    },
+                    {
+                        id: 'price',
+                        variant: 'range',
+                        operator: 'lte',
+                        value: '50',
+                        filterId: 'c',
+                    },
+                ]),
+            );
+            await wait(300);
+
+            const { searchParams } = lastVisit().url;
+            expect(searchParams.getAll('filter[price][]')).toEqual([
+                'gte.10',
+                'lte.50',
+            ]);
+            expect(searchParams.get('filter[name]')).toBe('not.ilike.x');
+            expect(searchParams.has('join')).toBe(false);
+        });
+
+        it('combines the filters with OR right away, on the first page', async () => {
+            mount({
+                table: serverTable({
+                    pagination: { pageIndex: 2, pageSize: 10 },
+                    columnFilters: [
+                        {
+                            id: 'name',
+                            filterId: 'name-0',
+                            variant: 'text',
+                            operator: 'iLike',
+                            value: 'a',
+                        },
+                    ],
+                }),
+            });
+
+            expect(table().options.meta?.join).toBe('and');
+
+            await act(() => table().options.meta?.setJoin?.('or'));
+
+            expect(visits()).toHaveLength(1);
+            expect(lastVisit().url.searchParams.get('join')).toBe('or');
+            expect(lastVisit().url.searchParams.get('filter[name]')).toBe('a');
+            expect(lastVisit().url.searchParams.has('page')).toBe(false);
+            expect(table().options.meta?.join).toBe('or');
+            expect(table().atoms.pagination.get().pageIndex).toBe(0);
+        });
+
+        it('sorts by several columns in their order', async () => {
+            mount();
+
+            await act(() =>
+                table().setSorting([
+                    { id: 'status', desc: false },
+                    { id: 'price', desc: true },
+                ]),
+            );
+
+            expect(lastVisit().url.searchParams.get('sort')).toBe(
+                'status,-price',
+            );
+        });
+
         it('makes no visit after it is unmounted with a search pending', async () => {
             mount();
 
@@ -214,6 +298,31 @@ export function defineUseServerDataTableTests(driver: HookDriver): void {
     });
 
     describe('responses', () => {
+        it('takes the join of the server and leaves it out of the URL when it is and', async () => {
+            mount({ table: serverTable({ join: 'or' }) });
+
+            expect(table().options.meta?.join).toBe('or');
+
+            await act(() => table().setPageIndex(1));
+
+            expect(lastVisit().url.searchParams.get('join')).toBe('or');
+
+            await respond(lastVisit(), serverTable({ join: 'and' }));
+            await act(() => table().setPageIndex(1));
+
+            expect(table().options.meta?.join).toBe('and');
+            expect(lastVisit().url.searchParams.has('join')).toBe(false);
+        });
+
+        it('passes the limits of the server in the meta', () => {
+            mount();
+
+            expect(table().options.meta).toMatchObject({
+                maxFilters: 20,
+                maxSorts: 3,
+            });
+        });
+
         it('takes the state of the server, which is the source of truth', async () => {
             mount();
 

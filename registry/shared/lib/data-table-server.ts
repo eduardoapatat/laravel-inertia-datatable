@@ -31,6 +31,12 @@ export type FilterOperator =
     | 'gte'
     | 'isBetween';
 
+/**
+ * How the column filters are combined: all of them (`and`, the default) or
+ * any of them (`or`, the `join=or` parameter).
+ */
+export type JoinOperator = 'and' | 'or';
+
 export interface ServerSort {
     id: string;
     desc: boolean;
@@ -150,6 +156,8 @@ export interface ServerQueryKeys {
     filter: string;
     search: string;
     columns: string;
+    /** Missing in packages before `join=or`. */
+    join?: string;
 }
 
 export interface ServerTableConfig {
@@ -164,6 +172,10 @@ export interface ServerTableConfig {
     per_page: number;
     per_page_options: number[];
     default_sorting: ServerSort[];
+    /** Most columns the server sorts by (`inertia-datatable.max_sorts`). */
+    max_sorts?: number;
+    /** Most filters the server applies (`inertia-datatable.max_filters`). */
+    max_filters?: number;
     query: ServerQueryKeys;
 }
 
@@ -171,6 +183,8 @@ export interface ServerTableState {
     pagination: { pageIndex: number; pageSize: number };
     sorting: ServerSort[];
     columnFilters: ServerFilter[];
+    /** Missing in packages before `join=or`, which is `and`. */
+    join?: JoinOperator;
     globalFilter: string;
     columnVisibility: Record<string, boolean>;
 }
@@ -201,6 +215,8 @@ export interface TableQueryState {
     pageSize: number;
     sorting: ServerSort[];
     filters: ServerFilter[];
+    /** `and` when missing. */
+    join?: JoinOperator;
     globalFilter: string;
     columnVisibility: Record<string, boolean>;
 }
@@ -311,6 +327,11 @@ export function stateToQuery(
 
     pairs.push(...filterPairs(state.filters, keys.filter));
 
+    // Servers without `keys.join` do not support it.
+    if (state.join === 'or' && keys.join !== undefined) {
+        pairs.push([keys.join, 'or']);
+    }
+
     const search = state.globalFilter.trim();
 
     if (search !== '') {
@@ -399,6 +420,7 @@ export function isTableQueryKey(key: string, keys: ServerQueryKeys): boolean {
         key === keys.sort ||
         key === keys.search ||
         key === keys.columns ||
+        (keys.join !== undefined && key === keys.join) ||
         key === keys.filter ||
         key.startsWith(`${keys.filter}[`)
     );

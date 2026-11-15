@@ -11,6 +11,7 @@ import type { DataTableFeatures } from '@/lib/data-table-features';
 import { normalizeColumnFilter } from '@/lib/data-table-filter-values';
 import { getOwn } from '@/lib/data-table-format';
 import type {
+    JoinOperator,
     ServerColumnConfig,
     ServerFacetOption,
     ServerFilter,
@@ -46,6 +47,8 @@ export interface LocalTableState {
     pagination: PaginationState;
     sorting: SortingState;
     columnFilters: ColumnFiltersState;
+    /** How the filters are combined (`join`); not part of TanStack's state. */
+    join: JoinOperator;
     globalFilter: string;
     columnVisibility: ColumnVisibilityState;
 }
@@ -64,6 +67,7 @@ export function toLocalState(state: ServerTableState): LocalTableState {
         pagination: state.pagination,
         sorting: state.sorting,
         columnFilters: state.columnFilters,
+        join: state.join ?? 'and',
         globalFilter: state.globalFilter,
         columnVisibility: state.columnVisibility,
     };
@@ -104,6 +108,7 @@ export function toQueryState(
         pageSize: state.pagination.pageSize,
         sorting: state.sorting,
         filters,
+        join: state.join,
         globalFilter: state.globalFilter,
         columnVisibility: state.columnVisibility,
     };

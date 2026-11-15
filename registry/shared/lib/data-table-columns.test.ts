@@ -179,6 +179,7 @@ describe('toQueryState', () => {
         pagination: { pageIndex: 1, pageSize: 25 },
         sorting: [{ id: 'name', desc: true }],
         columnFilters,
+        join: 'and',
         globalFilter: 'x',
         columnVisibility: { sku: false },
     });
@@ -210,6 +211,7 @@ describe('toQueryState', () => {
                     value: ['10', '50'],
                 },
             ],
+            join: 'and',
             globalFilter: 'x',
             columnVisibility: { sku: false },
         });

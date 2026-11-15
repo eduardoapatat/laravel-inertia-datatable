@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vite-plus/test';
 
+import { FILTER_OPERATORS } from '@/lib/data-table-advanced';
 import {
     FILTER_OPERATOR_URL_NAMES,
     IMPLICIT_OPERATORS,
@@ -58,5 +59,27 @@ describe('parity with the PHP enums', () => {
 
         expect(variants.size).toBe(8);
         expect(implicit).toEqual(IMPLICIT_OPERATORS);
+    });
+
+    it('has the same operators per variant, in the same order', () => {
+        const arms = [
+            ...method(variantPhp, 'operators').matchAll(
+                /(self::[\w, :]+) => \[([^\]]+)\]/g,
+            ),
+        ];
+        const lists = Object.fromEntries(
+            [...variants].map(([name, value]) => {
+                const arm = arms.find(([, list]) =>
+                    list?.split(/,\s*/).includes(`self::${name}`),
+                );
+                const names = [
+                    ...(arm?.[2] ?? '').matchAll(/FilterOperator::(\w+)/g),
+                ].map(([, operator]) => operators.get(operator ?? ''));
+
+                return [value, names];
+            }),
+        );
+
+        expect(lists).toEqual(FILTER_OPERATORS);
     });
 });

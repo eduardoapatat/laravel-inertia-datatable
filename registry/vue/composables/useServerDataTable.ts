@@ -35,6 +35,7 @@ import {
 import {
     arrangeColumns,
     buildTableUrl,
+    type JoinOperator,
     type ServerDataTable,
     type ServerTableConfig,
     stateToQuery,
@@ -308,6 +309,15 @@ export function useServerDataTable<TData extends RowData>({
         visitLater(next);
     }
 
+    function onJoinChange(join: JoinOperator) {
+        const next = update((current) => ({
+            ...current,
+            join,
+            pagination: { ...current.pagination, pageIndex: 0 },
+        }));
+        visitNow(next);
+    }
+
     function retry() {
         const next = failedVisit.value;
 
@@ -340,6 +350,10 @@ export function useServerDataTable<TData extends RowData>({
                 loading: loading.value,
                 failed: failedVisit.value !== null,
                 retry,
+                join: state.value.join,
+                setJoin: onJoinChange,
+                maxFilters: config.max_filters,
+                maxSorts: config.max_sorts,
             };
         }),
         rowCount: computed(() => serverTable.value.meta.total),

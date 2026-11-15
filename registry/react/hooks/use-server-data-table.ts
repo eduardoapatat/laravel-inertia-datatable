@@ -39,6 +39,7 @@ import {
 import {
     arrangeColumns,
     buildTableUrl,
+    type JoinOperator,
     type ServerDataTable,
     type ServerTableConfig,
     stateToQuery,
@@ -310,6 +311,15 @@ export function useServerDataTable<TData extends RowData>({
         visitLater(next, version);
     }
 
+    function onJoinChange(join: JoinOperator) {
+        const next = update((current) => ({
+            ...current,
+            join,
+            pagination: { ...current.pagination, pageIndex: 0 },
+        }));
+        visitNow(next);
+    }
+
     function retry() {
         if (failedVisit) {
             setState(failedVisit);
@@ -341,6 +351,10 @@ export function useServerDataTable<TData extends RowData>({
             loading,
             failed: failedVisit !== null,
             retry,
+            join: state.join,
+            setJoin: onJoinChange,
+            maxFilters: config.max_filters,
+            maxSorts: config.max_sorts,
         },
         rowCount: meta.total,
         // Without rows the server reports 1 page, not 0.
