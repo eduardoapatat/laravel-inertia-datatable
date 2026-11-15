@@ -23,6 +23,7 @@ use InertiaDataTable\Query\RelationResolver;
  *         pagination: array{pageIndex: int, pageSize: int},
  *         sorting: list<array{id: string, desc: bool}>,
  *         columnFilters: list<array{id: string, filterId: string, variant: string, operator: string, value: string|list<string>}>,
+ *         join: string,
  *         globalFilter: string,
  *         columnVisibility: array<string, bool>,
  *     },
@@ -57,7 +58,7 @@ final class DataTableEngine
         $state = $this->parser->parse($query, $definition);
 
         $filtered = clone $definition->query;
-        $this->applier->applyFilters($filtered, $definition, $state->filters);
+        $this->applier->applyFilters($filtered, $definition, $state->filters, $state->join);
         $this->applier->applySearch($filtered, $definition, $state->search);
 
         $total = (clone $filtered)->toBase()->getCountForPagination();
@@ -101,6 +102,7 @@ final class DataTableEngine
                 'pagination' => ['pageIndex' => $page - 1, 'pageSize' => $state->perPage],
                 'sorting' => array_map(fn (SortItem $item): array => $item->toArray(), $state->sorting),
                 'columnFilters' => $this->columnFilters($state),
+                'join' => $state->join->value,
                 'globalFilter' => $state->search,
                 'columnVisibility' => array_map(
                     fn (Column $column): bool => in_array($column->id(), $state->visibleColumns, true),
@@ -130,6 +132,8 @@ final class DataTableEngine
             'per_page' => $definition->perPage,
             'per_page_options' => $definition->perPageOptions,
             'default_sorting' => array_map(fn (SortItem $item): array => $item->toArray(), $definition->defaultSort),
+            'max_sorts' => (int) config('inertia-datatable.max_sorts', 3),
+            'max_filters' => (int) config('inertia-datatable.max_filters', 20),
             'query' => [
                 'page' => $definition->queryKey('page'),
                 'per_page' => $definition->queryKey('per_page'),
@@ -137,6 +141,7 @@ final class DataTableEngine
                 'filter' => $definition->queryKey('filter'),
                 'search' => $definition->queryKey('search'),
                 'columns' => $definition->queryKey('columns'),
+                'join' => $definition->queryKey('join'),
             ],
         ];
     }

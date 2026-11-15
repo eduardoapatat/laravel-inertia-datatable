@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use InertiaDataTable\Column;
 use InertiaDataTable\DataTable;
+use InertiaDataTable\Enums\JoinOperator;
 use InertiaDataTable\Parsing\StateParser;
 use InertiaDataTable\Tests\Fixtures\Models\Product;
 use InertiaDataTable\Tests\Fixtures\Tables\ProductsTable;
@@ -65,4 +66,23 @@ it('uses the default visibility when the columns parameter is blank', function (
     $state = (new StateParser)->parse(['columns' => ' '], ProductsTable::make()->toDefinition());
 
     expect($state->visibleColumns)->toBe(['name', 'price', 'stock', 'status', 'category', 'featured']);
+});
+
+it('normalizes the join to and unless it is or', function (mixed $join, JoinOperator $expected) {
+    $state = (new StateParser)->parse(['join' => $join], ProductsTable::make()->toDefinition());
+
+    expect($state->join)->toBe($expected);
+})->with([
+    'or' => ['or', JoinOperator::Or],
+    'uppercase with spaces' => [' OR ', JoinOperator::Or],
+    'and' => ['and', JoinOperator::And],
+    'unknown' => ['xor', JoinOperator::And],
+    'array' => [['or'], JoinOperator::And],
+]);
+
+it('reads the join with the table prefix', function () {
+    $definition = DataTable::for(Product::query())->name('products')->columns([Column::text('name')])->toDefinition();
+
+    expect((new StateParser)->parse(['products_join' => 'or'], $definition)->join)->toBe(JoinOperator::Or)
+        ->and((new StateParser)->parse(['join' => 'or'], $definition)->join)->toBe(JoinOperator::And);
 });

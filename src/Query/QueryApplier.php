@@ -10,6 +10,7 @@ use InertiaDataTable\Column;
 use InertiaDataTable\Columns\OptionColumn;
 use InertiaDataTable\Enums\FilterOperator;
 use InertiaDataTable\Enums\FilterVariant;
+use InertiaDataTable\Enums\JoinOperator;
 use InertiaDataTable\FilterItem;
 use InertiaDataTable\SortItem;
 use InertiaDataTable\TableDefinition;
@@ -28,13 +29,20 @@ final class QueryApplier
 
     /**
      * The filters of a column are combined with AND, except `is.empty`, which
-     * adds the rows without a value: `(between AND …) OR IS NULL`.
+     * adds the rows without a value: `(between AND …) OR IS NULL`. With `join=or`
+     * every filter is ORed with the others.
      *
      * @param  Builder<covariant Model>  $query
      * @param  list<FilterItem>  $filters
      */
-    public function applyFilters(Builder $query, TableDefinition $definition, array $filters): void
+    public function applyFilters(Builder $query, TableDefinition $definition, array $filters, JoinOperator $join = JoinOperator::And): void
     {
+        if ($join === JoinOperator::Or) {
+            $this->applyAnyFilter($query, $definition, $filters);
+
+            return;
+        }
+
         $byColumn = [];
 
         foreach ($filters as $filter) {
@@ -67,6 +75,37 @@ final class QueryApplier
                 })
                 ->orWhere(fn (Builder $none) => $this->applyFilter($none, $column, $empty[0])));
         }
+    }
+
+    /**
+     * `join=or`: each filter is its own term, also those of the same column, and the
+     * row matches when any of them does. The group goes inside one parenthesis so the
+     * search stays combined with AND.
+     *
+     * @param  Builder<covariant Model>  $query
+     * @param  list<FilterItem>  $filters
+     */
+    private function applyAnyFilter(Builder $query, TableDefinition $definition, array $filters): void
+    {
+        $terms = [];
+
+        foreach ($filters as $filter) {
+            $column = $definition->column($filter->id);
+
+            if ($column !== null) {
+                $terms[] = [$column, $filter];
+            }
+        }
+
+        if ($terms === []) {
+            return;
+        }
+
+        $query->where(function (Builder $any) use ($terms): void {
+            foreach ($terms as [$column, $filter]) {
+                $any->orWhere(fn (Builder $term) => $this->applyFilter($term, $column, $filter));
+            }
+        });
     }
 
     /**

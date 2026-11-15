@@ -21,6 +21,7 @@ return [
         'filter' => 'filter',
         'search' => 'search',
         'columns' => 'columns',
+        'join' => 'join',
     ],
 
     /*

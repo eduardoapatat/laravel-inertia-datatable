@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace InertiaDataTable\Parsing;
 
+use InertiaDataTable\Enums\JoinOperator;
 use InertiaDataTable\FilterItem;
 use InertiaDataTable\SortItem;
 use InertiaDataTable\TableDefinition;
@@ -28,6 +29,7 @@ final class StateParser
             filters: $this->parseFilters($query[$definition->queryKey('filter')] ?? null, $definition),
             search: $this->parseSearch($query[$definition->queryKey('search')] ?? null, $definition),
             visibleColumns: $this->parseColumns($query[$definition->queryKey('columns')] ?? null, $definition),
+            join: JoinOperator::parse($query[$definition->queryKey('join')] ?? null),
         );
     }
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace InertiaDataTable;
 
+use InertiaDataTable\Enums\JoinOperator;
+
 /**
  * Table state requested in the request, already normalized.
  */
@@ -21,6 +23,7 @@ final readonly class TableState
         public array $filters,
         public string $search,
         public array $visibleColumns,
+        public JoinOperator $join = JoinOperator::And,
     ) {}
 
     /**

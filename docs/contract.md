@@ -24,12 +24,15 @@ A `GET` request to the page route (Inertia) or to a JSON endpoint. All parameter
 | `filter[<col>]` | `filter[status]=active,pending` | Column filter |
 | `search` | `search=ana perez` | Global search |
 | `columns` | `columns=name,email,status` | Visible columns |
+| `join` | `join=or` | How the filters are combined: `and` (default) or `or` |
 
 Full example:
 
 ```
 /users?page=2&per_page=20&sort=-created_at,name&filter[status]=active,pending&filter[role]=admin&search=ana&columns=name,email,status
 ```
+
+With `join=or` the same filters match the users that are active or pending, **or** admins: `…&filter[status]=active,pending&filter[role]=admin&join=or`.
 
 ### 1.1 `page`
 
@@ -65,7 +68,7 @@ filter[<col>]=[<operator>.]<value>
 
 - **Without an operator** the variant's implicit operator is applied: `filter[status]=active,pending` = `filter[status]=in.active,pending`.
 - **Lists** are comma-separated. A value containing a comma, quotes or leading/trailing spaces goes in double quotes, with inner quotes doubled: `filter[name]=in."Pérez, Ana",Luis`.
-- **Several filters on the same column** use the array form and are combined with AND: `filter[price][]=gte.10&filter[price][]=lte.100`. The exception is `is.empty`, which adds the rows without a value with OR: `filter[published_at][]=between.2026-01-01,2026-03-31&filter[published_at][]=is.empty` → `(published_at BETWEEN … AND …) OR published_at IS NULL` (with AND it could never match a row).
+- **Several filters on the same column** use the array form and, with the default `join`, are combined with AND: `filter[price][]=gte.10&filter[price][]=lte.100`. The exception is `is.empty`, which adds the rows without a value with OR: `filter[published_at][]=between.2026-01-01,2026-03-31&filter[published_at][]=is.empty` → `(published_at BETWEEN … AND …) OR published_at IS NULL` (with AND it could never match a row).
 - If the prefix is not a valid operator for the variant, the whole text is taken as the value with the implicit operator (`filter[email]=foo.bar` searches for "foo.bar"). To avoid ambiguity, the client writes the explicit operator when the value starts with an operator name.
 - Operator names are case-insensitive and accepted in two forms: URL name (`neq`, `not.in`) or key (`ne`, `notInArray`).
 
@@ -105,10 +108,18 @@ filter[<col>]=[<operator>.]<value>
 - In `select` / `multi-select` with declared options, values not in the list are dropped.
 - Columns from `belongsTo` / `hasOne` relations are filtered the same way (see §5).
 
+#### `join`
+
+- `and` (default): every filter must match, as described above.
+- `or`: a row matches when **any** filter does. Each filter is its own term, also those of the same column: `filter[price][]=lte.10&filter[price][]=gte.100&join=or` → `price <= 10 OR price >= 100`. A closed range on one column is written with `between`.
+- The search is still combined with AND: `(filter OR filter) AND (search)`.
+- Any value other than `or` (case-insensitive) is `and`. With one filter or none, both give the same rows.
+- It is reflected in `state.join` (§2.4) and the client writes it only when it is `or`.
+
 #### Phases
 
-- **Phase 1:** all the variants and operators in the table, several filters per column, AND combination (OR for `is.empty` within its column).
-- **Future phase:** `join=or` (combine filters with OR, used by the advanced filter menu; the parameter name is reserved), the `rel` operator (dates relative to today) and to-many relations (`hasMany`, `belongsToMany`).
+- **Implemented:** all the variants and operators in the table, several filters per column, and `join` (`and`, with OR for `is.empty` within its column, or `or`).
+- **Future phase:** the `rel` operator (dates relative to today) and to-many relations (`hasMany`, `belongsToMany`).
 
 ### 1.5 `search`
 
@@ -174,6 +185,7 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
       { "id": "email", "filterId": "email-0", "variant": "text", "operator": "iLike", "value": "gmail" },
       { "id": "price", "filterId": "price-0", "variant": "range", "operator": "isBetween", "value": ["10", "100"] }
     ],
+    "join": "and",
     "globalFilter": "ana",
     "columnVisibility": { "name": true, "email": true, "status": true, "role": false, "created_at": false }
   },
@@ -202,9 +214,11 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
     "per_page": 10,
     "per_page_options": [10, 20, 30, 50],
     "default_sorting": [ { "id": "created_at", "desc": true } ],
+    "max_sorts": 3,
+    "max_filters": 20,
     "query": {
       "page": "page", "per_page": "per_page", "sort": "sort",
-      "filter": "filter", "search": "search", "columns": "columns"
+      "filter": "filter", "search": "search", "columns": "columns", "join": "join"
     }
   }
 }
@@ -227,13 +241,15 @@ The **normalized and applied** state, with the TanStack Table v9 shapes (`Pagina
 
 Each `columnFilters` item has the frontend's `ColumnFilterItem` shape: `id`, `filterId` (`<id>-<index>`), `variant`, `operator` (operator key: `iLike`, `notILike`, `eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `isBetween`, `inArray`, `notInArray`, `isEmpty`, `isNotEmpty`) and `value` (`string` or `string[]`, always as text, just like in the URL).
 
+`join` is `"and"` or `"or"` (§1.4); it is not part of TanStack's state.
+
 ### 2.5 `facets`
 
 Data the client cannot compute by itself in server mode (they replace TanStack's `getFacetedUniqueValues` / `getFacetedMinMaxValues`):
 
 **`select` / `multi-select`** (and option columns without a filter) → list of options with the frontend's `ColumnSelectOption` shape (`value`, `label`, `count`; the client adds the icon):
 
-- **Cross counts:** each facet count is computed with all the other filters and the search applied, **except the facet's own filter**. This way, after checking "active" the counts of "pending" and "inactive" are still visible. It is one `GROUP BY` per facet.
+- **Cross counts:** each facet count is computed with all the other filters and the search applied, **except the facet's own filter**. This way, after checking "active" the counts of "pending" and "inactive" are still visible. It is one `GROUP BY` per facet. With `join=or`, removing a filter widens the rows instead of narrowing them, so the counts apply only the search: how many rows each option matches on its own.
 - **Source of the options:**
   - Declared (`->options(['active' => 'Active', …])`): all of them appear, in the declared order and with `count: 0` when there are no rows.
   - An option column without a filter sends only its declared options, without `count` and without a query, so the cells show their labels.
@@ -246,7 +262,7 @@ Data the client cannot compute by itself in server mode (they replace TanStack's
 
 ### 2.6 `config`
 
-Static table metadata to build the UI: columns (label, whether it is sortable, whether it is hideable, default visibility, display and filter), whether there is global search, the display locale, the default date format, the UI texts, the default `per_page` and its options, the default sort and the effective names of the URL parameters.
+Static table metadata to build the UI: columns (label, whether it is sortable, whether it is hideable, default visibility, display and filter), whether there is global search, the display locale, the default date format, the UI texts, the default `per_page` and its options, the default sort, the limits `max_sorts` and `max_filters` (§4) and the effective names of the URL parameters.
 
 - `locale`: BCP 47 locale to format numbers and dates (`es-CL`), resolved on the server: the table (`locale()` / `->locale()`), then `inertia-datatable.locale`, then `app()->getLocale()`, with `_` turned into `-`. `null` when the setting is `'browser'`: the client uses the browser locale.
 - `date_format`: preset of the date columns without a `format` (`inertia-datatable.date_format`, `long` by default).
@@ -290,12 +306,12 @@ The client adapter translates each column into the columns' `meta` (`label`, `pl
 
 Pure TypeScript functions shared between React and Vue:
 
-- `stateToQuery(state, config) → Array<[string, string]>`: serializes into `[key, value]` pairs (several filters of one column repeat the key as `filter[col][]`), leaving out default values (page 1, default `per_page`, no sort, no filters, default visibility) so URLs stay clean. Filters with their implicit operator are written without a prefix (`filter[status]=active,pending`).
+- `stateToQuery(state, config) → Array<[string, string]>`: serializes into `[key, value]` pairs (several filters of one column repeat the key as `filter[col][]`), leaving out default values (page 1, default `per_page`, no sort, no filters, default visibility, `join=and`) so URLs stay clean. Filters with their implicit operator are written without a prefix (`filter[status]=active,pending`).
 - `buildTableUrl(href, pairs, keys)`: builds the URL of the visit from those pairs, keeping the parameters that are not of the table. There is no inverse function: the official state is always the `state` of the response.
 
 Rules the client must follow:
 
-- When the sort, the filters, the search or `per_page` change, it goes back to page 1.
+- When the sort, the filters, `join`, the search or `per_page` change, it goes back to page 1.
 - The search is debounced (about 300 ms).
 - Visits use `preserveState: true`, `preserveScroll: true`, `replace: true` (except when changing pages, which may add history) and `only: [<prop>]`.
 - A visit that fails (by network or cancelled) changes nothing: the client goes back to the last `state` of the server, which is what the rows and the URL show.

@@ -170,6 +170,37 @@ it('filters rows with each variant and operator', function (string $query, array
     'unknown column' => ['filter[unknown]=x', ['Lámpara', 'Mesa', 'Silla', 'Teclado']],
 ]);
 
+it('combines the filters with OR when join is or', function (string $query, array $expected) {
+    seedCatalog();
+
+    $response = getJson("/products?{$query}");
+
+    $response->assertOk()->assertJsonPath('data.*.name', $expected);
+})->with([
+    'two columns' => ['filter[status]=draft&filter[category]=Oficina&join=or', ['Mesa', 'Silla']],
+    'two filters on one column' => ['filter[price][]=lte.30&filter[price][]=gte.100&join=or', ['Lámpara', 'Mesa']],
+    'text is empty' => ['filter[sku]=is.empty&filter[stock]=gt.5&join=or', ['Mesa', 'Silla']],
+    'relation negation' => ['filter[category]=not.in.Hogar&filter[featured]=true&join=or', ['Lámpara', 'Silla', 'Teclado']],
+    'relation is empty' => ['filter[category]=is.empty&filter[name]=eq.mesa&join=or', ['Mesa', 'Teclado']],
+    'text negation' => ['filter[name]=not.ilike.a&filter[stock]=eq.0&join=or', ['Mesa']],
+    'date between' => ['filter[released_on]=between.2026-01-01,2026-01-15&filter[price]=gte.100&join=or', ['Lámpara', 'Mesa']],
+    'one filter' => ['filter[stock]=gt.3&join=or', ['Silla', 'Teclado']],
+    'unknown column' => ['filter[unknown]=x&filter[status]=draft&join=or', ['Mesa']],
+    'search is still combined with AND' => ['filter[status]=draft&filter[category]=Oficina&join=or&search=silla', ['Silla']],
+    'case-insensitive value' => ['filter[status]=draft&filter[category]=Oficina&join=OR', ['Mesa', 'Silla']],
+    'any other value is and' => ['filter[status]=draft&filter[category]=Hogar&join=xor', ['Mesa']],
+]);
+
+it('reflects the join in the state', function (string $query, string $join) {
+    $response = getJson("/products?{$query}");
+
+    $response->assertOk()->assertJsonPath('state.join', $join);
+})->with([
+    'default' => ['', 'and'],
+    'or' => ['join=or', 'or'],
+    'unknown value' => ['join=nope', 'and'],
+]);
+
 it('requires every search word to match a searchable column, including relations', function () {
     seedCatalog();
 
@@ -221,6 +252,24 @@ it('counts facet options with every filter except the facet own one', function (
         ])
         ->assertJsonPath('facets.category', [
             ['value' => 'Hogar', 'label' => 'Hogar', 'count' => 1],
+            ['value' => 'Oficina', 'label' => 'Oficina', 'count' => 1],
+        ]);
+});
+
+it('counts facet options with the search only when join is or', function () {
+    seedCatalog();
+
+    $response = getJson('/products?filter[status]=active&filter[category]=Hogar&join=or&search=a');
+
+    // Every product has an "a" but Teclado's category is empty, so it is not a Hogar/Oficina option.
+    $response->assertOk()
+        ->assertJsonPath('facets.status', [
+            ['value' => 'active', 'label' => 'Activo', 'count' => 2],
+            ['value' => 'draft', 'label' => 'Borrador', 'count' => 1],
+            ['value' => 'archived', 'label' => 'Archivado', 'count' => 1],
+        ])
+        ->assertJsonPath('facets.category', [
+            ['value' => 'Hogar', 'label' => 'Hogar', 'count' => 2],
             ['value' => 'Oficina', 'label' => 'Oficina', 'count' => 1],
         ]);
 });
@@ -368,8 +417,10 @@ it('describes columns, options and query parameters in config', function () {
         ->assertJsonPath('config.per_page_options', [10, 20, 30, 50])
         ->assertJsonPath('config.query', [
             'page' => 'page', 'per_page' => 'per_page', 'sort' => 'sort',
-            'filter' => 'filter', 'search' => 'search', 'columns' => 'columns',
-        ]);
+            'filter' => 'filter', 'search' => 'search', 'columns' => 'columns', 'join' => 'join',
+        ])
+        ->assertJsonPath('config.max_sorts', 3)
+        ->assertJsonPath('config.max_filters', 20);
 });
 
 it('limits the rows to the parent model passed to make', function () {

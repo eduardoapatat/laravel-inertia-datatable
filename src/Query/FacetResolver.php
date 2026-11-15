@@ -11,6 +11,7 @@ use InertiaDataTable\Column;
 use InertiaDataTable\Columns\NumberColumn;
 use InertiaDataTable\Columns\OptionColumn;
 use InertiaDataTable\Enums\FilterVariant;
+use InertiaDataTable\Enums\JoinOperator;
 use InertiaDataTable\TableDefinition;
 use InertiaDataTable\TableState;
 
@@ -73,6 +74,8 @@ final class FacetResolver
 
     /**
      * Cross count: with every filter and the search applied, except the column's own filters.
+     * With `join=or` removing a filter widens the rows instead of narrowing them, so
+     * the count only applies the search: the rows each option matches on its own.
      * With `empty: true`, the rows without a value go last with `value: null`.
      *
      * @return list<array{value: string|null, label: string, count?: int}>
@@ -85,7 +88,10 @@ final class FacetResolver
 
         if ($column->hasCounts() || $declared === null) {
             $query = clone $definition->query;
-            $this->applier->applyFilters($query, $definition, $state->filtersExcept($column->id()));
+            if ($state->join === JoinOperator::And) {
+                $this->applier->applyFilters($query, $definition, $state->filtersExcept($column->id()));
+            }
+
             $this->applier->applySearch($query, $definition, $state->search);
             [$counts, $emptyCount] = $this->groupedCounts($query, $column);
         }
