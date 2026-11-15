@@ -334,6 +334,7 @@ Rules the client must follow:
 - The search is debounced (about 300 ms).
 - Visits use `preserveState: true`, `preserveScroll: true`, `replace: true` (except when changing pages, which may add history) and `only: [<prop>]`.
 - A visit that fails (by network or cancelled) changes nothing: the client goes back to the last `state` of the server, which is what the rows and the URL show.
+- What the UI shows matches what the server applies: with `join=and`, the filter list puts the `is.empty` filter of a column next to the other filters of that column joined with "or" (§1.4), and a toolbar filter reads as its own value the filters that stand for it (`eq v` of a select is `in.v`; `gte` / `lte` of a range are a range open at one end), so picking a value there replaces them instead of adding another filter.
 
 ---
 

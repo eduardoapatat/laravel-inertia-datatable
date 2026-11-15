@@ -4,6 +4,12 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- `DataTableFilterList` (React and Vue): with `join=and`, the "Is empty" row of a column goes next to the other rows of that column joined with "or", since the server adds it with OR to them; it read as "and", something no row could match.
+- The toolbar filters read the rows of the filter list that stand for their value: a select row with "Is" (`eq`) and a range row with "≥" / "≤" (`gte` / `lte`). Before, changing "Has any of Draft" to "Is Draft" in the list left the toolbar filter empty, and picking an option there added a second filter (with `and`, no row matched).
+- A toolbar filter whose column has filters it can not show (made in the filter list, like "Name · Is · mesa") shows a `+N` mark, and its clear button removes them too. New UI texts `hidden_filters` and `hidden_filters_label` in `lang/*/ui.php`.
+
 ## [0.16.0] - 2026-11-15
 
 ### Added
