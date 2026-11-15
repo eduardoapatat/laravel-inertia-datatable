@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Enums\ProductStatus;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -19,6 +20,9 @@ use Illuminate\Support\Carbon;
  * - Without category every 8th (5), without weight every 5th (8), unpublished every 7th (5).
  * - Price `$i * 12.5` (12.50 … 500.00); featured every 4th (10).
  * - Published in 2025, month `($i - 1) % 12 + 1`: March holds #3, #15, #27 and #39.
+ * - Tags, in this order: Sale every 2nd (20), New every 5th (8), Eco every 3rd (13) and
+ *   Gift every 10th (4). #30 has the four; the 10 numbers that are not multiples of 2,
+ *   3 or 5 (#1, #7, #11…) have none.
  *
  * And the user the tests log in with: e2e@example.com / password.
  */
@@ -36,9 +40,11 @@ class E2eSeeder extends Seeder
         $categories = collect(['Books', 'Tools', 'Garden'])
             ->map(fn (string $name) => Category::create(['name' => $name]));
         $statuses = [ProductStatus::Draft, ProductStatus::Active, ProductStatus::Archived];
+        $tags = collect(['Sale' => 2, 'New' => 5, 'Eco' => 3, 'Gift' => 10])
+            ->map(fn (int $every, string $name) => [Tag::create(['name' => $name]), $every]);
 
         foreach (range(1, 40) as $i) {
-            Product::create([
+            $product = Product::create([
                 'name' => $i === 40
                     ? 'An extremely long product name that goes on and on past the limit of the column'
                     : sprintf('Product %02d', $i),
@@ -53,6 +59,10 @@ class E2eSeeder extends Seeder
                 'published_at' => $i % 7 === 0 ? null : Carbon::create(2025, ($i - 1) % 12 + 1, min($i, 28), 12),
                 'created_at' => Carbon::create(2026, 1, 1)->addDays($i),
             ]);
+
+            $product->tags()->attach(
+                $tags->filter(fn (array $tag) => $i % $tag[1] === 0)->map(fn (array $tag) => $tag[0]->id)->values()->all(),
+            );
         }
     }
 }

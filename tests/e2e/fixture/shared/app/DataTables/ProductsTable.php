@@ -40,6 +40,8 @@ class ProductsTable extends DataTable
             Column::text('website')->url()->whenEmpty('—'),
             Column::date('published_at', 'Published')->sortable()->filterRange(empty: true)->whenEmpty('Unpublished'),
             Column::date('created_at', 'Created')->sortable()->filterDate()->hidden(),
+            // A to-many relation, hidden so the other specs keep their columns.
+            Column::option('tags')->from('tags.name')->badge()->filterMultiSelect(empty: true)->hidden(),
         ];
     }
 

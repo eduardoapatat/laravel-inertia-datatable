@@ -30,10 +30,23 @@ return new class extends Migration
             $table->dateTime('published_at')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('tags', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+        });
+
+        Schema::create('product_tag', function (Blueprint $table) {
+            $table->foreignId('product_id')->constrained();
+            $table->foreignId('tag_id')->constrained();
+            $table->primary(['product_id', 'tag_id']);
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('product_tag');
+        Schema::dropIfExists('tags');
         Schema::dropIfExists('products');
         Schema::dropIfExists('categories');
     }
