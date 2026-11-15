@@ -47,6 +47,8 @@ return [
     'slider' => ':label slider',
     'previous_month' => 'Go to the previous month',
     'next_month' => 'Go to the next month',
+    'month' => 'Month',
+    'year' => 'Year',
 
     // Pagination
     'rows_per_page' => 'Rows per page',
