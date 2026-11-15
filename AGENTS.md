@@ -1,14 +1,14 @@
 # laravel-inertia-datatable
 
-Laravel package (`type: library`) for server-driven data tables, with a shadcn registry for the React UI and a Claude Code skill for consumers. PHP ^8.3, Laravel 12 and 13. See `README.md` for usage and `docs/contract.md` for the frontend–backend HTTP contract.
+Laravel package (`type: library`) for server-driven data tables, with a shadcn registry for the React and Vue UI and a Claude Code skill for consumers. PHP ^8.3, Laravel 12 and 13. See `README.md` for usage and `docs/contract.md` for the frontend–backend HTTP contract.
 
 ## Layout
 
 - `src/`, `config/`: the Composer package (backend). Entry point: `src/InertiaDataTableServiceProvider.php`.
-- `registry/` (sources), `registry.json` and `r/` (built output): the shadcn registry for the React UI.
+- `registry/` (sources), `registry.json` and `r/` (built output): the shadcn registry. `registry/react/` and `registry/vue/` (shadcn-vue) hold the components of each framework, `registry/shared/lib/` the code both install; each framework has its own `lib/data-table-tanstack.ts`, the only `lib/` file that imports TanStack Table or the framework.
 - `skill/laravel-inertia-datatable/`: the skill shipped to package users. It is not a skill for working on this repo.
 - `stubs/`: templates used by the `make:datatable` command.
-- `tests/`: Pest with Orchestra Testbench (`Feature/`, `Unit/`, `Fixtures/`, `ArchTest.php`), and `e2e/`: Playwright tests of the UI in a starter kit, with the products scenario of `e2e/fixture/` (fixed data in `E2eSeeder`).
+- `tests/`: Pest with Orchestra Testbench (`Feature/`, `Unit/`, `Fixtures/`, `ArchTest.php`), and `e2e/`: Playwright tests of the UI in a React and a Vue starter kit (the same specs), with the products scenario of `e2e/fixture/`: `shared/` (PHP, fixed data in `E2eSeeder`) and the pages of each framework in `react/` and `vue/`.
 
 ## Commands
 
@@ -21,13 +21,14 @@ pnpm run test           # Vitest for the shared code
 pnpm run check          # format and lint (vite-plus)
 pnpm run types:check
 pnpm run registry:build # compiles registry.json into r/
-composer verify         # all the CI locally: repo, MySQL/Postgres (Docker), a new starter kit and the e2e tests
+composer verify         # all the CI locally: repo, MySQL/Postgres (Docker), new React and Vue starter kits and the e2e tests
 composer verify -- e2e  # only some stages: repo, databases, starter-kit, e2e
+FRAMEWORKS=vue composer verify -- starter-kit e2e   # only one framework
 ```
 
-Run `composer check` and `pnpm run check` before considering a change done. Run `composer verify` before releasing a version, and for changes to `registry/react/**` or to the SQL of the queries (it needs Docker; without `pdo_mysql` or `pdo_pgsql` in the local PHP, Pest runs in a PHP container).
+Run `composer check` and `pnpm run check` before considering a change done. Run `composer verify` before releasing a version, and for changes to `registry/react/**`, `registry/vue/**`, `registry/shared/**` or to the SQL of the queries (it needs Docker; without `pdo_mysql` or `pdo_pgsql` in the local PHP, Pest runs in a PHP container).
 
-`pnpm run check` and `pnpm run types:check` do not cover `registry/react/**`: those components import the `ui/` components of shadcn that each app installs, so they are only linted and type checked in a real app: the `starter-kit` stage of `composer verify` and the starter kit job of the CI (`.github/scripts/starter-kit.sh`). The `e2e` stage tests them in the browser; when a change of the UI changes what a test expects, update the test in `tests/e2e/`.
+`pnpm run check` and `pnpm run types:check` do not cover `registry/react/**` and `registry/vue/**`: those components import the `ui/` components of shadcn (or shadcn-vue) that each app installs, so they are only linted and type checked in a real app: the `starter-kit` stage of `composer verify` and the starter kit job of the CI (`.github/scripts/starter-kit.sh`). The `e2e` stage tests them in the browser; when a change of the UI changes what a test expects, update the test in `tests/e2e/`.
 
 ## Rules
 
@@ -42,7 +43,7 @@ Run `composer check` and `pnpm run check` before considering a change done. Run 
 Each thing lives in one place; the others link to it instead of copying it.
 
 - `README.md`: what the package is, installation, an overview of the API and releasing a version.
-- `skill/laravel-inertia-datatable/`: how to use it, for people and AI (`SKILL.md` is the workflow, `references/` the details of the backend, React and tests).
+- `skill/laravel-inertia-datatable/`: how to use it, for people and AI (`SKILL.md` is the workflow, `references/` the details of the backend, React, Vue and tests).
 - `docs/contract.md`: the HTTP contract between client and server (URL, response, normalization).
 - `CHANGELOG.md`: the changes of each version, with the migration of the breaking ones.
 

@@ -100,6 +100,11 @@ it('quotes components that the registry exports', function () {
             preg_match_all('/export\s+(?:async\s+)?(?:function|const|type|interface|class)\s+(\w+)/', (string) file_get_contents($file->getPathname()), $matches);
             array_push($exported, ...$matches[1]);
         }
+
+        // A Vue component is exported under the name of its file.
+        if (str_ends_with($file->getFilename(), '.vue')) {
+            $exported[] = $file->getBasename('.vue');
+        }
     }
 
     $missing = [];
@@ -117,10 +122,10 @@ it('quotes files that the registry installs', function () {
     $targets = registryTargets();
     $missing = [];
 
-    foreach (quotes('#\b((?:lib|hooks|components/data-table|components/ui)/[\w./{},-]+\.tsx?)\b#') as [$file, $match]) {
+    foreach (quotes('#\b((?:lib|hooks|composables|components/data-table|components/ui)/[\w./{},-]+\.(?:tsx?|vue))\b#') as [$file, $match]) {
         foreach (expandBraces($match[1]) as $path) {
             // Other components/ui files come from shadcn, not from the registry.
-            if (str_starts_with($path, 'components/ui/') && $path !== 'components/ui/faceted.tsx') {
+            if (str_starts_with($path, 'components/ui/') && $path !== 'components/ui/faceted.tsx' && ! str_starts_with($path, 'components/ui/faceted/')) {
                 continue;
             }
 
@@ -133,15 +138,15 @@ it('quotes files that the registry installs', function () {
     expect(array_unique($missing))->toBe([]);
 });
 
-it('lists every lib file of the registry in the React reference', function () {
-    $contents = docs()['skill/laravel-inertia-datatable/references/react.md'];
+it('lists every lib file of the registry in the reference of each framework', function (string $reference) {
+    $contents = docs()["skill/laravel-inertia-datatable/references/{$reference}"];
     $section = substr($contents, (int) strpos($contents, '## Files installed by the registry'));
     preg_match_all('#\blib/[\w.{},-]+\.ts\b#', $section, $matches);
     $listed = array_merge(...array_map(expandBraces(...), $matches[0]));
     $libs = array_filter(registryTargets(), fn (string $path): bool => str_starts_with($path, 'lib/'));
 
     expect(array_values(array_diff($libs, $listed)))->toBe([]);
-});
+})->with(['react.md', 'vue.md']);
 
 it('quotes column methods that exist on that type of column', function () {
     $chains = quotes('/Column::(\w+)\(\'[^\']*\'[^()]*\)((?:\s*->\w+\((?:[^()]|\([^()]*\))*\))*)/');
