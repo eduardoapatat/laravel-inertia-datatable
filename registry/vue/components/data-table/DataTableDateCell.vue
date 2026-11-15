@@ -36,8 +36,14 @@ const view = computed(() => {
 </script>
 
 <template>
+    <!-- With SSR the server formats the date in its time zone and the browser
+    in the viewer's: the browser's text wins without a hydration error. -->
     <DataTableEmptyCell v-if="view.text === ''" :cell="cell" />
-    <time v-else :datetime="view.dateTime" :title="view.title">{{
-        view.text
-    }}</time>
+    <time
+        v-else
+        :datetime="view.dateTime"
+        :title="view.title"
+        data-allow-mismatch="text,attribute"
+        >{{ view.text }}</time
+    >
 </template>

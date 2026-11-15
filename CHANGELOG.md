@@ -4,6 +4,10 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- Vue: with Inertia SSR, a date cell no longer reports a hydration mismatch when the SSR server and the browser are in different time zones; the date in the browser's time zone is kept.
+
 ## [0.14.2] - 2026-11-15
 
 ### Fixed
