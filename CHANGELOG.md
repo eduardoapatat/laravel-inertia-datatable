@@ -4,6 +4,20 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Columns of to-many relations (`hasMany`, `morphMany`, `belongsToMany`, `morphToMany`, `hasManyThrough`): `Column::option('tags')->from('tags.name')->badge()->filterMultiSelect()`. The row gets the list of distinct values, eager loaded for the whole page; the filters match when some related value matches (`in`, `eq`, `ilike`) and the negations when none does (`not.in`, `neq`, `not.ilike`, also the rows without related rows); `is.empty` matches the rows without related rows; the search looks in the related values; and the option counts count a row once in each option it has. Only option and text columns, and they cannot be sorted (both throw a `LogicException`). See §5.5 of `docs/contract.md`.
+- `config.columns[].multiple` in the response for those columns, and `meta.multiple` in the column meta of `useServerDataTable` (React and Vue).
+- `OptionColumn::maxVisible()`: in a to-many column, how many values the option cell shows before a "+N" with the rest (3 by default). Update the UI with `php artisan inertia-datatable:ui --update`.
+
+### Changed
+
+- A column on a to-many relation no longer throws a `LogicException` when it is an option or text column that is not sortable.
+
+### Fixed
+
+- The first-load skeleton (`DataTableSkeleton`, React and Vue) draws the number filters as wide as their input (120px instead of 160px), so its toolbar wraps like the table's.
+
 ## [0.15.0] - 2026-11-15
 
 ### Added

@@ -64,7 +64,7 @@ Methods of every type:
 
 | Method | Effect |
 |---|---|
-| `from('attribute')` / `from('relation.attribute')` | Read the value from another attribute or a to-one relation |
+| `from('attribute')` / `from('relation.attribute')` | Read the value from another attribute or a relation (a to-many one gives a list of values) |
 | `sortable()` | Allowed in `sort` |
 | `hideable(false)` | Always visible (use for the column that identifies the row); cannot be combined with `hidden()` |
 | `hidden()` | Hidden by default; the user can show it |
@@ -96,9 +96,12 @@ Format (only changes how cells look; the row keeps the raw value and the UI form
 ```php
 Column::option('category', 'Category')->from('category.name')->sortable()->searchable()->filterMultiSelect(),
 Column::option('status', 'Status')->options(OrderStatus::class)->badge()->filterMultiSelect(),
+Column::option('tags', 'Tags')->from('tags.name')->badge()->maxVisible(2)->filterMultiSelect(empty: true),
 ```
 
-- Relations: one level, to-one only (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`; `morphTo` throws a `LogicException`). The relation is eager loaded automatically and the row gets the flat value under the column id (`"category": "Books"`). Sorting uses a correlated subquery, filtering uses `whereHas`.
+- Relations: one level (`morphTo` throws a `LogicException`). The relation is eager loaded automatically (no N+1).
+  - To-one (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`): the row gets the flat value under the column id (`"category": "Books"`). Sorting uses a correlated subquery, filtering uses `whereHas`.
+  - To-many (`hasMany`, `morphMany`, `belongsToMany`, `morphToMany`, `hasManyThrough`): the row gets the list of distinct values (`"tags": ["Sale", "Eco"]`), shown as badges up to `maxVisible()` (3 by default) and a "+N". Only `Column::option()` and `Column::text()`, never sortable (both throw a `LogicException`). Filters match when some value matches (`in`, `ilike`) and the negations when none does, also the rows without related rows (`not.in`, `not.ilike`); `is.empty` is a row without related rows. One filter per value with AND gives "has all of them" (`filter[tags][]=in.Sale&filter[tags][]=in.Eco`). A row counts once in each option it has, so the counts may add up to more than the rows. The details are in §5.5 of `docs/contract.md`.
 - Enums: labels come from a `label()` method on the enum when it exists, otherwise from the case name; with `badge()`, the variant of each value comes from a `badgeVariant()` method when it exists (the map passed to `badge()` wins). Keep icons in the React or Vue component (`meta.icons`): they are components, not data. The cast on the model makes rows serialize the enum value.
 - Facet counts are crossed: each option counts rows with every other filter and the search applied, except its own column's filter.
 

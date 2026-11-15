@@ -78,6 +78,7 @@ Column::date('published_at', 'Published')->format('long')->filterRange(),       
 Column::boolean('featured', 'Featured')->labels('Sí', 'No')->filterSelect(),
 Column::option('status', 'Status')->options(ProductStatus::class)->badge()->filterMultiSelect(),
 Column::option('stage', 'Stage')->options(Stage::class)->badge('secondary', ['lost' => 'destructive']),
+Column::option('tags', 'Tags')->from('tags.name')->badge()->filterMultiSelect(),           // to-many: a list per row
 Column::option('category', 'Category')->from('category.name')->sortable()->filterMultiSelect(),
 ```
 

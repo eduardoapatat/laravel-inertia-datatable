@@ -106,7 +106,7 @@ filter[<col>]=[<operator>.]<value>
 - A value that does not match the variant (`filter[price]=abc`, invalid date, boolean other than `true`/`false`) drops that filter.
 - `between` with `min > max` swaps the ends.
 - In `select` / `multi-select` with declared options, values not in the list are dropped.
-- Columns from `belongsTo` / `hasOne` relations are filtered the same way (see §5).
+- Columns from `belongsTo` / `hasOne` relations are filtered the same way (see §5). Columns of to-many relations have several values per row; §5.5 says what each operator means for them.
 
 #### `join`
 
@@ -118,8 +118,8 @@ filter[<col>]=[<operator>.]<value>
 
 #### Phases
 
-- **Implemented:** all the variants and operators in the table, several filters per column, and `join` (`and`, with OR for `is.empty` within its column, or `or`).
-- **Future phase:** the `rel` operator (dates relative to today) and to-many relations (`hasMany`, `belongsToMany`).
+- **Implemented:** all the variants and operators in the table, several filters per column, `join` (`and`, with OR for `is.empty` within its column, or `or`) and columns of to-many relations (§5.5).
+- **Future phase:** the `rel` operator (dates relative to today).
 
 ### 1.5 `search`
 
@@ -228,7 +228,7 @@ Inertia converts the object with `toArray()` (it is `Arrayable`). Using a closur
 
 Rows of the current page:
 
-- **Without `transform`:** only the visible columns plus the fixed keys (`alwaysInclude`, by default the primary key). Each value comes from the model's `toArray()` (it respects `$hidden`, casts and date format); relation columns are flattened under their id.
+- **Without `transform`:** only the visible columns plus the fixed keys (`alwaysInclude`, by default the primary key). Each value comes from the model's `toArray()` (it respects `$hidden`, casts and date format); relation columns are flattened under their id. A to-many column is a list of its distinct values, in the order of the relation and without `null` or `''` (`"tags": ["Sale", "Eco"]`, `[]` without related rows).
 - **With `transform`:** whatever the class's `transform()` method or the `->transform()` closure returns, removing the keys of hidden columns except the fixed ones (`alwaysInclude`, by default the primary key). Keys that are not columns (for example `url`) are kept.
 
 ### 2.3 `meta`
@@ -256,13 +256,14 @@ Data the client cannot compute by itself in server mode (they replace TanStack's
   - Not declared: distinct values present in the database, sorted by value, with `label = value`.
 - Selected values always appear, even if their count is 0.
 - `NULL` values are not an option. With `empty: true` in the filter, the rows without a value go last as `{ "value": null, "label": …, "count"?: … }`; the label is the text of `->whenEmpty()` or the `no_value` UI text.
+- In a to-many column (§5.5) a row counts once in each option it has, so the counts may add up to more than the rows; the option without a value counts the rows without related rows.
 - Counts can be disabled per column (`->filterSelect(counts: false)` / `->filterMultiSelect(counts: false)`); then `count` is not sent. The count query is only skipped with declared options: without them it still runs to list the values.
 
 **`range`** → `{ "min": …, "max": … }` of the column over the base query (without filters), for the slider / range filter bounds. They can be set by hand with `Column::number(...)->filterRange(min: 0, max: 5000)` to skip the query.
 
 ### 2.6 `config`
 
-Static table metadata to build the UI: columns (label, whether it is sortable, whether it is hideable, default visibility, display and filter), whether there is global search, the display locale, the default date format, the UI texts, the default `per_page` and its options, the default sort, the limits `max_sorts` and `max_filters` (§4) and the effective names of the URL parameters.
+Static table metadata to build the UI: columns (label, whether it is sortable, whether it is hideable, default visibility, display and filter, and `multiple: true` in the columns of to-many relations, whose value is a list), whether there is global search, the display locale, the default date format, the UI texts, the default `per_page` and its options, the default sort, the limits `max_sorts` and `max_filters` (§4) and the effective names of the URL parameters.
 
 - `locale`: BCP 47 locale to format numbers and dates (`es-CL`), resolved on the server: the table (`locale()` / `->locale()`), then `inertia-datatable.locale`, then `app()->getLocale()`, with `_` turned into `-`. `null` when the setting is `'browser'`: the client uses the browser locale.
 - `date_format`: preset of the date columns without a `format` (`inertia-datatable.date_format`, `long` by default).
@@ -399,7 +400,7 @@ UserProductsTable::make(user: $user);
 
 ### 5.4 Relation columns (`belongsTo` / `hasOne`)
 
-`->from('relation.column')` takes the value from a related model (`belongsTo`, `hasOne`, `morphOne` or `hasOneThrough`; a `morphTo` or a to-many relation throws a `LogicException`). The public id (`category`) is independent of the internal path (`category.name`): the frontend does not know there is a relation.
+`->from('relation.column')` takes the value from a related model (`belongsTo`, `hasOne`, `morphOne` or `hasOneThrough`; a `morphTo` throws a `LogicException`; to-many relations are in §5.5). The public id (`category`) is independent of the internal path (`category.name`): the frontend does not know there is a relation.
 
 | Operation | How it is resolved |
 |---|---|
@@ -411,9 +412,33 @@ UserProductsTable::make(user: $user);
 
 Limits of this phase:
 
-- Only to-one relations (`belongsTo`, `hasOne`, `morphOne`, `hasOneThrough`), one level deep (`category.name`; not `category.parent.name`). Declaring a column on a to-many relation throws a `LogicException` when the table is resolved, even if it is only displayed.
+- One level deep (`category.name`; not `category.parent.name`).
 - The facet values are the displayed column's values (`filter[category]=Electronics`). Repeated values (two categories with the same name) are grouped.
-- To-many relations (`hasMany`, `belongsToMany`, for example tags) are left for a future phase.
+
+### 5.5 To-many relation columns (`hasMany` / `belongsToMany`)
+
+`->from('tags.name')` on a `hasMany`, `morphMany`, `belongsToMany`, `morphToMany` or `hasManyThrough` relation gives each row a list of values: `Column::option('tags')->from('tags.name')->badge()->filterMultiSelect()`.
+
+| Operator | Matches the rows… | SQL |
+|---|---|---|
+| `in` / `eq` | where some related value is one of the list | `whereHas('tags', name IN …)` |
+| `not.in` / `neq` | where no related value is, also those without related rows | `whereDoesntHave('tags', name IN …)` |
+| `ilike` | where some related value contains the text | `whereHas('tags', name LIKE …)` |
+| `not.ilike` | where no related value contains it | `whereDoesntHave('tags', name LIKE …)` |
+| `is.empty` | without related rows | `whereDoesntHave('tags')` |
+| `not.is.empty` | with some related row | `whereHas('tags')` |
+
+- Each filter is its own `whereHas`: with `join=and` two filters of the column may match different related rows, so `filter[tags][]=in.Sale&filter[tags][]=in.Eco` is "has Sale and has Eco". `is.empty` is still added with OR, and `join=or` ORs each filter as usual.
+- `search`: `orWhereHas`, a word matches when some related value contains it.
+- `data`: the list of §2.2, eager loaded for the whole page (no N+1).
+- `facets`: one `GROUP BY` over the related values of the filtered rows, counting each row once per value (§2.5).
+- `config`: the column has `multiple: true`; the option cells show up to `->maxVisible()` values (3 by default) and a "+N" with the rest.
+
+Limits:
+
+- Only option and text columns; a number, date or boolean column on a to-many relation throws a `LogicException` when the table is resolved.
+- They cannot be sorted: `->sortable()` or the default sort on one throws a `LogicException`.
+- One level deep, like §5.4. Pivot columns are not columns of the table.
 
 ---
 

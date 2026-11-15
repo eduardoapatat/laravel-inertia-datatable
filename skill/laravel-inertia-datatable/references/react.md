@@ -105,7 +105,7 @@ columnHelper.accessor('price', {
 }),
 ```
 
-- Option cells (select / multi-select) can be customized without rewriting them; the cell still splits multiple values, skips empty ones and keeps the PHP labels and the `meta.icons` icons:
+- Option cells (select / multi-select) can be customized without rewriting them; the cell still splits multiple values, skips empty ones and keeps the PHP labels and the `meta.icons` icons. In a column of a to-many relation (`meta.multiple`) it shows up to `->maxVisible()` values (3 by default) and a "+N" with the rest in its `title`:
 
 ```tsx
 import {
