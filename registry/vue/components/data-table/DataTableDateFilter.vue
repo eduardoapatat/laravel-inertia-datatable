@@ -47,9 +47,23 @@ import {
     RangeCalendarPrevButton,
 } from '@/components/ui/range-calendar';
 import { Separator } from '@/components/ui/separator';
-import { clearColumnFilter, getEmptyFilter } from '@/lib/data-table-features';
+import {
+    clearColumnFilter,
+    getEmptyFilter,
+    getRelativeFilter,
+    setRelativeFilter,
+} from '@/lib/data-table-features';
 import { formatDate, getEmptyLabel } from '@/lib/data-table-format';
-import { getMessage, getWeekStartsOn } from '@/lib/data-table-messages';
+import {
+    type DataTableMessageKey,
+    getMessage,
+    getWeekStartsOn,
+} from '@/lib/data-table-messages';
+import {
+    formatRelativeDateRange,
+    getRelativeDateLabel,
+    RELATIVE_DATE_PRESETS,
+} from '@/lib/data-table-relative-date';
 import type { RowData } from '@/lib/data-table-tanstack';
 import { cn } from '@/lib/utils';
 
@@ -62,7 +76,8 @@ import DataTableEmptyFilter from './DataTableEmptyFilter.vue';
 
 /**
  * Calendar filter of a date column: one day with `->filterDate()`, a range
- * with `->filterRange()`.
+ * with `->filterRange()`. With `presets: true`, periods relative to today
+ * (`rel`) next to the calendar.
  */
 const props = withDefaults(defineProps<DataTableFilterPieceProps<TData>>(), {
     icon: undefined,
@@ -97,8 +112,22 @@ const dates = computed(() =>
     ),
 );
 const includesEmpty = computed(() => (column ? getEmptyFilter(column) : false));
+const presets = computed(() => column?.columnDef.meta?.presets ?? false);
+const relativeFilter = computed(() =>
+    column ? getRelativeFilter(column) : undefined,
+);
+const relativeToken = computed(() => {
+    const value = relativeFilter.value?.value;
+
+    return typeof value === 'string' && value !== '' ? value : undefined;
+});
 const hasDates = computed(() => dates.value.some(Boolean));
-const hasValue = computed(() => hasDates.value || includesEmpty.value);
+const hasValue = computed(
+    () =>
+        hasDates.value ||
+        includesEmpty.value ||
+        relativeToken.value !== undefined,
+);
 
 const singleValue = computed(() =>
     multiple.value ? undefined : dates.value[0],
@@ -117,11 +146,14 @@ const dateText = computed(() => {
             ? formatDate(toJsDate(date), { month: 'short' }, locale.value)
             : '';
     const [from, to] = dates.value;
-    const text = !hasDates.value
-        ? ''
-        : multiple.value && from && to
-          ? `${format(from)} - ${format(to)}`
-          : format(from ?? to);
+    const text =
+        relativeToken.value !== undefined
+            ? relativeLabel(relativeToken.value)
+            : !hasDates.value
+              ? ''
+              : multiple.value && from && to
+                ? `${format(from)} - ${format(to)}`
+                : format(from ?? to);
 
     return [
         text,
@@ -133,6 +165,35 @@ const dateText = computed(() => {
         .join(', ');
 });
 
+// The days the server resolved the period to, whole in the title.
+const dateTitle = computed(() =>
+    [
+        dateText.value,
+        formatRelativeDateRange(relativeFilter.value?.range, locale.value),
+    ]
+        .filter(Boolean)
+        .join(' · '),
+);
+
+function relativeLabel(token: string) {
+    return getRelativeDateLabel(
+        token,
+        (
+            key: DataTableMessageKey,
+            replacements?: Record<string, string | number>,
+        ) => getMessage(table.value, key, replacements),
+    );
+}
+
+function onPreset(token: string) {
+    if (column) {
+        setRelativeFilter(
+            column,
+            token === relativeToken.value ? undefined : token,
+        );
+    }
+}
+
 function onOpenChange(open: boolean) {
     if (open) {
         placeholder.value = dates.value[0] ?? today(getLocalTimeZone());
@@ -140,6 +201,8 @@ function onOpenChange(open: boolean) {
 }
 
 function onSelect(date: DateValue | undefined) {
+    // A picked day replaces the period relative to today.
+    if (column) setRelativeFilter(column, undefined);
     column?.setFilterValue(date ? toTimestamp(date) : undefined);
 }
 
@@ -147,6 +210,7 @@ function onSelect(date: DateValue | undefined) {
 // search a one-day range in between.
 function onRangeSelect(range: DateRange) {
     if (range.start && range.end) {
+        if (column) setRelativeFilter(column, undefined);
         column?.setFilterValue([
             toTimestamp(range.start),
             toTimestamp(range.end),
@@ -223,7 +287,7 @@ function toTimestamp(date: DateValue) {
                         />
                         <!-- Long ranges are cut on small screens; the title shows them whole. -->
                         <span
-                            :title="dateText"
+                            :title="dateTitle"
                             class="max-w-32 truncate sm:max-w-none"
                             >{{ dateText }}</span
                         >
@@ -237,138 +301,160 @@ function toTimestamp(date: DateValue) {
             :align="align"
             :class="cn('w-auto p-0', contentClass)"
         >
-            <RangeCalendarRoot
-                v-if="multiple"
-                v-slot="{ grid, weekDays }"
-                v-model:placeholder="placeholder"
-                :model-value="rangeValue"
-                :locale="locale"
-                :week-starts-on="weekStartsOn"
-                :dir="dir"
-                initial-focus
-                data-slot="range-calendar"
-                class="p-3"
-                @update:model-value="onRangeSelect"
-            >
-                <RangeCalendarHeader class="px-8 pt-0">
-                    <DataTableCalendarSelects
-                        v-model:placeholder="placeholder"
-                        :locale="locale"
-                        :table="table"
-                    />
-                    <RangeCalendarPrevButton
-                        :aria-label="getMessage(table, 'previous_month')"
-                    />
-                    <RangeCalendarNextButton
-                        :aria-label="getMessage(table, 'next_month')"
-                    />
-                </RangeCalendarHeader>
+            <div class="flex flex-col sm:flex-row">
                 <div
-                    class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0"
+                    v-if="presets"
+                    role="group"
+                    :aria-label="getMessage(table, 'pick_period')"
+                    class="flex flex-col gap-0.5 border-b p-2 sm:border-e sm:border-b-0"
                 >
-                    <RangeCalendarGrid
-                        v-for="month in grid"
-                        :key="month.value.toString()"
+                    <Button
+                        v-for="token in RELATIVE_DATE_PRESETS"
+                        :key="token"
+                        variant="ghost"
+                        size="sm"
+                        :aria-pressed="token === relativeToken"
+                        class="justify-start font-normal aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+                        @click="onPreset(token)"
                     >
-                        <RangeCalendarGridHead>
-                            <RangeCalendarGridRow>
-                                <RangeCalendarHeadCell
-                                    v-for="day in weekDays"
-                                    :key="day"
-                                >
-                                    {{ day }}
-                                </RangeCalendarHeadCell>
-                            </RangeCalendarGridRow>
-                        </RangeCalendarGridHead>
-                        <RangeCalendarGridBody>
-                            <RangeCalendarGridRow
-                                v-for="(weekDates, index) in month.rows"
-                                :key="`weekDate-${index}`"
-                                class="mt-2 w-full"
-                            >
-                                <RangeCalendarCell
-                                    v-for="weekDate in weekDates"
-                                    :key="weekDate.toString()"
-                                    :date="weekDate"
-                                >
-                                    <RangeCalendarCellTrigger
-                                        :day="weekDate"
-                                        :month="month.value"
-                                    />
-                                </RangeCalendarCell>
-                            </RangeCalendarGridRow>
-                        </RangeCalendarGridBody>
-                    </RangeCalendarGrid>
+                        {{ relativeLabel(token) }}
+                    </Button>
                 </div>
-            </RangeCalendarRoot>
-            <CalendarRoot
-                v-else
-                v-slot="{ grid, weekDays }"
-                v-model:placeholder="placeholder"
-                :model-value="singleValue"
-                :locale="locale"
-                :week-starts-on="weekStartsOn"
-                :dir="dir"
-                initial-focus
-                data-slot="calendar"
-                class="p-3"
-                @update:model-value="onSelect"
-            >
-                <CalendarHeader class="pt-0">
-                    <DataTableCalendarSelects
-                        v-model:placeholder="placeholder"
-                        :locale="locale"
-                        :table="table"
-                    />
-                    <nav
-                        class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-1"
-                    >
-                        <CalendarPrevButton
+                <RangeCalendarRoot
+                    v-if="multiple"
+                    v-slot="{ grid, weekDays }"
+                    v-model:placeholder="placeholder"
+                    :model-value="rangeValue"
+                    :locale="locale"
+                    :week-starts-on="weekStartsOn"
+                    :dir="dir"
+                    initial-focus
+                    data-slot="range-calendar"
+                    class="p-3"
+                    @update:model-value="onRangeSelect"
+                >
+                    <RangeCalendarHeader class="px-8 pt-0">
+                        <DataTableCalendarSelects
+                            v-model:placeholder="placeholder"
+                            :locale="locale"
+                            :table="table"
+                        />
+                        <RangeCalendarPrevButton
                             :aria-label="getMessage(table, 'previous_month')"
                         />
-                        <CalendarNextButton
+                        <RangeCalendarNextButton
                             :aria-label="getMessage(table, 'next_month')"
                         />
-                    </nav>
-                </CalendarHeader>
-                <div
-                    class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0"
-                >
-                    <CalendarGrid
-                        v-for="month in grid"
-                        :key="month.value.toString()"
+                    </RangeCalendarHeader>
+                    <div
+                        class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0"
                     >
-                        <CalendarGridHead>
-                            <CalendarGridRow>
-                                <CalendarHeadCell
-                                    v-for="day in weekDays"
-                                    :key="day"
+                        <RangeCalendarGrid
+                            v-for="month in grid"
+                            :key="month.value.toString()"
+                        >
+                            <RangeCalendarGridHead>
+                                <RangeCalendarGridRow>
+                                    <RangeCalendarHeadCell
+                                        v-for="day in weekDays"
+                                        :key="day"
+                                    >
+                                        {{ day }}
+                                    </RangeCalendarHeadCell>
+                                </RangeCalendarGridRow>
+                            </RangeCalendarGridHead>
+                            <RangeCalendarGridBody>
+                                <RangeCalendarGridRow
+                                    v-for="(weekDates, index) in month.rows"
+                                    :key="`weekDate-${index}`"
+                                    class="mt-2 w-full"
                                 >
-                                    {{ day }}
-                                </CalendarHeadCell>
-                            </CalendarGridRow>
-                        </CalendarGridHead>
-                        <CalendarGridBody>
-                            <CalendarGridRow
-                                v-for="(weekDates, index) in month.rows"
-                                :key="`weekDate-${index}`"
-                                class="mt-2 w-full"
-                            >
-                                <CalendarCell
-                                    v-for="weekDate in weekDates"
-                                    :key="weekDate.toString()"
-                                    :date="weekDate"
+                                    <RangeCalendarCell
+                                        v-for="weekDate in weekDates"
+                                        :key="weekDate.toString()"
+                                        :date="weekDate"
+                                    >
+                                        <RangeCalendarCellTrigger
+                                            :day="weekDate"
+                                            :month="month.value"
+                                        />
+                                    </RangeCalendarCell>
+                                </RangeCalendarGridRow>
+                            </RangeCalendarGridBody>
+                        </RangeCalendarGrid>
+                    </div>
+                </RangeCalendarRoot>
+                <CalendarRoot
+                    v-else
+                    v-slot="{ grid, weekDays }"
+                    v-model:placeholder="placeholder"
+                    :model-value="singleValue"
+                    :locale="locale"
+                    :week-starts-on="weekStartsOn"
+                    :dir="dir"
+                    initial-focus
+                    data-slot="calendar"
+                    class="p-3"
+                    @update:model-value="onSelect"
+                >
+                    <CalendarHeader class="pt-0">
+                        <DataTableCalendarSelects
+                            v-model:placeholder="placeholder"
+                            :locale="locale"
+                            :table="table"
+                        />
+                        <nav
+                            class="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between gap-1"
+                        >
+                            <CalendarPrevButton
+                                :aria-label="
+                                    getMessage(table, 'previous_month')
+                                "
+                            />
+                            <CalendarNextButton
+                                :aria-label="getMessage(table, 'next_month')"
+                            />
+                        </nav>
+                    </CalendarHeader>
+                    <div
+                        class="mt-4 flex flex-col gap-y-4 sm:flex-row sm:gap-x-4 sm:gap-y-0"
+                    >
+                        <CalendarGrid
+                            v-for="month in grid"
+                            :key="month.value.toString()"
+                        >
+                            <CalendarGridHead>
+                                <CalendarGridRow>
+                                    <CalendarHeadCell
+                                        v-for="day in weekDays"
+                                        :key="day"
+                                    >
+                                        {{ day }}
+                                    </CalendarHeadCell>
+                                </CalendarGridRow>
+                            </CalendarGridHead>
+                            <CalendarGridBody>
+                                <CalendarGridRow
+                                    v-for="(weekDates, index) in month.rows"
+                                    :key="`weekDate-${index}`"
+                                    class="mt-2 w-full"
                                 >
-                                    <CalendarCellTrigger
-                                        :day="weekDate"
-                                        :month="month.value"
-                                    />
-                                </CalendarCell>
-                            </CalendarGridRow>
-                        </CalendarGridBody>
-                    </CalendarGrid>
-                </div>
-            </CalendarRoot>
+                                    <CalendarCell
+                                        v-for="weekDate in weekDates"
+                                        :key="weekDate.toString()"
+                                        :date="weekDate"
+                                    >
+                                        <CalendarCellTrigger
+                                            :day="weekDate"
+                                            :month="month.value"
+                                        />
+                                    </CalendarCell>
+                                </CalendarGridRow>
+                            </CalendarGridBody>
+                        </CalendarGrid>
+                    </div>
+                </CalendarRoot>
+            </div>
             <template v-if="column.columnDef.meta?.empty">
                 <Separator />
                 <div class="p-3">

@@ -117,6 +117,11 @@ export type DataTableColumnMeta = {
      * PHP), added with OR to what is picked.
      */
     empty?: boolean;
+    /**
+     * The date filter offers days relative to today next to the calendar
+     * (`presets: true` in PHP), sent as `rel`.
+     */
+    presets?: boolean;
     /** Rows without a value, for the filter list (from the server facets). */
     emptyCount?: number;
     /**
@@ -149,4 +154,9 @@ export interface ColumnFilterItem<
     variant: FilterVariant;
     operator: FilterOperator;
     filterId: string;
+    /**
+     * Of a `rel` filter: the days the server resolved its token to
+     * (`YYYY-MM-DD`), to show them without computing dates.
+     */
+    range?: [string, string];
 }

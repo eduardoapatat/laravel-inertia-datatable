@@ -6,6 +6,8 @@
  * See docs/contract.md in the package.
  */
 
+import { normalizeRelativeDate } from '@/lib/data-table-relative-date';
+
 export type FilterVariant =
     | 'text'
     | 'number'
@@ -29,7 +31,8 @@ export type FilterOperator =
     | 'lte'
     | 'gt'
     | 'gte'
-    | 'isBetween';
+    | 'isBetween'
+    | 'isRelativeToToday';
 
 /**
  * How the column filters are combined: all of them (`and`, the default) or
@@ -48,6 +51,11 @@ export interface ServerFilter {
     variant: FilterVariant;
     operator: FilterOperator;
     value: string | string[];
+    /**
+     * Of a `rel` filter (`isRelativeToToday`): the first and last day the
+     * server resolved its token to (`YYYY-MM-DD`).
+     */
+    range?: [string, string];
 }
 
 /**
@@ -127,6 +135,11 @@ export type ServerColumnDisplay = (
 export interface ServerColumnFilter {
     variant: FilterVariant;
     placeholder?: string;
+    /**
+     * The date filter offers days relative to today next to the calendar
+     * (`presets: true`), sent as `rel`.
+     */
+    presets?: true;
     /** The filter also offers the rows without a value (`empty: true`). */
     empty?: true;
 }
@@ -245,6 +258,7 @@ export const FILTER_OPERATOR_URL_NAMES = {
     gt: 'gt',
     gte: 'gte',
     isBetween: 'between',
+    isRelativeToToday: 'rel',
 } as const satisfies Record<FilterOperator, string>;
 
 /**
@@ -295,6 +309,15 @@ export function serializeFilter(filter: ServerFilter): string | null {
 
     if (VALUELESS_OPERATORS.has(filter.operator)) {
         return urlName;
+    }
+
+    if (filter.operator === 'isRelativeToToday') {
+        const single = Array.isArray(filter.value)
+            ? (filter.value[0] ?? '')
+            : filter.value;
+        const token = normalizeRelativeDate(single);
+
+        return token === null ? null : `${urlName}.${token}`;
     }
 
     const raw = LIST_OPERATORS.has(filter.operator)

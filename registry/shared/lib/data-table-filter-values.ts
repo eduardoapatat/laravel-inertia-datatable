@@ -172,6 +172,22 @@ export function normalizeColumnFilter(
 ): ColumnFilterItem {
     const filterId = filter.filterId ?? getPlainFilterId(filter.id);
 
+    if (filter.operator === 'isRelativeToToday') {
+        const value = Array.isArray(filter.value)
+            ? filter.value[0]
+            : filter.value;
+
+        // A token, not a date: kept as written, with the days of the server.
+        return {
+            id: filter.id,
+            variant: filter.variant ?? variant,
+            operator: filter.operator,
+            value: typeof value === 'string' ? value : '',
+            filterId,
+            ...(filter.range ? { range: filter.range } : {}),
+        };
+    }
+
     if (filter.operator) {
         const filterVariant = filter.variant ?? variant;
         const stringify = getFilterValueStringifier(filterVariant);

@@ -36,7 +36,7 @@ describe('parity with the PHP enums', () => {
             ].map(([, name, urlName]) => [operators.get(name ?? ''), urlName]),
         );
 
-        expect(operators.size).toBe(13);
+        expect(operators.size).toBe(14);
         expect(urlNames).toEqual(FILTER_OPERATOR_URL_NAMES);
     });
 

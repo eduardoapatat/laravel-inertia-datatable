@@ -17,7 +17,15 @@ import {
 } from '@/lib/data-table-filter-values';
 import { getBooleanFilterOptions } from '@/lib/data-table-filter-options';
 import { formatDate, formatNumber } from '@/lib/data-table-format';
-import { getMessage } from '@/lib/data-table-messages';
+import {
+    type DataTableMessageKey,
+    getMessage,
+} from '@/lib/data-table-messages';
+import {
+    formatRelativeDateRange,
+    getRelativeDateLabel,
+    RELATIVE_DATE_PRESETS,
+} from '@/lib/data-table-relative-date';
 import type { ColumnFilterItem } from '@/lib/data-table-types';
 
 import { useCalendarLocale } from '@/components/data-table/data-table-date-filter';
@@ -62,7 +70,8 @@ interface DataTableFilterValueProps<TData extends RowData> {
 /**
  * Value of a row of `DataTableFilterList`, by the variant of its column and
  * its operator: text or number fields (two for `isBetween`), a calendar, a list
- * of options or yes / no. `is.empty` and `not.is.empty` take none.
+ * of options, yes / no or the periods relative to today of `rel`. `is.empty`
+ * and `not.is.empty` take none.
  */
 export function DataTableFilterValue<TData extends RowData>({
     column,
@@ -77,6 +86,18 @@ export function DataTableFilterValue<TData extends RowData>({
     if (getIsValuelessOperator(filter.operator)) {
         return (
             <div data-slot="data-table-filter-value" className={className} />
+        );
+    }
+
+    if (filter.operator === 'isRelativeToToday') {
+        return (
+            <DataTableFilterRelativeValue
+                column={column}
+                filter={filter}
+                onChange={onChange}
+                ariaLabel={ariaLabel}
+                className={className}
+            />
         );
     }
 
@@ -188,6 +209,52 @@ export function DataTableFilterValue<TData extends RowData>({
                 />
             );
     }
+}
+
+/**
+ * Periods relative to today: the presets, and first the token of the URL when
+ * it is not one of them. The days the server resolved it to go in the title.
+ */
+function DataTableFilterRelativeValue<TData extends RowData>({
+    column,
+    filter,
+    onChange,
+    ariaLabel,
+    className,
+}: DataTableFilterValueProps<TData> & { ariaLabel: string }) {
+    const table = column.table;
+    const token = toSingle(filter.value);
+    const presets: readonly string[] = RELATIVE_DATE_PRESETS;
+    const tokens =
+        token === '' || presets.includes(token) ? presets : [token, ...presets];
+    const message = (
+        key: DataTableMessageKey,
+        replacements?: Record<string, string | number>,
+    ) => getMessage(table, key, replacements);
+    const range = formatRelativeDateRange(
+        filter.range,
+        table.options.meta?.locale,
+    );
+
+    return (
+        <Select value={token || undefined} onValueChange={onChange}>
+            <SelectTrigger
+                data-slot="data-table-filter-value"
+                aria-label={ariaLabel}
+                title={range || undefined}
+                className={cn('h-8 w-full', className)}
+            >
+                <SelectValue placeholder={getMessage(table, 'pick_period')} />
+            </SelectTrigger>
+            <SelectContent>
+                {tokens.map((item) => (
+                    <SelectItem key={item} value={item}>
+                        {getRelativeDateLabel(item, message)}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
 }
 
 function DataTableFilterOptionsValue<TData extends RowData>({

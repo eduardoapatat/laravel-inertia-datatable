@@ -6,7 +6,8 @@ declare(strict_types=1);
  * Texts of the DataTable UI, sent to the client in config.messages. Publish them
  * with `php artisan vendor:publish --tag=inertia-datatable-lang` to translate
  * them or change them; `:label`, `:count`, `:page` and `:pages` are replaced
- * in the browser.
+ * in the browser. The `relative_past_*` and `relative_next_*` texts of months
+ * and years are `singular|plural`.
  */
 return [
     // Toolbar
@@ -85,6 +86,29 @@ return [
     'operator_after' => 'Is after',
     'operator_on_or_before' => 'Is on or before',
     'operator_on_or_after' => 'Is on or after',
+    'operator_relative' => 'Is relative to today',
+    'pick_period' => 'Pick a period',
+    'relative_today' => 'Today',
+    'relative_yesterday' => 'Yesterday',
+    'relative_tomorrow' => 'Tomorrow',
+    'relative_this_week' => 'This week',
+    'relative_last_week' => 'Last week',
+    'relative_next_week' => 'Next week',
+    'relative_this_month' => 'This month',
+    'relative_last_month' => 'Last month',
+    'relative_next_month' => 'Next month',
+    'relative_this_quarter' => 'This quarter',
+    'relative_last_quarter' => 'Last quarter',
+    'relative_next_quarter' => 'Next quarter',
+    'relative_this_year' => 'This year',
+    'relative_last_year' => 'Last year',
+    'relative_next_year' => 'Next year',
+    'relative_past_days' => 'Past :count days',
+    'relative_next_days' => 'Next :count days',
+    'relative_past_months' => 'Past month|Past :count months',
+    'relative_next_months' => 'Coming month|Next :count months',
+    'relative_past_years' => 'Past year|Past :count years',
+    'relative_next_years' => 'Coming year|Next :count years',
     'sort' => 'Sort',
     'sort_none' => 'No sorting applied',
     'sort_description' => 'Add sorting to organize your rows.',

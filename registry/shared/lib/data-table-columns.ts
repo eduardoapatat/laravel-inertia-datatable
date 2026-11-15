@@ -184,6 +184,7 @@ function serverMeta(
         placeholder: server.filter?.placeholder,
         filterVariant: server.filter?.variant,
         empty: server.filter?.empty,
+        presets: server.filter?.presets,
         emptyCount: Array.isArray(facet)
             ? facet.find((option) => option.value === null)?.count
             : undefined,

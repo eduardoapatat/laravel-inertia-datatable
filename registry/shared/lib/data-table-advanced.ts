@@ -31,6 +31,19 @@ const NUMBER_OPERATORS = [
     'isNotEmpty',
 ] as const satisfies readonly FilterOperator[];
 
+const DATE_OPERATORS = [
+    'eq',
+    'ne',
+    'lt',
+    'lte',
+    'gt',
+    'gte',
+    'isBetween',
+    'isRelativeToToday',
+    'isEmpty',
+    'isNotEmpty',
+] as const satisfies readonly FilterOperator[];
+
 /**
  * Operators the server accepts for each variant, in the order of the menu:
  * the same as `FilterVariant::operators()` in PHP.
@@ -42,8 +55,8 @@ export const FILTER_OPERATORS: Record<
     text: ['iLike', 'notILike', 'eq', 'ne', 'isEmpty', 'isNotEmpty'],
     number: NUMBER_OPERATORS,
     range: NUMBER_OPERATORS,
-    date: NUMBER_OPERATORS,
-    'date-range': NUMBER_OPERATORS,
+    date: DATE_OPERATORS,
+    'date-range': DATE_OPERATORS,
     boolean: ['eq', 'ne', 'isEmpty', 'isNotEmpty'],
     select: ['inArray', 'eq', 'ne', 'isEmpty', 'isNotEmpty'],
     'multi-select': ['inArray', 'notInArray', 'isEmpty', 'isNotEmpty'],
@@ -59,6 +72,7 @@ const OPERATOR_MESSAGES: Record<FilterOperator, DataTableMessageKey> = {
     gt: 'operator_gt',
     gte: 'operator_gte',
     isBetween: 'operator_between',
+    isRelativeToToday: 'operator_relative',
     inArray: 'operator_in',
     notInArray: 'operator_not_in',
     isEmpty: 'operator_empty',
@@ -121,29 +135,39 @@ export function createFilterListItem(
 /**
  * The row with another operator, keeping what fits of its value: the first
  * value for a single one, the non empty ones for a list and the first one as
- * the start of a range.
+ * the start of a range. A `rel` token and a date do not fit each other: the
+ * value starts empty when the row enters or leaves `rel`.
  */
 export function changeFilterOperator(
     filter: ColumnFilterItem,
     operator: FilterOperator,
 ): ColumnFilterItem {
-    const values = Array.isArray(filter.value) ? filter.value : [filter.value];
+    const { range: _range, ...rest } = filter;
+    // Enters or leaves `rel`.
+    const relative =
+        (operator === 'isRelativeToToday') !==
+        (filter.operator === 'isRelativeToToday');
+    const values = relative
+        ? []
+        : Array.isArray(filter.value)
+          ? filter.value
+          : [filter.value];
     const present = values.filter((value) => value !== '');
     let value: string | string[];
 
     if (getIsValuelessOperator(operator)) {
         value = '';
     } else if (operator === 'isBetween') {
-        value = Array.isArray(filter.value)
-            ? [filter.value[0] ?? '', filter.value[1] ?? '']
-            : [filter.value, ''];
+        const [start = '', end = ''] = relative ? [] : values;
+
+        value = Array.isArray(filter.value) ? [start, end] : [start, ''];
     } else if (LIST_OPERATORS.has(operator)) {
         value = present;
     } else {
         value = present[0] ?? '';
     }
 
-    return { ...filter, operator, value };
+    return { ...rest, operator, value };
 }
 
 /** Whether the row has what the server needs: it goes in the URL. */

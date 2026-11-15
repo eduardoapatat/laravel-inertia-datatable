@@ -107,6 +107,22 @@ describe('withColumnMeta', () => {
         });
     });
 
+    it('passes the presets of a date filter', () => {
+        const column = withColumnMeta<Row>(
+            { id: 'released_on' },
+            server('released_on', {
+                display: { type: 'date' },
+                filter: { variant: 'date-range', presets: true },
+            }),
+            undefined,
+        );
+
+        expect(metaOf(column)).toMatchObject({
+            filterVariant: 'date-range',
+            presets: true,
+        });
+    });
+
     it('takes the range bounds from the facet', () => {
         const column = withColumnMeta<Row>(
             { id: 'price' },

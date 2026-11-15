@@ -8,13 +8,15 @@ import type {
 
 /**
  * A response of the package for the tests of `useServerDataTable`: the
- * products table, with a text, a number and an option column.
+ * products table, with a text, a number and an option column, and a hidden
+ * date column with presets relative to today.
  */
 export interface Product {
     id: number;
     name: string;
     price: number;
     status: string;
+    released_on?: string;
 }
 
 const column = (
@@ -40,7 +42,12 @@ export function serverState(
         columnFilters: [],
         join: 'and',
         globalFilter: '',
-        columnVisibility: { name: true, price: true, status: true },
+        columnVisibility: {
+            name: true,
+            price: true,
+            status: true,
+            released_on: false,
+        },
         ...overrides,
     };
 }
@@ -81,6 +88,11 @@ export function serverTable(
                 column('status', {
                     display: { type: 'option' },
                     filter: { variant: 'select' },
+                }),
+                column('released_on', {
+                    visible: false,
+                    display: { type: 'date' },
+                    filter: { variant: 'date-range', presets: true },
                 }),
             ],
             searchable: true,

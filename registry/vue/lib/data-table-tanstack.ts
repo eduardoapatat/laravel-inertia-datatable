@@ -23,6 +23,6 @@ declare module '@tanstack/vue-table' {
     }
 
     interface ColumnFilter extends Partial<
-        Pick<ColumnFilterItem, 'operator' | 'variant' | 'filterId'>
+        Pick<ColumnFilterItem, 'operator' | 'variant' | 'filterId' | 'range'>
     > {}
 }

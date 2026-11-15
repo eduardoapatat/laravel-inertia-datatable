@@ -8,19 +8,28 @@ import { type Column, type RowData, Subscribe } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 
+import type { ColumnFilter } from '@/lib/data-table-tanstack';
 import {
     clearColumnFilter,
     type DataTableFeatures,
     getEmptyFilter,
+    getRelativeFilter,
+    setRelativeFilter,
 } from '@/lib/data-table-features';
 
 import { formatDate, getEmptyLabel } from '@/lib/data-table-format';
 import {
+    type DataTableMessageKey,
     getMessage,
     getWeekStartsOn,
     type TableWithMeta,
 } from '@/lib/data-table-messages';
 import { pickDateRangeDay } from '@/lib/data-table-filter-values';
+import {
+    formatRelativeDateRange,
+    getRelativeDateLabel,
+    RELATIVE_DATE_PRESETS,
+} from '@/lib/data-table-relative-date';
 import {
     type DataTableFilterPieceProps,
     useDataTableFilterColumn,
@@ -44,7 +53,8 @@ type DataTableDateFilterProps<TData extends RowData> =
 
 /**
  * Calendar filter of a date column: one day with `->filterDate()`, a range
- * with `->filterRange()`.
+ * with `->filterRange()`. With `presets: true`, periods relative to today
+ * (`rel`) next to the calendar.
  */
 export function DataTableDateFilter<TData extends RowData>({
     table,
@@ -67,14 +77,16 @@ export function DataTableDateFilter<TData extends RowData>({
             selector={() => ({
                 value: column.getFilterValue(),
                 empty: getEmptyFilter(column),
+                relative: getRelativeFilter(column),
             })}
         >
-            {({ value, empty }) => (
+            {({ value, empty, relative }) => (
                 <DataTableDateFilterContent
                     column={column}
                     multiple={multiple}
                     columnFilterValue={value}
                     includesEmpty={empty}
+                    relativeFilter={relative}
                     {...props}
                 />
             )}
@@ -93,11 +105,13 @@ function DataTableDateFilterContent<TData extends RowData>({
     disabled,
     columnFilterValue,
     includesEmpty,
+    relativeFilter,
 }: Omit<DataTableDateFilterProps<TData>, 'column' | 'table'> & {
     column: Column<DataTableFeatures, TData>;
     multiple: boolean;
     columnFilterValue: unknown;
     includesEmpty: boolean;
+    relativeFilter: ColumnFilter | undefined;
 }) {
     const dir = useDirection();
     const table = column.table;
@@ -124,11 +138,34 @@ function DataTableDateFilterContent<TData extends RowData>({
     // with the second one, so the table does not search a one-day range.
     const [rangeStart, setRangeStart] = React.useState<Date>();
 
+    const presets = column.columnDef.meta?.presets ?? false;
+    const relativeToken =
+        typeof relativeFilter?.value === 'string' && relativeFilter.value !== ''
+            ? relativeFilter.value
+            : undefined;
+    const message = (
+        key: DataTableMessageKey,
+        replacements?: Record<string, string | number>,
+    ) => getMessage(table, key, replacements);
+
     const onSelect = React.useCallback(
         (date: Date | undefined) => {
+            // A picked day replaces the period relative to today.
+            setRelativeFilter(column, undefined);
             column.setFilterValue(date ? date.getTime() : undefined);
         },
         [column],
+    );
+
+    const onPreset = React.useCallback(
+        (token: string) => {
+            setRangeStart(undefined);
+            setRelativeFilter(
+                column,
+                token === relativeToken ? undefined : token,
+            );
+        },
+        [column, relativeToken],
     );
 
     const onRangeSelect = React.useCallback(
@@ -138,6 +175,7 @@ function DataTableDateFilterContent<TData extends RowData>({
             setRangeStart(picked.start);
 
             if (picked.range) {
+                setRelativeFilter(column, undefined);
                 column.setFilterValue([
                     picked.range[0].getTime(),
                     picked.range[1].getTime(),
@@ -159,13 +197,15 @@ function DataTableDateFilterContent<TData extends RowData>({
     const hasDates = getIsDateRange(selectedDates)
         ? Boolean(selectedDates.from || selectedDates.to)
         : selectedDates.length > 0;
-    const hasValue = hasDates || includesEmpty;
+    const hasValue = hasDates || includesEmpty || relativeToken !== undefined;
     const dateText = [
-        hasDates
-            ? getIsDateRange(selectedDates)
-                ? formatDateRange(selectedDates, locale)
-                : formatDate(selectedDates[0], { month: 'short' }, locale)
-            : '',
+        relativeToken !== undefined
+            ? getRelativeDateLabel(relativeToken, message)
+            : hasDates
+              ? getIsDateRange(selectedDates)
+                  ? formatDateRange(selectedDates, locale)
+                  : formatDate(selectedDates[0], { month: 'short' }, locale)
+              : '',
         includesEmpty ? getEmptyLabel(column.columnDef.meta, table) : '',
     ]
         .filter(Boolean)
@@ -182,7 +222,15 @@ function DataTableDateFilterContent<TData extends RowData>({
                     />
                     {/* Long ranges are cut on small screens; the title shows them whole. */}
                     <span
-                        title={dateText}
+                        title={[
+                            dateText,
+                            formatRelativeDateRange(
+                                relativeFilter?.range,
+                                locale,
+                            ),
+                        ]
+                            .filter(Boolean)
+                            .join(' · ')}
                         className="max-w-32 truncate sm:max-w-none"
                     >
                         {dateText}
@@ -220,45 +268,67 @@ function DataTableDateFilterContent<TData extends RowData>({
                 className={cn('w-auto p-0', contentClassName)}
                 align={align}
             >
-                {multiple ? (
-                    <Calendar
-                        {...calendarLocale}
-                        autoFocus
-                        captionLayout="dropdown"
-                        mode="range"
-                        defaultMonth={
-                            rangeStart ??
-                            (getIsDateRange(selectedDates)
-                                ? (selectedDates.from ?? selectedDates.to)
-                                : undefined)
-                        }
-                        selected={
-                            rangeStart
-                                ? { from: rangeStart, to: undefined }
-                                : getIsDateRange(selectedDates)
-                                  ? selectedDates
-                                  : { from: undefined, to: undefined }
-                        }
-                        onSelect={onRangeSelect}
-                    />
-                ) : (
-                    <Calendar
-                        {...calendarLocale}
-                        captionLayout="dropdown"
-                        mode="single"
-                        defaultMonth={
-                            !getIsDateRange(selectedDates)
-                                ? selectedDates[0]
-                                : undefined
-                        }
-                        selected={
-                            !getIsDateRange(selectedDates)
-                                ? selectedDates[0]
-                                : undefined
-                        }
-                        onSelect={onSelect}
-                    />
-                )}
+                <div className="flex flex-col sm:flex-row">
+                    {presets && (
+                        <div
+                            role="group"
+                            aria-label={getMessage(table, 'pick_period')}
+                            className="flex flex-col gap-0.5 border-b p-2 sm:border-e sm:border-b-0"
+                        >
+                            {RELATIVE_DATE_PRESETS.map((token) => (
+                                <Button
+                                    key={token}
+                                    variant="ghost"
+                                    size="sm"
+                                    aria-pressed={token === relativeToken}
+                                    className="justify-start font-normal aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+                                    onClick={() => onPreset(token)}
+                                >
+                                    {getRelativeDateLabel(token, message)}
+                                </Button>
+                            ))}
+                        </div>
+                    )}
+                    {multiple ? (
+                        <Calendar
+                            {...calendarLocale}
+                            autoFocus
+                            captionLayout="dropdown"
+                            mode="range"
+                            defaultMonth={
+                                rangeStart ??
+                                (getIsDateRange(selectedDates)
+                                    ? (selectedDates.from ?? selectedDates.to)
+                                    : undefined)
+                            }
+                            selected={
+                                rangeStart
+                                    ? { from: rangeStart, to: undefined }
+                                    : getIsDateRange(selectedDates)
+                                      ? selectedDates
+                                      : { from: undefined, to: undefined }
+                            }
+                            onSelect={onRangeSelect}
+                        />
+                    ) : (
+                        <Calendar
+                            {...calendarLocale}
+                            captionLayout="dropdown"
+                            mode="single"
+                            defaultMonth={
+                                !getIsDateRange(selectedDates)
+                                    ? selectedDates[0]
+                                    : undefined
+                            }
+                            selected={
+                                !getIsDateRange(selectedDates)
+                                    ? selectedDates[0]
+                                    : undefined
+                            }
+                            onSelect={onSelect}
+                        />
+                    )}
+                </div>
                 {column.columnDef.meta?.empty && (
                     <>
                         <Separator />

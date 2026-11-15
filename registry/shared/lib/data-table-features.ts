@@ -210,6 +210,56 @@ export function setEmptyFilter<TData extends RowData, TValue>(
     });
 }
 
+function isRelativeFilterOf(filter: ColumnFilter, columnId: string) {
+    return filter.id === columnId && filter.operator === 'isRelativeToToday';
+}
+
+/**
+ * The `rel` filter of a date column (days relative to today), with the days the
+ * server resolved it to in `range`, or `undefined`.
+ */
+export function getRelativeFilter<TData extends RowData, TValue>(
+    column: DataTableColumn<TData, TValue>,
+): ColumnFilter | undefined {
+    return column.table.atoms.columnFilters
+        .get()
+        .find((filter) => isRelativeFilterOf(filter, column.id));
+}
+
+/**
+ * Filters the column by days relative to today (`rel.<token>`), in place of its
+ * plain filter and its other `rel` filters; `undefined` only removes them. The
+ * `is.empty` filter of the column is kept.
+ */
+export function setRelativeFilter<TData extends RowData, TValue>(
+    column: DataTableColumn<TData, TValue>,
+    token: string | undefined,
+) {
+    const variant = column.columnDef.meta?.filterVariant ?? 'date';
+
+    column.table.setColumnFilters((old) => {
+        const rest = old.filter(
+            (filter) =>
+                filter.id !== column.id ||
+                (!isRelativeFilterOf(filter, column.id) &&
+                    !getIsPlainFilter(normalizeColumnFilter(filter, variant))),
+        );
+
+        return token === undefined
+            ? rest
+            : [
+                  ...rest,
+                  {
+                      id: column.id,
+                      value: token,
+                      variant,
+                      operator: 'isRelativeToToday',
+                      filterId: `${column.id}-rel`,
+                  },
+              ];
+    });
+}
+
 /** Removes every filter of the column, the rows without a value included. */
 export function clearColumnFilter<TData extends RowData, TValue>(
     column: DataTableColumn<TData, TValue>,

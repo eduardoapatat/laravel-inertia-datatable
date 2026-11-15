@@ -7,6 +7,7 @@ import {
     vi,
 } from 'vite-plus/test';
 
+import { setRelativeFilter } from '@/lib/data-table-features';
 import type { DataTableMessages } from '@/lib/data-table-messages';
 import type { ServerDataTable } from '@/lib/data-table-server';
 import type {
@@ -204,6 +205,36 @@ export function defineUseServerDataTableTests(driver: HookDriver): void {
             );
         });
 
+        it('replaces the days of a date filter with a period relative to today, and back', async () => {
+            mount();
+            const column = () =>
+                table().getColumn('released_on') as Parameters<
+                    typeof setRelativeFilter
+                >[0];
+            const january = [
+                new Date(2026, 0, 1).getTime(),
+                new Date(2026, 0, 31).getTime(),
+            ];
+
+            await act(() => column().setFilterValue(january));
+            await act(() => setRelativeFilter(column(), 'this-month'));
+            await wait(300);
+
+            expect(
+                lastVisit().url.searchParams.getAll('filter[released_on]'),
+            ).toEqual(['rel.this-month']);
+
+            await act(() => {
+                setRelativeFilter(column(), undefined);
+                column().setFilterValue(january);
+            });
+            await wait(300);
+
+            expect(
+                lastVisit().url.searchParams.getAll('filter[released_on]'),
+            ).toEqual(['2026-01-01,2026-01-31']);
+        });
+
         it('sends the filters of the filter list with their operators', async () => {
             mount({ debounceMs: 300 });
 
@@ -321,6 +352,54 @@ export function defineUseServerDataTableTests(driver: HookDriver): void {
                 maxFilters: 20,
                 maxSorts: 3,
             });
+        });
+
+        it('keeps the days the server resolved a period relative to today to', async () => {
+            mount();
+
+            await act(() =>
+                table().setColumnFilters([
+                    {
+                        id: 'released_on',
+                        variant: 'date-range',
+                        operator: 'isRelativeToToday',
+                        value: '-7D',
+                        filterId: 'released_on-rel',
+                    },
+                ]),
+            );
+            await wait(300);
+            expect(
+                lastVisit().url.searchParams.get('filter[released_on]'),
+            ).toBe('rel.-7d');
+
+            await respond(
+                lastVisit(),
+                serverTable({
+                    columnFilters: [
+                        {
+                            id: 'released_on',
+                            filterId: 'released_on-0',
+                            variant: 'date-range',
+                            operator: 'isRelativeToToday',
+                            value: '-7d',
+                            range: ['2026-11-09', '2026-11-15'],
+                        },
+                    ],
+                }),
+            );
+
+            expect(table().atoms.columnFilters.get()).toEqual([
+                expect.objectContaining({
+                    id: 'released_on',
+                    operator: 'isRelativeToToday',
+                    value: '-7d',
+                    range: ['2026-11-09', '2026-11-15'],
+                }),
+            ]);
+            expect(
+                table().getColumn('released_on')?.columnDef.meta,
+            ).toMatchObject({ filterVariant: 'date-range', presets: true });
         });
 
         it('takes the state of the server, which is the source of truth', async () => {
@@ -535,7 +614,14 @@ export function defineUseServerDataTableTests(driver: HookDriver): void {
                 table()
                     .getAllLeafColumns()
                     .map(({ id }) => id),
-            ).toEqual(['select', 'name', 'price', 'status', 'actions']);
+            ).toEqual([
+                'select',
+                'name',
+                'price',
+                'status',
+                'released_on',
+                'actions',
+            ]);
 
             const price = table().getColumn('price')?.columnDef.meta;
             expect(price).toMatchObject({

@@ -31,7 +31,15 @@ import { getIsValuelessOperator } from '@/lib/data-table-advanced';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getBooleanFilterOptions } from '@/lib/data-table-filter-options';
 import { formatNumber } from '@/lib/data-table-format';
-import { getMessage } from '@/lib/data-table-messages';
+import {
+    type DataTableMessageKey,
+    getMessage,
+} from '@/lib/data-table-messages';
+import {
+    formatRelativeDateRange,
+    getRelativeDateLabel,
+    RELATIVE_DATE_PRESETS,
+} from '@/lib/data-table-relative-date';
 import type { Column, RowData } from '@/lib/data-table-tanstack';
 import type { ColumnFilterItem } from '@/lib/data-table-types';
 import { cn } from '@/lib/utils';
@@ -41,7 +49,8 @@ import DataTableFilterDateValue from './DataTableFilterDateValue.vue';
 /**
  * Value of a row of `DataTableFilterList`, by the variant of its column and
  * its operator: text or number fields (two for `isBetween`), a calendar, a
- * list of options or yes / no. `is.empty` and `not.is.empty` take none.
+ * list of options, yes / no or the periods relative to today of `rel`.
+ * `is.empty` and `not.is.empty` take none.
  */
 const props = defineProps<{
     column: Column<DataTableFeatures, TData>;
@@ -63,6 +72,7 @@ const kind = computed(() => {
     const { variant, operator } = props.filter;
 
     if (getIsValuelessOperator(operator)) return 'none';
+    if (operator === 'isRelativeToToday') return 'relative';
     if (variant === 'date' || variant === 'date-range') return 'date';
     if (variant === 'boolean') return 'boolean';
     if (variant === 'select' || variant === 'multi-select') return 'options';
@@ -78,6 +88,34 @@ const single = computed(() =>
         ? (props.filter.value[0] ?? '')
         : props.filter.value,
 );
+
+/**
+ * Periods relative to today: the presets, and first the token of the URL when
+ * it is not one of them. The days the server resolved it to go in the title.
+ */
+const relativeTokens = computed<readonly string[]>(() => {
+    const presets: readonly string[] = RELATIVE_DATE_PRESETS;
+
+    return single.value === '' || presets.includes(single.value)
+        ? presets
+        : [single.value, ...presets];
+});
+const relativeRange = computed(() =>
+    formatRelativeDateRange(
+        props.filter.range,
+        table.value.options.meta?.locale,
+    ),
+);
+
+function relativeLabel(token: string) {
+    return getRelativeDateLabel(
+        token,
+        (
+            key: DataTableMessageKey,
+            replacements?: Record<string, string | number>,
+        ) => getMessage(table.value, key, replacements),
+    );
+}
 
 const booleanOptions = computed(() =>
     getBooleanFilterOptions(props.column.columnDef.meta, {
@@ -180,6 +218,29 @@ function toList(value: string | string[]): string[] {
         :class="props.class"
         @change="emit('change', $event)"
     />
+    <Select
+        v-else-if="kind === 'relative'"
+        :model-value="single || undefined"
+        @update:model-value="emit('change', String($event ?? ''))"
+    >
+        <SelectTrigger
+            data-slot="data-table-filter-value"
+            :aria-label="ariaLabel"
+            :title="relativeRange || undefined"
+            :class="cn('h-8 w-full', props.class)"
+        >
+            <SelectValue :placeholder="getMessage(table, 'pick_period')" />
+        </SelectTrigger>
+        <SelectContent>
+            <SelectItem
+                v-for="token in relativeTokens"
+                :key="token"
+                :value="token"
+            >
+                {{ relativeLabel(token) }}
+            </SelectItem>
+        </SelectContent>
+    </Select>
     <Select
         v-else-if="kind === 'boolean'"
         :model-value="single || undefined"

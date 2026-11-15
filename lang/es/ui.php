@@ -6,7 +6,8 @@ declare(strict_types=1);
  * Textos de la UI del DataTable, enviados al cliente en config.messages.
  * Publícalos con `php artisan vendor:publish --tag=inertia-datatable-lang`
  * para cambiarlos; `:label`, `:count`, `:page` y `:pages` se reemplazan en el
- * navegador.
+ * navegador. Los textos `relative_past_*` y `relative_next_*` de meses y años
+ * son `singular|plural`.
  */
 return [
     // Barra de herramientas
@@ -85,6 +86,29 @@ return [
     'operator_after' => 'Es después del',
     'operator_on_or_before' => 'Es el o antes del',
     'operator_on_or_after' => 'Es el o después del',
+    'operator_relative' => 'Es relativo a hoy',
+    'pick_period' => 'Elige un período',
+    'relative_today' => 'Hoy',
+    'relative_yesterday' => 'Ayer',
+    'relative_tomorrow' => 'Mañana',
+    'relative_this_week' => 'Esta semana',
+    'relative_last_week' => 'Semana pasada',
+    'relative_next_week' => 'Semana siguiente',
+    'relative_this_month' => 'Este mes',
+    'relative_last_month' => 'Mes pasado',
+    'relative_next_month' => 'Mes siguiente',
+    'relative_this_quarter' => 'Este trimestre',
+    'relative_last_quarter' => 'Trimestre pasado',
+    'relative_next_quarter' => 'Trimestre siguiente',
+    'relative_this_year' => 'Este año',
+    'relative_last_year' => 'Año pasado',
+    'relative_next_year' => 'Año siguiente',
+    'relative_past_days' => 'Últimos :count días',
+    'relative_next_days' => 'Próximos :count días',
+    'relative_past_months' => 'Último mes|Últimos :count meses',
+    'relative_next_months' => 'Próximo mes|Próximos :count meses',
+    'relative_past_years' => 'Último año|Últimos :count años',
+    'relative_next_years' => 'Próximo año|Próximos :count años',
     'sort' => 'Ordenar',
     'sort_none' => 'Sin orden aplicado',
     'sort_description' => 'Agrega un orden para organizar las filas.',

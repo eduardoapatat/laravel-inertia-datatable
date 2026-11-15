@@ -89,6 +89,27 @@ describe('normalizeColumnFilter', () => {
         });
     });
 
+    it('keeps the token and the days of a relative date', () => {
+        expect(
+            normalizeColumnFilter(
+                {
+                    id: 'published_at',
+                    value: '-7d',
+                    operator: 'isRelativeToToday',
+                    range: ['2026-11-09', '2026-11-15'],
+                },
+                'date-range',
+            ),
+        ).toEqual({
+            id: 'published_at',
+            variant: 'date-range',
+            operator: 'isRelativeToToday',
+            value: '-7d',
+            filterId: 'published_at-filter',
+            range: ['2026-11-09', '2026-11-15'],
+        });
+    });
+
     it('keeps the operator of a filter that has one', () => {
         expect(
             normalizeColumnFilter(

@@ -47,6 +47,37 @@ describe('createFilterListItem', () => {
 });
 
 describe('changeFilterOperator', () => {
+    it('empties the value when the row enters or leaves rel', () => {
+        const day = filter({
+            id: 'published_at',
+            variant: 'date',
+            operator: 'eq',
+            value: '2026-11-15',
+        });
+        const relative = changeFilterOperator(day, 'isRelativeToToday');
+
+        expect(relative).toMatchObject({
+            operator: 'isRelativeToToday',
+            value: '',
+        });
+        expect(
+            changeFilterOperator(
+                {
+                    ...relative,
+                    value: '-7d',
+                    range: ['2026-11-09', '2026-11-15'],
+                },
+                'isBetween',
+            ),
+        ).toEqual({ ...day, operator: 'isBetween', value: ['', ''] });
+        expect(
+            changeFilterOperator(
+                { ...relative, value: '-7d' },
+                'isRelativeToToday',
+            ).value,
+        ).toBe('-7d');
+    });
+
     it('keeps what fits of the value', () => {
         const single = filter({
             id: 'price',

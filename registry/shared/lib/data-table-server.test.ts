@@ -80,6 +80,26 @@ describe('serializeSorting', () => {
 describe('serializeFilter', () => {
     it.each<[string, ServerFilter, string | null]>([
         [
+            'writes a relative date in its canonical form',
+            {
+                id: 'published_at',
+                variant: 'date-range',
+                operator: 'isRelativeToToday',
+                value: ' -07D ',
+            },
+            'rel.-7d',
+        ],
+        [
+            'leaves out a relative date that is not a token',
+            {
+                id: 'published_at',
+                variant: 'date',
+                operator: 'isRelativeToToday',
+                value: '2026-11-15',
+            },
+            null,
+        ],
+        [
             'omits the implicit operator of a list',
             {
                 id: 'status',
