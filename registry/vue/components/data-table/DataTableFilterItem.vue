@@ -38,7 +38,6 @@ import { getMessage } from '@/lib/data-table-messages';
 import type { FilterOperator, JoinOperator } from '@/lib/data-table-server';
 import type { Column, RowData } from '@/lib/data-table-tanstack';
 import type { ColumnFilterItem } from '@/lib/data-table-types';
-import { cn } from '@/lib/utils';
 
 import DataTableFilterValue from './DataTableFilterValue.vue';
 
@@ -59,6 +58,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     change: [filter: ColumnFilterItem];
+    'update:includesEmpty': [include: boolean];
     remove: [];
 }>();
 
@@ -108,13 +108,7 @@ function onOperator(value: unknown) {
         role="listitem"
         data-slot="data-table-filter-item"
         :data-column="filter.id"
-        :data-group="joinCell === 'group' ? 'empty' : undefined"
-        :class="
-            cn(
-                'flex flex-wrap items-center gap-2 sm:flex-nowrap',
-                joinCell === 'group' && 'border-s-2 ps-2',
-            )
-        "
+        class="flex flex-wrap items-center gap-2 sm:flex-nowrap"
     >
         <div class="w-18 shrink-0 text-sm text-muted-foreground">
             <template v-if="joinCell === 'where'">
@@ -142,9 +136,7 @@ function onOperator(value: unknown) {
                     </SelectItem>
                 </SelectContent>
             </Select>
-            <span v-else class="lowercase">{{
-                joinLabel(joinCell === 'group' ? 'or' : join)
-            }}</span>
+            <span v-else class="lowercase">{{ joinLabel(join) }}</span>
         </div>
         <Faceted
             :model-value="filter.id"
@@ -210,8 +202,10 @@ function onOperator(value: unknown) {
         <DataTableFilterValue
             :column="column"
             :filter="filter"
+            :includes-empty="row.includesEmpty"
             class="min-w-40 flex-1"
             @change="emit('change', { ...filter, value: $event })"
+            @update:includes-empty="emit('update:includesEmpty', $event)"
         />
         <Button
             variant="outline"

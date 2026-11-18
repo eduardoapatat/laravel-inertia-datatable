@@ -89,6 +89,14 @@ const DATE_OPERATOR_MESSAGES: Partial<
     gte: 'operator_on_or_after',
 };
 
+/** Operators that already take the rows without a value. */
+const NEGATIONS = new Set<FilterOperator>([
+    'ne',
+    'notInArray',
+    'notILike',
+    'isNotEmpty',
+]);
+
 const LIST_OPERATORS = new Set<FilterOperator>([
     'inArray',
     'notInArray',
@@ -180,6 +188,23 @@ export interface FilterListRow {
     /** Stable key of the row while the server renames its filters. */
     key: string;
     filter: ColumnFilterItem;
+    /**
+     * Whether the row also takes the rows without a value: the `is.empty`
+     * filter of its column, that the server adds with OR to the other filters
+     * of the column. Every row of the column shows it (`normalizeEmptyRows`).
+     */
+    includesEmpty: boolean;
+}
+
+/**
+ * Value of the option that stands for the rows without a value in a list of
+ * options (the toolbar and the rows of the filter list).
+ */
+export const EMPTY_VALUE = '\u0000empty';
+
+/** Whether the row has something to send: its filter or the rows without a value. */
+export function getIsRowComplete(row: FilterListRow): boolean {
+    return row.includesEmpty || getIsFilterComplete(row.filter);
 }
 
 /**
@@ -203,14 +228,18 @@ export function getFilterListItems(
  * value, then the same operator, then the same column, so a row keeps its key
  * and its place even when the server renames or normalizes its filter. Rows
  * still without a value stay where they are; complete rows whose filter is gone
- * are removed, and new filters go at the end.
+ * are removed, and new filters go at the end. The `is.empty` filter of a column
+ * goes inside its other rows (`normalizeEmptyRows`).
  */
 export function reconcileFilterRows(
     rows: FilterListRow[],
     filters: ColumnFilterItem[],
     createKey: () => string,
 ): FilterListRow[] {
-    const candidates = rows.filter((row) => getIsFilterComplete(row.filter));
+    const emptyColumns = new Set(
+        filters.filter(getIsEmptyFilter).map((filter) => filter.id),
+    );
+    const candidates = rows.filter(getIsRowComplete);
     const matched = new Map<FilterListRow, ColumnFilterItem>();
     const pending = new Set(filters);
     const matchers: Array<
@@ -230,6 +259,10 @@ export function reconcileFilterRows(
             const row = candidates.find(
                 (candidate) =>
                     !matched.has(candidate) &&
+                    // The rows of the column take `is.empty` as a flag: it
+                    // only matches a row of its own.
+                    getIsEmptyFilter(filter) ===
+                        getIsEmptyFilter(candidate.filter) &&
                     matches(candidate.filter, filter),
             );
 
@@ -240,73 +273,181 @@ export function reconcileFilterRows(
         }
     }
 
-    return [
-        ...rows.flatMap((row) => {
-            if (!getIsFilterComplete(row.filter)) return [row];
+    return normalizeEmptyRows([
+        ...rows.flatMap((row): FilterListRow[] => {
+            if (!getIsRowComplete(row)) return [row];
 
             const filter = matched.get(row);
+            const includesEmpty =
+                row.includesEmpty && emptyColumns.has(row.filter.id);
 
-            return filter ? [{ key: row.key, filter }] : [];
+            if (filter) return [{ key: row.key, filter, includesEmpty }];
+
+            // Its value is gone but its column still takes the rows without a
+            // value: the row keeps showing them.
+            return includesEmpty
+                ? [
+                      {
+                          key: row.key,
+                          filter: {
+                              ...row.filter,
+                              value: emptyValue(row.filter.operator),
+                          },
+                          includesEmpty,
+                      },
+                  ]
+                : [];
         }),
-        ...[...pending].map((filter) => ({ key: createKey(), filter })),
-    ];
+        ...[...pending].map((filter) => ({
+            key: createKey(),
+            filter,
+            includesEmpty: false,
+        })),
+    ]);
 }
 
-/** The filters to send: the complete rows, in their order. */
+/**
+ * Puts the `is.empty` filter of each column inside its other rows, as the
+ * server adds it with OR to them: when a column has a row with a value (or one
+ * that already takes the rows without a value), its "Is empty" rows go away and
+ * every other row of the column takes them. Read row by row it says what the
+ * server does: `(A or empty) and (B or empty)` is `(A and B) or empty`, and
+ * the same with `or`. A column with only "Is empty" keeps it as its own row.
+ */
+export function normalizeEmptyRows(rows: FilterListRow[]): FilterListRow[] {
+    const folded = new Set<string>();
+
+    for (const row of rows) {
+        if (getIsEmptyFilter(row.filter)) continue;
+
+        const columnRows = rows.filter(
+            (other) => other.filter.id === row.filter.id,
+        );
+        const wantsEmpty = columnRows.some(
+            (other) => other.includesEmpty || getIsEmptyFilter(other.filter),
+        );
+
+        if (wantsEmpty && getIsRowComplete(row)) folded.add(row.filter.id);
+    }
+
+    return rows.flatMap((row) => {
+        const isEmpty = getIsEmptyFilter(row.filter);
+
+        if (!folded.has(row.filter.id)) {
+            return [isEmpty ? { ...row, includesEmpty: false } : row];
+        }
+
+        return isEmpty ? [] : [{ ...row, includesEmpty: true }];
+    });
+}
+
+/**
+ * Adds or removes the rows without a value of a column: every row of the
+ * column shows them, as the server applies them to all of its filters.
+ */
+export function setRowsEmpty(
+    rows: FilterListRow[],
+    columnId: string,
+    include: boolean,
+): FilterListRow[] {
+    return normalizeEmptyRows(
+        rows.flatMap((row) => {
+            if (row.filter.id !== columnId) return [row];
+            if (getIsEmptyFilter(row.filter)) return include ? [row] : [];
+
+            return [{ ...row, includesEmpty: include }];
+        }),
+    );
+}
+
+/**
+ * The row with another filter (its column, operator or value): a row of another
+ * column or an "Is empty" row does not take the rows without a value.
+ */
+export function updateRowFilter(
+    rows: FilterListRow[],
+    key: string,
+    filter: ColumnFilterItem,
+): FilterListRow[] {
+    return normalizeEmptyRows(
+        rows.map((row) =>
+            row.key === key
+                ? {
+                      key,
+                      filter,
+                      includesEmpty:
+                          row.includesEmpty &&
+                          row.filter.id === filter.id &&
+                          !getIsEmptyFilter(filter),
+                  }
+                : row,
+        ),
+    );
+}
+
+/** The filters to send: the complete rows, in their order, with one `is.empty` per column. */
 export function getRowFilters(rows: FilterListRow[]): ColumnFilterItem[] {
-    return rows
-        .filter((row) => getIsFilterComplete(row.filter))
-        .map((row) => ({ ...row.filter, filterId: row.key }));
+    const lastEmptyRow = new Map<string, FilterListRow>();
+
+    for (const row of rows) {
+        if (row.includesEmpty) lastEmptyRow.set(row.filter.id, row);
+    }
+
+    return rows.flatMap((row) => {
+        const filters = getIsFilterComplete(row.filter)
+            ? [{ ...row.filter, filterId: row.key }]
+            : [];
+
+        return lastEmptyRow.get(row.filter.id) === row
+            ? [
+                  ...filters,
+                  {
+                      id: row.filter.id,
+                      variant: row.filter.variant,
+                      operator: 'isEmpty' as const,
+                      value: '',
+                      filterId: `${row.filter.id}-empty`,
+                  },
+              ]
+            : filters;
+    });
+}
+
+/**
+ * How a row offers the rows without a value: an option of its list of options
+ * (`inArray`), a check next to its value, or nothing. The column offers them
+ * with `empty: true` in PHP; a negation already takes them (the server adds
+ * `IS NULL` to it). A row that already takes them always shows it, so it can
+ * be removed.
+ */
+export function getRowEmptyControl(
+    row: Pick<FilterListRow, 'filter' | 'includesEmpty'>,
+    offersEmpty: boolean,
+): 'option' | 'check' | null {
+    const { operator } = row.filter;
+
+    if (operator === 'isEmpty') return null;
+    if (!row.includesEmpty && (!offersEmpty || NEGATIONS.has(operator))) {
+        return null;
+    }
+
+    return operator === 'inArray' ? 'option' : 'check';
 }
 
 /**
  * What goes before each row: `where` (the first one), the `select` of the join
- * (the next one), the join as text, or `group` for an `is.empty` row that the
- * server adds with OR to the other filters of its column (with `and`).
+ * (the next one) or the join as text.
  */
-export type FilterJoinCell = 'where' | 'select' | 'and' | 'or' | 'group';
+export type FilterJoinCell = 'where' | 'select' | JoinOperator;
 
-/**
- * With `and`, the server adds the `is.empty` filter of a column with OR to its
- * other filters (`(Books) OR (no category)`): the row goes right after the last
- * row of its column, so it reads as part of it. With `or` the order is kept.
- */
-export function groupEmptyRows(
-    rows: FilterListRow[],
-    join: JoinOperator,
-): FilterListRow[] {
-    if (join !== 'and') return rows;
-
-    const grouped = rows.filter((row) => !getIsGroupedEmptyRow(row, rows));
-
-    for (const row of rows) {
-        if (!getIsGroupedEmptyRow(row, rows)) continue;
-
-        let last = -1;
-        grouped.forEach((other, index) => {
-            if (other.filter.id === row.filter.id) last = index;
-        });
-        grouped.splice(last + 1, 0, row);
-    }
-
-    return grouped;
-}
-
-/** What goes before each row of the list, already grouped (`groupEmptyRows`). */
+/** What goes before each row of the list. */
 export function getRowJoinCells(
     rows: FilterListRow[],
     join: JoinOperator,
 ): FilterJoinCell[] {
-    let hasSelect = false;
-
-    return rows.map((row, index) => {
-        if (index === 0) return 'where';
-        if (join === 'and' && getIsGroupedEmptyRow(row, rows)) return 'group';
-        if (hasSelect) return join;
-
-        hasSelect = true;
-        return 'select';
-    });
+    return rows.map((_row, index) =>
+        index === 0 ? 'where' : index === 1 ? 'select' : join,
+    );
 }
 
 /** The list with the item at `from` moved to `to` (the sort priority). */
@@ -327,15 +468,6 @@ function emptyValue(operator: FilterOperator): string | string[] {
     return LIST_OPERATORS.has(operator) ? [] : '';
 }
 
-function getIsGroupedEmptyRow(row: FilterListRow, rows: FilterListRow[]) {
-    return (
-        row.filter.operator === 'isEmpty' &&
-        rows.some(
-            (other) =>
-                other !== row &&
-                other.filter.id === row.filter.id &&
-                other.filter.operator !== 'isEmpty' &&
-                getIsFilterComplete(other.filter),
-        )
-    );
+function getIsEmptyFilter(filter: ColumnFilterItem) {
+    return filter.operator === 'isEmpty';
 }

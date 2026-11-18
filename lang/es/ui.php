@@ -60,6 +60,7 @@ return [
     'filter_where' => 'Donde',
     'filter_and' => 'y',
     'filter_or' => 'o',
+    'filter_or_empty' => 'o sin valor',
     'filter_join' => 'Combinar filtros',
     'field' => 'Campo',
     'search_fields' => 'Buscar campos...',

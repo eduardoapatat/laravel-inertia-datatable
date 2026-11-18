@@ -23,10 +23,12 @@ import {
     createFilterListItem,
     type FilterListRow,
     getFilterListItems,
+    getIsRowComplete,
     getRowFilters,
     getRowJoinCells,
-    groupEmptyRows,
     reconcileFilterRows,
+    setRowsEmpty,
+    updateRowFilter,
 } from '@/lib/data-table-advanced';
 import { getMessage } from '@/lib/data-table-messages';
 import type { DataTableIcon, RowData } from '@/lib/data-table-tanstack';
@@ -96,10 +98,8 @@ watch(
 
 const join = computed(() => table.options.meta?.join ?? 'and');
 const maxFilters = computed(() => table.options.meta?.maxFilters ?? Infinity);
-// With `and`, the rows without a value of a column go next to its other rows,
-// joined with "or": that is how the server combines them.
-const shownRows = computed(() => groupEmptyRows(rows.value, join.value));
-const joinCells = computed(() => getRowJoinCells(shownRows.value, join.value));
+const joinCells = computed(() => getRowJoinCells(rows.value, join.value));
+const appliedCount = computed(() => rows.value.filter(getIsRowComplete).length);
 const addButton = ref<InstanceType<typeof Button> | null>(null);
 
 function commit(next: FilterListRow[]) {
@@ -114,7 +114,11 @@ function commit(next: FilterListRow[]) {
 }
 
 function updateRow(key: string, filter: ColumnFilterItem) {
-    commit(rows.value.map((row) => (row.key === key ? { key, filter } : row)));
+    commit(updateRowFilter(rows.value, key, filter));
+}
+
+function setRowEmpty(columnId: string, include: boolean) {
+    commit(setRowsEmpty(rows.value, columnId, include));
 }
 
 function addRow() {
@@ -127,7 +131,11 @@ function addRow() {
 
     rows.value = [
         ...rows.value,
-        { key, filter: createFilterListItem(column.id, variant, key) },
+        {
+            key,
+            filter: createFilterListItem(column.id, variant, key),
+            includesEmpty: false,
+        },
     ];
 }
 
@@ -166,11 +174,11 @@ function signature(filters: ColumnFilterItem[]) {
                 />
                 {{ getMessage(table, 'filters') }}
                 <Badge
-                    v-if="items.length > 0"
+                    v-if="appliedCount > 0"
                     variant="secondary"
                     class="h-[18.24px] rounded-[3.2px] px-[5.12px] font-mono text-[10.4px] font-normal"
                 >
-                    {{ items.length }}
+                    {{ appliedCount }}
                 </Badge>
             </Button>
         </PopoverTrigger>
@@ -206,7 +214,7 @@ function signature(filters: ColumnFilterItem[]) {
                 role="list"
                 class="flex max-h-80 flex-col gap-2 overflow-y-auto py-0.5"
             >
-                <template v-for="(row, index) in shownRows" :key="row.key">
+                <template v-for="(row, index) in rows" :key="row.key">
                     <DataTableFilterItem
                         v-if="getColumn(row.filter.id)"
                         :row="row"
@@ -216,6 +224,9 @@ function signature(filters: ColumnFilterItem[]) {
                         :join="join"
                         :on-join-change="table.options.meta?.setJoin"
                         @change="updateRow(row.key, $event)"
+                        @update:includes-empty="
+                            setRowEmpty(row.filter.id, $event)
+                        "
                         @remove="removeRow(row.key)"
                     />
                 </template>

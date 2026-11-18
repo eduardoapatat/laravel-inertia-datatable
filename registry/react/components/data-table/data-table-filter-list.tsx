@@ -20,10 +20,12 @@ import {
     type FilterListRow,
     getFilterListItems,
     getFilterOperatorMessageKey,
+    getIsRowComplete,
     getRowFilters,
     getRowJoinCells,
-    groupEmptyRows,
     reconcileFilterRows,
+    setRowsEmpty,
+    updateRowFilter,
 } from '@/lib/data-table-advanced';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import { getMessage } from '@/lib/data-table-messages';
@@ -150,10 +152,7 @@ function DataTableFilterListContent<TData extends RowData>({
     const meta = table.options.meta;
     const join = meta?.join ?? 'and';
     const maxFilters = meta?.maxFilters ?? Infinity;
-    // With `and`, the rows without a value of a column go next to its other
-    // rows, joined with "or": that is how the server combines them.
-    const shownRows = groupEmptyRows(rows, join);
-    const joinCells = getRowJoinCells(shownRows, join);
+    const joinCells = getRowJoinCells(rows, join);
     const addButtonRef = React.useRef<HTMLButtonElement>(null);
 
     function commit(next: FilterListRow[]) {
@@ -168,7 +167,11 @@ function DataTableFilterListContent<TData extends RowData>({
     }
 
     function updateRow(key: string, filter: ColumnFilterItem) {
-        commit(rows.map((row) => (row.key === key ? { key, filter } : row)));
+        commit(updateRowFilter(rows, key, filter));
+    }
+
+    function setRowEmpty(columnId: string, include: boolean) {
+        commit(setRowsEmpty(rows, columnId, include));
     }
 
     function addRow() {
@@ -181,7 +184,11 @@ function DataTableFilterListContent<TData extends RowData>({
 
         setRows([
             ...rows,
-            { key, filter: createFilterListItem(column.id, variant, key) },
+            {
+                key,
+                filter: createFilterListItem(column.id, variant, key),
+                includesEmpty: false,
+            },
         ]);
     }
 
@@ -196,7 +203,7 @@ function DataTableFilterListContent<TData extends RowData>({
         if (join !== 'and') meta?.setJoin?.('and');
     }
 
-    const appliedCount = items.length;
+    const appliedCount = rows.filter(getIsRowComplete).length;
 
     return (
         <Popover>
@@ -247,7 +254,7 @@ function DataTableFilterListContent<TData extends RowData>({
                         role="list"
                         className="flex max-h-80 flex-col gap-2 overflow-y-auto py-0.5"
                     >
-                        {shownRows.map((row, index) => {
+                        {rows.map((row, index) => {
                             const column = getColumn(row.filter.id);
 
                             return column ? (
@@ -261,6 +268,9 @@ function DataTableFilterListContent<TData extends RowData>({
                                     onJoinChange={meta?.setJoin}
                                     onChange={(filter) =>
                                         updateRow(row.key, filter)
+                                    }
+                                    onIncludesEmptyChange={(include) =>
+                                        setRowEmpty(row.filter.id, include)
                                     }
                                     onRemove={() => removeRow(row.key)}
                                 />
@@ -304,6 +314,7 @@ interface DataTableFilterItemProps<TData extends RowData> {
     join: JoinOperator;
     onJoinChange?: (join: JoinOperator) => void;
     onChange: (filter: ColumnFilterItem) => void;
+    onIncludesEmptyChange: (include: boolean) => void;
     onRemove: () => void;
 }
 
@@ -315,6 +326,7 @@ function DataTableFilterItem<TData extends RowData>({
     join,
     onJoinChange,
     onChange,
+    onIncludesEmptyChange,
     onRemove,
 }: DataTableFilterItemProps<TData>) {
     const table = column.table;
@@ -323,7 +335,7 @@ function DataTableFilterItem<TData extends RowData>({
     const label = column.columnDef.meta?.label ?? column.id;
     const joinText = getMessage(
         table,
-        joinCell === 'or' || joinCell === 'group' ? 'filter_or' : 'filter_and',
+        joinCell === 'or' ? 'filter_or' : 'filter_and',
     );
 
     return (
@@ -331,11 +343,7 @@ function DataTableFilterItem<TData extends RowData>({
             role="listitem"
             data-slot="data-table-filter-item"
             data-column={filter.id}
-            data-group={joinCell === 'group' ? 'empty' : undefined}
-            className={cn(
-                'flex flex-wrap items-center gap-2 sm:flex-nowrap',
-                joinCell === 'group' && 'border-s-2 ps-2',
-            )}
+            className="flex flex-wrap items-center gap-2 sm:flex-nowrap"
         >
             <div className="w-18 shrink-0 text-sm text-muted-foreground">
                 {joinCell === 'where' ? (
@@ -454,8 +462,10 @@ function DataTableFilterItem<TData extends RowData>({
             <DataTableFilterValue
                 column={column}
                 filter={filter}
+                includesEmpty={row.includesEmpty}
                 className="min-w-40 flex-1"
                 onChange={(value) => onChange({ ...filter, value })}
+                onIncludesEmptyChange={onIncludesEmptyChange}
             />
             <Button
                 variant="outline"

@@ -60,6 +60,7 @@ return [
     'filter_where' => 'Where',
     'filter_and' => 'and',
     'filter_or' => 'or',
+    'filter_or_empty' => 'or no value',
     'filter_join' => 'Combine filters',
     'field' => 'Field',
     'search_fields' => 'Search fields...',

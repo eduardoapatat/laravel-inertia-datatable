@@ -31,6 +31,7 @@ import {
     getHiddenFilterCount,
     setEmptyFilter,
 } from '@/lib/data-table-features';
+import { EMPTY_VALUE } from '@/lib/data-table-advanced';
 import { formatNumber, getEmptyLabel } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 import type { Column, DataTableIcon, RowData } from '@/lib/data-table-tanstack';
@@ -38,12 +39,6 @@ import type { ColumnSelectOption } from '@/lib/data-table-types';
 import { cn } from '@/lib/utils';
 
 import DataTableHiddenFilters from './DataTableHiddenFilters.vue';
-
-/**
- * Value of the "without value" item inside the list: never sent, it becomes an
- * `is.empty` filter next to the picked values.
- */
-const EMPTY_VALUE = '\u0000empty';
 
 /**
  * The list filter of `DataTableFacetedFilter` and `DataTableBooleanFilter`.

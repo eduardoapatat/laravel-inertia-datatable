@@ -14,6 +14,7 @@ import {
     getHiddenFilterCount,
     setEmptyFilter,
 } from '@/lib/data-table-features';
+import { EMPTY_VALUE } from '@/lib/data-table-advanced';
 import { formatNumber, getEmptyLabel } from '@/lib/data-table-format';
 import { getMessage } from '@/lib/data-table-messages';
 import type { ColumnSelectOption } from '@/lib/data-table-types';
@@ -50,12 +51,6 @@ import {
 } from '@/components/ui/faceted';
 import { Separator } from '@/components/ui/separator';
 import { CirclePlus, CircleX } from 'lucide-react';
-
-/**
- * Value of the "without value" item inside the list: never sent, it becomes an
- * `is.empty` filter next to the picked values.
- */
-const EMPTY_VALUE = '\u0000empty';
 
 interface DataTableFacetedFilterProps<TData extends RowData> extends Omit<
     DataTableFilterPieceProps<TData>,

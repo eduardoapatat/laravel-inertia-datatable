@@ -8,7 +8,11 @@ import type { Column, RowData } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 
-import { getIsValuelessOperator } from '@/lib/data-table-advanced';
+import {
+    EMPTY_VALUE,
+    getIsValuelessOperator,
+    getRowEmptyControl,
+} from '@/lib/data-table-advanced';
 import type { DataTableFeatures } from '@/lib/data-table-features';
 import {
     formatFilterDate,
@@ -16,7 +20,11 @@ import {
     pickDateRangeDay,
 } from '@/lib/data-table-filter-values';
 import { getBooleanFilterOptions } from '@/lib/data-table-filter-options';
-import { formatDate, formatNumber } from '@/lib/data-table-format';
+import {
+    formatDate,
+    formatNumber,
+    getEmptyLabel,
+} from '@/lib/data-table-format';
 import {
     type DataTableMessageKey,
     getMessage,
@@ -31,6 +39,7 @@ import type { ColumnFilterItem } from '@/lib/data-table-types';
 import { useCalendarLocale } from '@/components/data-table/data-table-date-filter';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useDirection } from '@/components/ui/direction';
 import {
     Faceted,
@@ -46,6 +55,7 @@ import {
     FacetedValue,
 } from '@/components/ui/faceted';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Popover,
     PopoverContent,
@@ -60,25 +70,109 @@ import {
 } from '@/components/ui/select';
 import { CalendarIcon } from 'lucide-react';
 
-interface DataTableFilterValueProps<TData extends RowData> {
+interface FilterValueInputProps<TData extends RowData> {
     column: Column<DataTableFeatures, TData>;
     filter: ColumnFilterItem;
     onChange: (value: string | string[]) => void;
     className?: string;
 }
 
+interface DataTableFilterValueProps<
+    TData extends RowData,
+> extends FilterValueInputProps<TData> {
+    /** Whether the row also takes the rows without a value (`is.empty`). */
+    includesEmpty: boolean;
+    onIncludesEmptyChange: (include: boolean) => void;
+}
+
+/** The "without value" option of a list of options. */
+interface EmptyOption {
+    checked: boolean;
+    onCheckedChange: (checked: boolean) => void;
+}
+
 /**
  * Value of a row of `DataTableFilterList`, by the variant of its column and
  * its operator: text or number fields (two for `isBetween`), a calendar, a list
  * of options, yes / no or the periods relative to today of `rel`. `is.empty`
- * and `not.is.empty` take none.
+ * and `not.is.empty` take none. The rows without a value of the column
+ * (`getRowEmptyControl`) are an option of the list of options of `inArray`, or
+ * else a check next to the value.
  */
 export function DataTableFilterValue<TData extends RowData>({
+    includesEmpty,
+    onIncludesEmptyChange,
+    ...props
+}: DataTableFilterValueProps<TData>) {
+    const { column, filter, className } = props;
+    const control = getRowEmptyControl(
+        { filter, includesEmpty },
+        column.columnDef.meta?.empty === true,
+    );
+
+    if (control === 'option') {
+        return (
+            <DataTableFilterValueInput
+                {...props}
+                emptyOption={{
+                    checked: includesEmpty,
+                    onCheckedChange: onIncludesEmptyChange,
+                }}
+            />
+        );
+    }
+
+    if (control === null) return <DataTableFilterValueInput {...props} />;
+
+    return (
+        <div className={cn('flex items-center gap-2', className)}>
+            {!getIsValuelessOperator(filter.operator) && (
+                <DataTableFilterValueInput
+                    {...props}
+                    className="min-w-0 flex-1"
+                />
+            )}
+            <DataTableFilterEmptyCheck
+                column={column}
+                checked={includesEmpty}
+                onCheckedChange={onIncludesEmptyChange}
+            />
+        </div>
+    );
+}
+
+/** Check next to the value of a row that adds the rows without a value. */
+function DataTableFilterEmptyCheck<TData extends RowData>({
+    column,
+    checked,
+    onCheckedChange,
+}: EmptyOption & { column: Column<DataTableFeatures, TData> }) {
+    const id = React.useId();
+
+    return (
+        <div
+            data-slot="data-table-filter-empty"
+            className="flex shrink-0 items-center gap-2"
+        >
+            <Checkbox
+                id={id}
+                checked={checked}
+                onCheckedChange={(value) => onCheckedChange(value === true)}
+            />
+            <Label htmlFor={id} className="font-normal whitespace-nowrap">
+                {getMessage(column.table, 'filter_or_empty')}
+            </Label>
+        </div>
+    );
+}
+
+function DataTableFilterValueInput<TData extends RowData>({
     column,
     filter,
     onChange,
     className,
-}: DataTableFilterValueProps<TData>) {
+    emptyOption,
+}: FilterValueInputProps<TData> & { emptyOption?: EmptyOption }) {
     const table = column.table;
     const label = column.columnDef.meta?.label ?? column.id;
     const ariaLabel = getMessage(table, 'filter_value', { label });
@@ -206,6 +300,7 @@ export function DataTableFilterValue<TData extends RowData>({
                     onChange={onChange}
                     ariaLabel={ariaLabel}
                     className={className}
+                    emptyOption={emptyOption}
                 />
             );
     }
@@ -221,7 +316,7 @@ function DataTableFilterRelativeValue<TData extends RowData>({
     onChange,
     ariaLabel,
     className,
-}: DataTableFilterValueProps<TData> & { ariaLabel: string }) {
+}: FilterValueInputProps<TData> & { ariaLabel: string }) {
     const table = column.table;
     const token = toSingle(filter.value);
     const presets: readonly string[] = RELATIVE_DATE_PRESETS;
@@ -263,20 +358,31 @@ function DataTableFilterOptionsValue<TData extends RowData>({
     onChange,
     ariaLabel,
     className,
-}: DataTableFilterValueProps<TData> & { ariaLabel: string }) {
+    emptyOption,
+}: FilterValueInputProps<TData> & {
+    ariaLabel: string;
+    emptyOption?: EmptyOption;
+}) {
     const table = column.table;
     const dir = useDirection();
-    const options = column.columnDef.meta?.options ?? [];
+    const meta = column.columnDef.meta;
+    const options = meta?.options ?? [];
     const multiple =
         filter.operator === 'inArray' || filter.operator === 'notInArray';
+    const emptyLabel = emptyOption ? getEmptyLabel(meta, table) : undefined;
     const items = React.useMemo(
-        () =>
-            options.map((option) => ({
+        () => [
+            ...options.map((option) => ({
                 value: option.value,
                 label: option.label,
             })),
-        [options],
+            ...(emptyLabel === undefined
+                ? []
+                : [{ value: EMPTY_VALUE, label: emptyLabel }]),
+        ],
+        [options, emptyLabel],
     );
+    const values = toList(filter.value);
     const placeholder = getMessage(table, 'select_options');
     const trigger = (
         <FacetedTrigger asChild>
@@ -341,6 +447,23 @@ function DataTableFilterOptionsValue<TData extends RowData>({
                             )}
                         </FacetedItem>
                     ))}
+                    {emptyLabel !== undefined && (
+                        <FacetedItem value={EMPTY_VALUE}>
+                            <FacetedItemCheckbox />
+                            <span className="flex-1 truncate">
+                                {emptyLabel}
+                            </span>
+                            {meta?.emptyCount !== undefined && (
+                                <FacetedItemCount>
+                                    {formatNumber(
+                                        meta.emptyCount,
+                                        {},
+                                        table.options.meta?.locale,
+                                    )}
+                                </FacetedItemCount>
+                            )}
+                        </FacetedItem>
+                    )}
                 </FacetedGroup>
             </FacetedList>
         </FacetedContent>
@@ -350,8 +473,17 @@ function DataTableFilterOptionsValue<TData extends RowData>({
         <Faceted
             multiple
             items={items}
-            value={toList(filter.value)}
-            onValueChange={(value) => onChange(value ?? [])}
+            value={emptyOption?.checked ? [...values, EMPTY_VALUE] : values}
+            onValueChange={(value) => {
+                const picked = value ?? [];
+                const include = picked.includes(EMPTY_VALUE);
+
+                if (emptyOption && include !== emptyOption.checked) {
+                    emptyOption.onCheckedChange(include);
+                } else {
+                    onChange(picked.filter((item) => item !== EMPTY_VALUE));
+                }
+            }}
         >
             {trigger}
             {content}
@@ -374,7 +506,7 @@ function DataTableFilterDateValue<TData extends RowData>({
     onChange,
     ariaLabel,
     className,
-}: DataTableFilterValueProps<TData> & { ariaLabel: string }) {
+}: FilterValueInputProps<TData> & { ariaLabel: string }) {
     const table = column.table;
     const dir = useDirection();
     const locale = table.options.meta?.locale;
