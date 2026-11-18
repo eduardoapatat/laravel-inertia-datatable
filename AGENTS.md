@@ -1,6 +1,6 @@
 # laravel-inertia-datatable
 
-Laravel package (`type: library`) for server-driven data tables, with a shadcn registry for the React and Vue UI and a Claude Code skill for consumers. PHP ^8.3, Laravel 12 and 13. See `README.md` for usage and `docs/contract.md` for the frontend–backend HTTP contract.
+Laravel package (`type: library`) for server-driven data tables, with a shadcn registry for the React and Vue UI and a Claude Code skill for consumers. PHP ^8.3, Laravel 12 and 13. See `README.md` for an overview, the skill for usage, `docs/contract.md` for the frontend–backend HTTP contract and `CONTRIBUTING.md` for development, CI and releases.
 
 ## Layout
 
@@ -36,13 +36,14 @@ Run `composer check` and `pnpm run check` before considering a change done. Run 
 - Follow `docs/contract.md`: the server is the source of truth, state lives in the URL, only server-declared columns can be sorted, filtered or searched, and request values are never interpolated into SQL. Invalid input is normalized, not rejected.
 - Tests run on in-memory SQLite locally, but CI also runs MySQL 8.4 and Postgres 17. Keep queries and tests portable across the three.
 - Never edit `r/` by hand. Change `registry/` or `registry.json` and run `pnpm run registry:build`.
-- Changes for users go under `## [Unreleased]` in `CHANGELOG.md`. Releases follow the "Releasing a version" section of the README.
+- Changes for users go under `## [Unreleased]` in `CHANGELOG.md`. Releases follow the "Releasing a version" section of `CONTRIBUTING.md`.
 
 ## Where things are documented
 
 Each thing lives in one place; the others link to it instead of copying it.
 
-- `README.md`: what the package is, installation, an overview of the API and releasing a version.
+- `README.md`: what the package is, installation and a quick start; it links to the rest.
+- `CONTRIBUTING.md`: development, CI and releasing a version.
 - `skill/laravel-inertia-datatable/`: how to use it, for people and AI (`SKILL.md` is the workflow, `references/` the details of the backend, React, Vue and tests).
 - `docs/contract.md`: the HTTP contract between client and server (URL, response, normalization).
 - `CHANGELOG.md`: the changes of each version, with the migration of the breaking ones.
