@@ -344,49 +344,94 @@ test('a select row with "is" still shows in the toolbar, which replaces it', asy
     expect(query(page)).toBe('?filter[status]=active');
 });
 
-test('the rows without a value join the other rows of their column with or', async ({
+test('the rows without a value are an option of every select row of their column', async ({
     page,
 }) => {
-    await openFilterList(page);
+    const categoryValue = (row: number) =>
+        filterRows(page)
+            .nth(row)
+            .getByRole('button', { name: 'Category value' });
 
+    await openFilterList(page);
     await addFilter(page, 'Category');
-    await filterList(page)
-        .getByRole('button', { name: 'Category value' })
-        .click();
+    await categoryValue(0).click();
     await visit(page, () =>
         page.getByRole('option', { name: /Books/ }).click(),
     );
+    await visit(page, () =>
+        page.getByRole('option', { name: /No category/ }).click(),
+    );
     await page.keyboard.press('Escape');
 
-    await addFilter(page, 'Price');
+    // The server adds the rows without a category with OR to Books: one row.
+    expect(query(page)).toMatch(
+        /^\?filter\[category\]\[\d*\]=Books&filter\[category\]\[\d*\]=is\.empty$/,
+    );
+    await expect(filterRows(page)).toHaveCount(1);
+    await expect(categoryValue(0)).toHaveText('Books, No category');
 
+    // A second row of the column also takes them: (Books or none) and
+    // (Garden or none) is what the server applies.
     await addFilter(page, 'Category');
-    await filterRows(page)
-        .last()
-        .getByRole('combobox', { name: 'Category operator' })
+    await expect(categoryValue(1)).toHaveText('No category');
+    await categoryValue(1).click();
+    await visit(page, () =>
+        page.getByRole('option', { name: /Garden/ }).click(),
+    );
+    expect(query(page).match(/is\.empty/g)).toHaveLength(1);
+    await expect(categoryValue(1)).toHaveText('Garden, No category');
+
+    // Removing them on a row removes them on every row of the column.
+    await visit(page, () =>
+        page.getByRole('option', { name: /No category/ }).click(),
+    );
+    await page.keyboard.press('Escape');
+    expect(query(page)).not.toContain('is.empty');
+    await expect(categoryValue(0)).toHaveText('Books');
+    await expect(categoryValue(1)).toHaveText('Garden');
+});
+
+test('an "Is empty" row goes inside the range row of its column as a check', async ({
+    page,
+}) => {
+    await openFilterList(page);
+    await addFilter(page, 'Weight');
+    await filterList(page)
+        .getByRole('combobox', { name: 'Weight operator' })
         .click();
     await visit(page, () =>
         page.getByRole('option', { name: 'Is empty', exact: true }).click(),
     );
 
-    // The server adds the rows without a category with OR to Books.
-    expect(query(page)).toMatch(
-        /^\?filter\[category\]\[\d*\]=Books&filter\[category\]\[\d*\]=is\.empty$/,
-    );
-    await expect(filterRows(page)).toHaveCount(3);
-    const empty = filterRows(page).nth(1);
-    await expect(empty).toHaveAttribute('data-column', 'category');
-    await expect(empty).toHaveAttribute('data-group', 'empty');
-    await expect(empty).toContainText('or');
-    await expect(filterRows(page).nth(2)).toHaveAttribute(
-        'data-column',
-        'price',
-    );
+    // Alone, "Is empty" is its own row: only the rows without a weight.
+    expect(query(page)).toBe('?filter[weight]=is.empty');
+    await expect(filterRows(page)).toHaveCount(1);
     await expect(
+        filterRows(page).getByRole('checkbox', { name: 'or no value' }),
+    ).toHaveCount(0);
+
+    await addFilter(page, 'Weight');
+    await visit(page, () =>
         filterRows(page)
-            .nth(2)
-            .getByRole('combobox', { name: 'Combine filters' }),
-    ).toHaveText('and');
+            .last()
+            .getByRole('spinbutton', { name: 'Weight value: From' })
+            .fill('1'),
+    );
+
+    // With a range, it is part of it: (from 1) or no weight. The URL does not
+    // change, only how the list shows it.
+    expect(query(page)).toMatch(/filter\[weight\]\[\d*\]=1,/);
+    expect(query(page)).toMatch(/filter\[weight\]\[\d*\]=is\.empty/);
+    await expect(filterRows(page)).toHaveCount(1);
+    const orEmpty = filterRows(page).getByRole('checkbox', {
+        name: 'or no value',
+    });
+    await expect(orEmpty).toBeChecked();
+    expect(new Set(await columnTexts(page, WEIGHT))).toContain('—');
+
+    await visit(page, () => orEmpty.click());
+    expect(query(page)).toBe('?filter[weight]=1,');
+    await expect(orEmpty).not.toBeChecked();
 });
 
 test('a toolbar filter marks the filters of its column it can not show', async ({
