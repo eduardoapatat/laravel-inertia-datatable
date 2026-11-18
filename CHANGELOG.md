@@ -4,6 +4,12 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.16.2] - 2026-11-18
+
+### Fixed
+
+- `DataTableFilterList` (React and Vue): the rows without a value of a column (`is.empty`) show inside the rows of that column, as in the toolbar: "No category" is an option of a "Has any of" row, and the other operators get an "or no value" check next to the value. With several rows of the column, every one of them shows it, so the list reads as the server applies it (`(Books or none) and (Garden or none)`); in 0.16.1 a lone "or Is empty" row read as if it joined only the row above it. "Is empty" stays a row of its own when the column has no other filter. The URL and the server do not change. The "Filters" count counts rows. New UI text `filter_or_empty` in `lang/*/ui.php`; update the UI with `php artisan inertia-datatable:ui --update`.
+
 ## [0.16.1] - 2026-11-15
 
 ### Fixed
@@ -405,7 +411,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.1...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.2...HEAD
+[0.16.2]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.1...v0.16.2
 [0.16.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.14.3...v0.15.0
