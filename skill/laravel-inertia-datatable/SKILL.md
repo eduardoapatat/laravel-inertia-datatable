@@ -99,6 +99,7 @@ Write feature tests in the app's test style (see `references/testing.md`): autho
 - **Columns are 150px wide by default.** A long text (`limit(60)`) is cut earlier: set `size` on that column in the table component and pass the same widths to the first-load skeleton (`sizes` of `DataTableSkeleton`), or the page jumps when the data arrives.
 - **Several tables on one page** need `name()` (query parameter prefix) and distinct prop names.
 - **Encoded URLs** (`filter%5Bstatus%5D=a%2Cb`) come from Inertia (`$request->fullUrl()`), not from the package; for readable URLs add `urlResolver()` to `HandleInertiaRequests` ("Readable URLs" in `references/react.md`).
+- **`Cannot find module 'cn'` after installing the UI.** The latest shadcn and shadcn-vue write some `components/ui/*` files with `import { cn } from "cn"` and add the `cn` package (shadcn's, a replacement of clsx + tailwind-merge) to `package.json`. When the build cannot find it, the package was not installed: run the install of the project's package manager (`pnpm install`) instead of rewriting the imports. The DataTable files keep using `cn` from `@/lib/utils`.
 - **Case-insensitive matching of non-ASCII letters** (`Á`/`á`) does not work on SQLite; it does on MySQL/PostgreSQL.
 
 ## References

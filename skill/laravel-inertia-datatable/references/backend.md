@@ -6,6 +6,7 @@
 - Relations, enums and options
 - Tables scoped to a parent model
 - Several tables on one page
+- Computed values
 - Shaping rows
 - Configuration
 - URL contract (query string)
@@ -134,9 +135,32 @@ return Inertia::render('customers/show', [
 
 Give each table a `name()`; its parameters get a prefix (`orders_page`, `orders_filter[status]`…), so the tables do not share state. Use distinct prop names and pass each one to its own `useServerDataTable` call. The frontend reads the effective parameter names from the response, nothing else to configure.
 
+## Computed values
+
+Compute a value in SQL, as an alias of `query()`: the row reads it like any other column, in the same query (no N+1), and the relation columns keep working.
+
+```php
+public function query(): Builder
+{
+    return Product::query()
+        ->addSelect(['stock' => Stock::query()                // correlated subquery
+            ->selectRaw('coalesce(sum(quantity), 0)')
+            ->whereColumn('stocks.product_id', 'products.id')])
+        ->withCasts(['stock' => 'integer'])
+        ->withCount('reviews');                               // reviews_count
+}
+
+// columns()
+Column::number('stock', 'Stock'),
+Column::number('reviews_count', 'Reviews'),
+```
+
+- An alias is only displayed: it cannot be `sortable()`, `searchable()` or filtered, since it is not a column of the table (`validate_columns` throws).
+- Prefer it to an accessor in `$appends` that queries (it runs once per row) and to `transform()`, which is for presentation values (URLs, labels).
+
 ## Shaping rows
 
-By default each row holds the visible columns plus `alwaysInclude()` keys, taken from the model's `toArray()` (respects `$hidden`, casts, date format). Override `transform(Model $model): array` (class) or pass `->transform(fn ...)` (quick form) to return a custom array — extra keys such as URLs are kept; keys of hidden columns are removed.
+By default each row holds the visible columns plus `alwaysInclude()` keys, taken from the model's `toArray()` (respects `$hidden`, casts, date format). Override `transform(Model $model): array` (class) or pass `->transform(fn ...)` (quick form) to return a custom array — extra keys such as URLs are kept; keys of hidden columns are removed. The relation columns (`from()`) the array leaves out, or gives the related model to (as `...$model->toArray()` does), get their value as without `transform()`; a scalar or list the array gives them is kept.
 
 Never expose attributes only because a column exists: `$hidden` still applies to the default rows.
 

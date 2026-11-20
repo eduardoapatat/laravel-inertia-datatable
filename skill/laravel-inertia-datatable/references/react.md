@@ -214,6 +214,17 @@ columnHelper.accessor('price', {
 - A narrow column must still fit its header and its padding: an end-aligned column has `pe-8`, so with `w-20` give it less (`className: 'w-20 pe-2'`).
 - The table grows to the sum of its columns and scrolls horizontally when it does not fit; when it fits, the extra space is shared.
 - Pinned columns compute their offset from `size`: give them `size`, not width classes.
+- To pin columns (for example, the actions at the end, so they stay visible while the table scrolls), set TanStack's pinning state once the table exists; the server state does not include it, so it survives the visits. With SSR the column gets pinned on hydration.
+
+```tsx
+const { table } = useServerDataTable({ table: products, prop: 'products', columns });
+
+React.useEffect(() => {
+    table.setColumnPinning({ start: ['select'], end: ['actions'] });
+}, [table]);
+```
+
+  Give pinned columns a `size` and keep their sum below the width of the container: pinned columns do not scroll, so if they take all of it, the rest of the table cannot be seen.
 
 Row height and row classes are props of `<DataTable>`; the classes go on the `<tr>`, so cell padding is changed with `[&>th]` / `[&>td]`:
 

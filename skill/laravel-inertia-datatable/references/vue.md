@@ -206,6 +206,15 @@ columnHelper.accessor('price', {
 - Alignment goes in `meta.align` (`start`, `center`, `end`), never as `text-right` in `className`. Number columns are `end` by default.
 - `meta.className` goes to the header and the cells, `headerClassName` / `cellClassName` to one of them. Cells cut what does not fit with "…" (`text-ellipsis`); `cellClassName: 'text-clip'` undoes it.
 - Pinned columns compute their offset from `size`: give them `size`, not width classes.
+- To pin columns (for example, the actions at the end, so they stay visible while the table scrolls), set TanStack's pinning state once the table exists; the server state does not include it, so it survives the visits. With SSR the column gets pinned on hydration.
+
+```ts
+const { table } = useServerDataTable({ table: () => props.products, prop: 'products', columns });
+
+onMounted(() => table.setColumnPinning({ start: ['select'], end: ['actions'] }));
+```
+
+  Give pinned columns a `size` and keep their sum below the width of the container: pinned columns do not scroll, so if they take all of it, the rest of the table cannot be seen.
 
 Row and header classes are props of `<DataTable>`; the classes go on the `<tr>`, so cell padding is changed with `[&>th]` / `[&>td]`:
 
