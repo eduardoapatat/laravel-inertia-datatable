@@ -215,3 +215,16 @@ it('accepts the option without value on a to-many column', function () {
 
     expect(resolveToMany(taggedMembersTable())['facets']['tags'])->toHaveCount(4);
 });
+
+it('resolves the to-many columns of a transformed row', function () {
+    $rows = resolveToMany(
+        taggedMembersTable()->transform(fn (Member $member): array => ['id' => $member->id, 'name' => $member->name]),
+    )['data'];
+
+    expect(array_column($rows, 'tags', 'name'))->toBe([
+        'Ana' => ['Red', 'Blue'],
+        'Bob' => ['Blue'],
+        'Cid' => [],
+        'Dan' => ['Blue', 'Green'],
+    ]);
+});

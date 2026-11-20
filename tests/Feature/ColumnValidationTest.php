@@ -167,3 +167,10 @@ it('follows the debug mode by default', function (bool $debug) {
         ? expect($resolve)->toThrow(LogicException::class, 'has no value to display')
         : expect($resolve()['data'][0]['nickname'])->toBeNull();
 })->with(['debug on' => true, 'debug off' => false]);
+
+it('checks the relation columns of a transformed table', function () {
+    Product::factory()->for(Category::factory())->create();
+
+    resolveTable(productsTable(Column::text('category', 'Category')->from('category.nme'))
+        ->transform(fn (Product $product): array => $product->toArray()));
+})->throws(LogicException::class, 'The column [category] has no value to display: [nme] is not a column of [categories]');

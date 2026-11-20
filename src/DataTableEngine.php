@@ -81,8 +81,12 @@ final class DataTableEngine
         $models = $rows->forPage($page, $state->perPage)->get();
         $first = $models->first();
 
-        if ($validate && $definition->transformer === null && $first instanceof Model) {
-            $this->validator->ensureDisplayedColumnsExist($definition, $state->visibleColumns, $first);
+        if ($validate && $first instanceof Model) {
+            // With transform() only the relation columns come from the model: the rest
+            // come from the transformer.
+            $this->validator->ensureDisplayedColumnsExist($definition, $definition->transformer === null
+                ? $state->visibleColumns
+                : array_values(array_filter($state->visibleColumns, fn (string $id): bool => $definition->columns[$id]->relation() !== null)), $first);
         }
 
         $data = $models
@@ -238,6 +242,17 @@ final class DataTableEngine
                 unset($row[$hiddenId]);
             }
 
+            // A relation column keeps the value the transformer gives it; when it gives
+            // none (or the related model itself, as `$model->toArray()` does), it gets the
+            // value of the relation, as without transform().
+            foreach ($state->visibleColumns as $id) {
+                $column = $definition->columns[$id];
+
+                if ($column->relation() !== null && ! $this->isCellValue($row[$id] ?? null)) {
+                    $row[$id] = $this->relationValue($model, $column);
+                }
+            }
+
             return $row;
         }
 
@@ -258,22 +273,38 @@ final class DataTableEngine
                 continue;
             }
 
-            $related = $model->getRelation($relation);
-
-            $row[$id] = match (true) {
-                $related instanceof Model => $related->toArray()[$column->attribute()] ?? null,
-                // To-many: the distinct values, in the order of the relation, without empty ones.
-                $related instanceof Collection => $related
-                    ->map(fn (Model $item): mixed => $item->toArray()[$column->attribute()] ?? null)
-                    ->reject(fn (mixed $value): bool => $value === null || $value === '')
-                    ->unique()
-                    ->values()
-                    ->all(),
-                default => null,
-            };
+            $row[$id] = $this->relationValue($model, $column);
         }
 
         return $row;
+    }
+
+    /**
+     * The value of a relation column: the attribute of the related model, or the list
+     * of distinct values of a to-many relation.
+     */
+    private function relationValue(Model $model, Column $column): mixed
+    {
+        $related = $model->getRelation((string) $column->relation());
+
+        return match (true) {
+            $related instanceof Model => $related->toArray()[$column->attribute()] ?? null,
+            // To-many: the distinct values, in the order of the relation, without empty ones.
+            $related instanceof Collection => $related
+                ->map(fn (Model $item): mixed => $item->toArray()[$column->attribute()] ?? null)
+                ->reject(fn (mixed $value): bool => $value === null || $value === '')
+                ->unique()
+                ->values()
+                ->all(),
+            default => null,
+        };
+    }
+
+    /** A value a cell can show: a scalar or a list of scalars, not a related model. */
+    private function isCellValue(mixed $value): bool
+    {
+        return is_scalar($value)
+            || (is_array($value) && array_is_list($value) && array_filter($value, fn (mixed $item): bool => ! is_scalar($item)) === []);
     }
 
     /**

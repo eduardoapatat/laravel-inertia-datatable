@@ -479,7 +479,8 @@ it('shapes each row with the transform method and removes hidden column keys', f
 
     $response = getJson('/products-with-url');
 
-    $response->assertOk()->assertJsonPath('data.0', ['id' => $product->id, 'name' => 'Lámpara', 'url' => "/products/{$product->id}"]);
+    // The relation column the transformer leaves out is resolved as without transform().
+    $response->assertOk()->assertJsonPath('data.0', ['id' => $product->id, 'name' => 'Lámpara', 'url' => "/products/{$product->id}", 'category' => null]);
 });
 
 /**
@@ -501,3 +502,35 @@ function productId(string $name): int
 {
     return (int) Product::query()->where('name', $name)->value('id');
 }
+
+it('resolves the relation columns of a transformed row', function () {
+    seedCatalog();
+
+    $rows = DataTable::for(Product::query()->orderBy('name'))
+        ->columns([
+            Column::text('name'),
+            Column::option('category')->from('category.name'),
+        ])
+        ->transform(fn (Product $product): array => [...$product->toArray(), 'url' => "/products/{$product->id}"])
+        ->withRequest(Request::create('/'))
+        ->toArray()['data'];
+
+    expect(array_map(fn (array $row): array => [$row['name'], $row['category'], $row['url']], $rows))->toBe([
+        ['Lámpara', 'Hogar', '/products/'.productId('Lámpara')],
+        ['Mesa', 'Hogar', '/products/'.productId('Mesa')],
+        ['Silla', 'Oficina', '/products/'.productId('Silla')],
+        ['Teclado', null, '/products/'.productId('Teclado')],
+    ]);
+});
+
+it('keeps the value a transformer gives to a relation column', function () {
+    seedCatalog();
+
+    $rows = DataTable::for(Product::query()->orderBy('name'))
+        ->columns([Column::option('category')->from('category.name')])
+        ->transform(fn (Product $product): array => ['category' => strtoupper((string) $product->category?->name)])
+        ->withRequest(Request::create('/'))
+        ->toArray()['data'];
+
+    expect(array_column($rows, 'category'))->toBe(['HOGAR', 'HOGAR', 'OFICINA', '']);
+});

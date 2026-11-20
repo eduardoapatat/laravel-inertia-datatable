@@ -70,7 +70,7 @@ final class ColumnValidator
     /**
      * Displayed columns must have a value in the serialized model: a column, an
      * alias of the query (`withCount`, `addSelect`) or an attribute in `$appends`.
-     * Only the first row is checked; tables with `transform()` are skipped.
+     * Only the first row is checked; with `transform()`, only the relation columns.
      *
      * @param  list<string>  $visibleColumns
      */
