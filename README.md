@@ -18,8 +18,8 @@ php artisan inertia-datatable:ui --update   # later, to bring the DataTable file
 The UI comes from the shadcn registry of the same version as the package, for the framework of the Inertia adapter in `package.json` (`--react` or `--vue` force one). By hand:
 
 ```bash
-pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.2/r/data-table-react.json
-pnpm dlx shadcn-vue@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.2/r/data-table-vue.json   # Vue
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.3/r/data-table-react.json
+pnpm dlx shadcn-vue@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.3/r/data-table-vue.json   # Vue
 ```
 
 To install the package from GitHub or a local folder, add a `vcs` or `path` repository to `composer.json` and require `eduardoapatat/laravel-inertia-datatable:@dev`.
@@ -29,7 +29,7 @@ To install the package from GitHub or a local folder, add a `vcs` or `path` repo
 So Claude Code knows how to install the package and create tables in your project (it goes in `.claude/skills/laravel-inertia-datatable/`):
 
 ```bash
-pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.2/r/data-table-skill.json
+pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.3/r/data-table-skill.json
 ```
 
 ## Quick start

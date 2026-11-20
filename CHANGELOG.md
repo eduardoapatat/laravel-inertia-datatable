@@ -4,6 +4,19 @@ All notable changes to this package are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [0.16.3] - 2026-11-20
+
+### Fixed
+
+- With `transform()`, the relation columns (`from('category.name')`, `from('tags.name')`) the transformer leaves out, or gives the related model to (as `...$model->toArray()` does), get the value of the relation, as without `transform()`: before, a to-one column showed the related model and a to-many column was empty. A scalar or list the transformer gives them is kept. `validate_columns` now also checks the relation columns of a transformed table.
+- The focus ring of the column header menu (React and Vue) is no longer cut by the edge of the cell; a long label is truncated with "…" and shown whole in its title. Update the UI with `php artisan inertia-datatable:ui --update`.
+
+### Documentation
+
+- Computed values as SQL aliases of `query()` (`addSelect` with a correlated subquery and `withCasts()`, `withCount`), in the backend reference of the skill.
+- How to pin columns (the actions at the end) with `setColumnPinning`, in the React and Vue references.
+- `Cannot find module 'cn'` after installing the UI: the latest shadcn and shadcn-vue import the `cn` package in some `ui/` files; install it with the project's package manager.
+
 ## [0.16.2] - 2026-11-18
 
 ### Fixed
@@ -411,7 +424,8 @@ First published version: Laravel backend and React UI.
 - Claude Code skill (`data-table-skill`) to install the package and create tables.
 - CI: tests with PHP 8.3 to 8.5 and Laravel 12 and 13, MySQL and Postgres, rebuilt registry, and a real install in the React starter kit with npm and pnpm (also every week).
 
-[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.2...HEAD
+[Unreleased]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.3...HEAD
+[0.16.3]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.2...v0.16.3
 [0.16.2]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.1...v0.16.2
 [0.16.1]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/eduardoapatat/laravel-inertia-datatable/compare/v0.15.0...v0.16.0

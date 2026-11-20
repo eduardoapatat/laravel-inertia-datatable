@@ -42,7 +42,7 @@ Frontend (once per project):
 php artisan inertia-datatable:ui
 ```
 
-It installs the UI of the same version as the backend, for the framework of the Inertia adapter in package.json (`--react` or `--vue` forces one). Manual equivalent: `pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.2/r/data-table-react.json`, or in Vue `pnpm dlx shadcn-vue@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.2/r/data-table-vue.json`.
+It installs the UI of the same version as the backend, for the framework of the Inertia adapter in package.json (`--react` or `--vue` forces one). Manual equivalent: `pnpm dlx shadcn@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.3/r/data-table-react.json`, or in Vue `pnpm dlx shadcn-vue@latest add https://raw.githubusercontent.com/eduardoapatat/laravel-inertia-datatable/v0.16.3/r/data-table-vue.json`.
 
 When the CLI asks to overwrite existing `components/ui/*` files, answer **no**: the table only needs variants the Laravel starter kits already have, and overwriting would change components the app already uses. In a non-interactive shell, pipe the answers: `yes n | pnpm dlx shadcn@latest add <url> -y` (`shadcn-vue@latest` in Vue). `inertia-datatable:ui` already does this. Then run the project's type check and lint.
 
