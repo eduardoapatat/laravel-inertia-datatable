@@ -94,13 +94,14 @@ function DataTableColumnHeaderMenu<TData extends RowData, TValue>({
         <DropdownMenu>
             <DropdownMenuTrigger
                 className={cn(
-                    'inline-flex h-8 items-center gap-1.5 rounded-md px-2 py-1.5 group-data-[align=end]/head:-me-2 group-data-[align=start]/head:-ms-2 hover:bg-accent focus:ring-1 focus:ring-ring focus:outline-none data-[state=open]:bg-accent rtl:flex-row-reverse [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
+                    'inline-flex h-8 max-w-full min-w-0 items-center gap-1.5 rounded-md px-2 py-1.5 group-data-[align=end]/head:-me-1.5 group-data-[align=start]/head:-ms-1.5 hover:bg-accent focus:ring-1 focus:ring-ring focus:outline-none data-[state=open]:bg-accent rtl:flex-row-reverse [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground',
                     className,
                 )}
                 aria-label={getMessage(column.table, 'column_menu', { label })}
+                title={label}
                 {...props}
             >
-                {label}
+                <bdi className="truncate">{label}</bdi>
                 {column.getCanSort() &&
                     (sortDirection === 'desc' ? (
                         <ChevronDown />

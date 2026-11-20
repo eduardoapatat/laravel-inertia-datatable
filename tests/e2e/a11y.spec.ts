@@ -27,6 +27,37 @@ test('the header menu and the toolbar filter of a column have different names', 
     ).toHaveCount(1);
 });
 
+test('the focus ring of a header menu fits inside its cell', async ({
+    page,
+}) => {
+    // Status is aligned at the start and Price at the end: the ring (1px) must
+    // not reach the edge of the cell, which clips what overflows it.
+    for (const label of ['Status', 'Price']) {
+        const button = dataTable(page)
+            .locator('thead')
+            .getByRole('button', { name: `${label} column options` });
+
+        await button.focus();
+
+        const box = await button.boundingBox();
+        const cell = await dataTable(page)
+            .locator('thead th', {
+                has: page.getByRole('button', {
+                    name: `${label} column options`,
+                }),
+            })
+            .boundingBox();
+
+        expect(box, label).not.toBeNull();
+        expect(cell, label).not.toBeNull();
+        expect(box!.x - cell!.x, label).toBeGreaterThanOrEqual(1);
+        expect(
+            cell!.x + cell!.width - (box!.x + box!.width),
+            label,
+        ).toBeGreaterThanOrEqual(1);
+    }
+});
+
 test('the search field of a select filter has a name', async ({ page }) => {
     await toolbar(page).getByRole('button', { name: 'Category' }).click();
 
